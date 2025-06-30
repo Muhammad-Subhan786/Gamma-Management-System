@@ -1,0 +1,2 @@
+[phases.setup]
+working_directory = "server" 
