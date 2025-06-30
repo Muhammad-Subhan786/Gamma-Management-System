@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+  
+  .btn-success {
+    @apply bg-success-600 hover:bg-success-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2;
+  }
+  
+  .btn-warning {
+    @apply bg-warning-600 hover:bg-warning-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2;
+  }
+  
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+  
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  }
+  
+  .modal-content {
+    @apply bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto;
+  }
+}
+
+/* Trello-style board for tasks */
+.trello-col {
+  background: linear-gradient(135deg, #f3f4f6 80%, #e0e7ff 100%);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px 0 rgba(80, 80, 160, 0.08);
+  min-height: 400px;
+  transition: box-shadow 0.2s;
+}
+.trello-col:active, .trello-col:focus, .trello-col.drag-over {
+  box-shadow: 0 4px 16px 0 rgba(80, 80, 160, 0.18);
+}
+.trello-card {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 4px 0 rgba(80, 80, 160, 0.10);
+  border-left-width: 6px;
+  border-left-color: #6366f1;
+  background: white;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.trello-card:active, .trello-card:focus, .trello-card.dragging {
+  box-shadow: 0 4px 16px 0 rgba(80, 80, 160, 0.18);
+  border-left-color: #a21caf;
+} 
