@@ -9,14 +9,14 @@ COPY client/package*.json ./client/
 
 # Install dependencies
 RUN npm install
-RUN cd server && npm install
-RUN cd ../client && npm install
+RUN cd /app/server && npm install
+RUN cd /app/client && npm install
 
 # Copy source code
 COPY . .
 
 # Build React app
-RUN cd client && npm run build
+RUN cd /app/client && npm run build
 
 # Expose port
 EXPOSE 5000
