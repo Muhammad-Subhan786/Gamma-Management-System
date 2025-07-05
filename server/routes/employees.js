@@ -308,24 +308,23 @@ router.get('/profile-picture/:employeeId', async (req, res) => {
   }
 });
 
-// Get all employees
+// Get all employees (admin only)
 router.get('/', async (req, res) => {
   try {
-    const employees = await Employee.find({}, '-password');
-    // Only return necessary fields for the frontend
-    const employeeList = employees.map(emp => ({
-      _id: emp._id,
-      name: emp.name,
-      email: emp.email,
-      position: emp.position,
-      profilePicture: emp.profilePicture,
-      employeeId: emp.employeeId,
-      role: emp.role,
-      // add more fields if needed
-    }));
-    res.json(employeeList);
+    console.log('👥 Fetching all employees...');
+    const employees = await Employee.find({ isActive: true })
+      .select('-password')
+      .sort({ name: 1 });
+    
+    console.log(`✅ Found ${employees.length} active employees`);
+    res.json(employees);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error fetching employees:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch employees',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

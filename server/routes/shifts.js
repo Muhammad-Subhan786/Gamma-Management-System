@@ -6,12 +6,20 @@ const Employee = require('../models/Employee');
 // Get all shifts
 router.get('/', async (req, res) => {
   try {
+    console.log('📊 Fetching all shifts...');
     const shifts = await Shift.find()
       .populate('assignedEmployees.employeeId', 'name email position department profilePicture')
       .sort({ createdAt: -1 });
+    
+    console.log(`✅ Found ${shifts.length} shifts`);
     res.json(shifts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error fetching shifts:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch shifts',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
