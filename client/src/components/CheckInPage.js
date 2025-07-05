@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { attendanceAPI, analyticsAPI } from '../services/api';
+import { attendanceAPI, analyticsAPI, employeeAPI } from '../services/api';
 import { Clock, User, LogIn, LogOut, AlertTriangle, CheckCircle, Users, Heart, Coffee, Home, Code, Globe, Zap } from 'lucide-react';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
@@ -42,10 +42,9 @@ const CheckInPage = () => {
       const response = await analyticsAPI.getSummary();
       // Get today's attendance data
       const today = moment().startOf('day');
-      const checkInsResponse = await fetch(`/api/attendance/today-checkins?date=${today.format('YYYY-MM-DD')}`);
-      if (checkInsResponse.ok) {
-        const data = await checkInsResponse.json();
-        setTodayCheckIns(data);
+      const checkInsResponse = await attendanceAPI.getTodayCheckIns(today.format('YYYY-MM-DD'));
+      if (checkInsResponse.data) {
+        setTodayCheckIns(checkInsResponse.data);
       }
     } catch (error) {
       console.error('Error loading check-ins:', error);
@@ -75,9 +74,9 @@ const CheckInPage = () => {
   useEffect(() => {
     if (formData.employeeId) {
       const id = formData.employeeId.trim().toLowerCase();
-      fetch(`/api/employees/search/${id}`)
-        .then(res => res.json())
-        .then(data => {
+      employeeAPI.search(id)
+        .then(response => {
+          const data = response.data;
           // If search returns an array, find exact match (case-insensitive)
           const found = Array.isArray(data)
             ? data.find(emp => emp.employeeId && emp.employeeId.toLowerCase() === id)
@@ -401,7 +400,7 @@ const CheckInPage = () => {
                       <div className="mt-3 pt-3 border-t border-blue-200">
                         <div className="flex items-center space-x-3">
                           {employeeData.profilePicture && (
-                            <img src={`/api/employees/profile-picture/${employeeData._id}`} alt={employeeData.name} className="w-8 h-8 rounded-full object-cover" />
+                            <img src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/employees/profile-picture/${employeeData._id}`} alt={employeeData.name} className="w-8 h-8 rounded-full object-cover" />
                           )}
                           <span className="font-semibold text-gray-900">{employeeData.name}</span>
                         </div>
@@ -545,7 +544,7 @@ const CheckInPage = () => {
                         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
                           {checkIn.employee.profilePicture ? (
                             <img 
-                              src={`/api/employees/profile-picture/${checkIn.employee._id}`}
+                              src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/employees/profile-picture/${checkIn.employee._id}`}
                               alt={checkIn.employee.name}
                               className="w-12 h-12 object-cover"
                               onError={(e) => {
