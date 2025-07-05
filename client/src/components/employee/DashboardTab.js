@@ -45,12 +45,16 @@ const DashboardTab = ({ employee }) => {
   const [goalError, setGoalError] = useState('');
 
   useEffect(() => {
-    loadAttendanceData();
-    loadCurrentShift();
-    loadGoal();
-  }, [employee._id, currentMonth]);
+    if (employee && employee._id) {
+      loadAttendanceData();
+      loadCurrentShift();
+      loadGoal();
+    }
+  }, [employee?._id, currentMonth]);
 
   const loadAttendanceData = async () => {
+    if (!employee || !employee._id) return;
+    
     setLoading(true);
     try {
       const token = localStorage.getItem('employeeToken');
@@ -76,6 +80,8 @@ const DashboardTab = ({ employee }) => {
   };
 
   const loadCurrentShift = async () => {
+    if (!employee || !employee._id) return;
+    
     try {
       const response = await shiftAPI.getAll();
       const now = new Date();
@@ -85,7 +91,9 @@ const DashboardTab = ({ employee }) => {
       // Find current shift for this employee
       const activeShift = response.data.find(shift => 
         shift.isActive && 
+        shift.assignedEmployees && 
         shift.assignedEmployees.some(assignment => 
+          assignment.employeeId && 
           assignment.employeeId._id === employee._id
         ) &&
         shift.daysOfWeek.includes(currentDay) && 
@@ -100,6 +108,8 @@ const DashboardTab = ({ employee }) => {
   };
 
   const loadGoal = async () => {
+    if (!employee || !employee._id) return;
+    
     setGoalLoading(true);
     setGoalError('');
     try {

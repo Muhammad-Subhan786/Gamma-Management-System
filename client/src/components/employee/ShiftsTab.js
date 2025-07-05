@@ -18,18 +18,22 @@ const ShiftsTab = ({ employee }) => {
   const [currentShift, setCurrentShift] = useState(null);
 
   useEffect(() => {
-    if (employee) {
+    if (employee && employee._id) {
       loadAssignedShifts();
     }
-  }, [employee]);
+  }, [employee?._id]);
 
   const loadAssignedShifts = async () => {
+    if (!employee || !employee._id) return;
+    
     setLoading(true);
     try {
       const response = await shiftAPI.getAll();
       // Filter shifts where this employee is assigned
       const employeeShifts = response.data.filter(shift => 
+        shift.assignedEmployees && 
         shift.assignedEmployees.some(assignment => 
+          assignment.employeeId && 
           assignment.employeeId._id === employee._id
         )
       );

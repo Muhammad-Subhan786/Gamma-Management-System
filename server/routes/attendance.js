@@ -505,4 +505,51 @@ router.get('/employee-shift-status', async (req, res) => {
   }
 });
 
+// Get employee shift status by ID
+router.get('/employee-shift-status-by-id', async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+    const today = moment().startOf('day');
+    
+    if (!employeeId) {
+      return res.status(400).json({ 
+        error: 'Employee ID is required' 
+      });
+    }
+
+    // Find employee by employeeId
+    const employee = await Employee.findOne({ 
+      employeeId: employeeId.trim().toLowerCase() 
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    // Get attendance record for today
+    const attendance = await Attendance.findOne({
+      employeeId: employee._id,
+      date: today.toDate()
+    });
+
+    const shiftEnded = attendance ? attendance.shiftEnded : false;
+    const shiftEndTime = attendance && attendance.shiftEndTime 
+      ? moment(attendance.shiftEndTime).format('YYYY-MM-DD HH:mm:ss')
+      : null;
+
+    res.json({
+      employee: {
+        name: employee.name,
+        email: employee.email
+      },
+      shiftEnded,
+      shiftEndTime,
+      message: shiftEnded ? 'Your shift has ended for today' : 'Your shift is active'
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router; 
