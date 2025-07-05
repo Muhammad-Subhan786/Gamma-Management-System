@@ -95,4 +95,14 @@ data/
 
 # Temporary files
 tmp/
-temp/ 
+temp/
+
+# Test files
+test-*.js
+*test*.js
+*.test.js
+
+# Large data files
+*.json
+!package.json
+!package-lock.json 
