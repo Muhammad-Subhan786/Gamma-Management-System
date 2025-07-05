@@ -1,0 +1,32 @@
+# Exclude uploads directory (contains binary files that might cause encoding issues)
+server/uploads/
+
+# Exclude node_modules (will be installed during build)
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Exclude test files
+test-*.js
+*test*.js
+*.test.js
+
+# Exclude large data files
+*.json
+!package.json
+!package-lock.json
+!server/package.json
+!server/package-lock.json
+!client/package.json
+!client/package-lock.json
+
+# Exclude environment files
+.env
+.env.*
+
+# Exclude logs
+*.log
+
+# Exclude temporary files
+tmp/
+temp/ 
