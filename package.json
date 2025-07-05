@@ -9,8 +9,7 @@
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
     "start": "cd server && npm start",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
-    "postinstall": "npm run install-all"
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "keywords": [
     "employee",

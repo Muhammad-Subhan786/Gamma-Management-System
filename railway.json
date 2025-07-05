@@ -1,7 +1,6 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "chmod +x build.sh && ./build.sh"
+    "builder": "NIXPACKS"
   },
   "deploy": {
     "startCommand": "npm start",
