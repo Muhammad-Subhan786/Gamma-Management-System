@@ -28,13 +28,6 @@ const SessionManagementTab = () => {
       color: 'blue'
     },
     {
-      id: 'ebay',
-      name: 'eBay Management',
-      description: 'Handle eBay listings and sales data',
-      icon: ShoppingCart,
-      color: 'green'
-    },
-    {
       id: 'tasks',
       name: 'Tasks',
       description: 'Manage and track tasks in a Trello-style board',

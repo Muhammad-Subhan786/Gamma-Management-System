@@ -220,7 +220,15 @@ const EmployeePortal = () => {
             </div>
           )
         ) : activeTab === 'aura_nest' ? (
-          <AuraNestTab />
+          hasSessionAccess('aura_nest') ? (
+            <AuraNestTab />
+          ) : (
+            <div className="text-center py-12">
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You don't have permission to access Aura Nest.</p>
+            </div>
+          )
         ) : activeTab === 'usps_labels' ? (
           hasSessionAccess('usps_labels') ? (
             <USPSLabelsTab employee={employee} />
