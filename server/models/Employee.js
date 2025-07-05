@@ -68,6 +68,11 @@ const employeeSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  bonuses: [{
+    amount: { type: Number, required: true },
+    reason: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+  }],
   isActive: {
     type: Boolean,
     default: true
@@ -75,6 +80,12 @@ const employeeSchema = new mongoose.Schema({
   allowedSessions: {
     type: [String],
     default: []
+  },
+  employeeId: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
   }
 }, {
   timestamps: true

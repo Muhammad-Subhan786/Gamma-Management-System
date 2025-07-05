@@ -362,18 +362,20 @@ const ShiftsTab = () => {
                 <p className="text-xs font-medium text-gray-500 mb-2">Assigned Employees:</p>
                 <div className="flex flex-wrap gap-1">
                   {shift.assignedEmployees.slice(0, 3).map((assignment) => (
-                    <div key={assignment.employeeId._id} className="flex items-center">
+                    <div key={assignment.employeeId?._id || Math.random()} className="flex items-center">
                       <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-                        {assignment.employeeId.profilePicture ? (
+                        {assignment.employeeId && assignment.employeeId.profilePicture ? (
                           <img 
                             src={`/api/employees/profile-picture/${assignment.employeeId._id}`}
                             alt={assignment.employeeId.name}
                             className="w-6 h-6 object-cover"
                           />
-                        ) : (
+                        ) : assignment.employeeId && assignment.employeeId.name ? (
                           <span className="text-xs font-medium text-gray-600">
                             {assignment.employeeId.name.charAt(0).toUpperCase()}
                           </span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-400">?</span>
                         )}
                       </div>
                     </div>

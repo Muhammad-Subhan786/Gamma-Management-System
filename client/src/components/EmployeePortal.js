@@ -18,8 +18,9 @@ import {
 import ProfileTab from './employee/ProfileTab';
 import DashboardTab from './employee/DashboardTab';
 import ShiftsTab from './employee/ShiftsTab';
-import USPSLabelsTab from './employee/USPSLabelsTab';
 import TasksBoard from './employee/TasksBoard';
+import AuraNestTab from './AuraNestTab';
+import USPSLabelsTab from './employee/USPSLabelsTab';
 
 const EmployeePortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -88,8 +89,9 @@ const EmployeePortal = () => {
       { id: 'dashboard', label: 'My Dashboard', icon: BarChart3, alwaysVisible: true },
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
-      { id: 'usps', label: 'My USPS Labels', icon: DollarSign, sessionId: 'usps_labels' },
-      { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' }
+      { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
+      { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
+      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
     ];
 
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
@@ -207,16 +209,6 @@ const EmployeePortal = () => {
           />
         ) : activeTab === 'shifts' ? (
           <ShiftsTab employee={employee} />
-        ) : activeTab === 'usps' ? (
-          hasSessionAccess('usps_labels') ? (
-            <USPSLabelsTab employee={employee} />
-          ) : (
-            <div className="text-center py-12">
-              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-              <p className="text-gray-600">You don't have permission to access USPS Labels.</p>
-            </div>
-          )
         ) : activeTab === 'tasks' ? (
           hasSessionAccess('tasks') ? (
             <TasksBoard employee={employee} />
@@ -225,6 +217,18 @@ const EmployeePortal = () => {
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
               <p className="text-gray-600">You don't have permission to access Tasks.</p>
+            </div>
+          )
+        ) : activeTab === 'aura_nest' ? (
+          <AuraNestTab />
+        ) : activeTab === 'usps_labels' ? (
+          hasSessionAccess('usps_labels') ? (
+            <USPSLabelsTab employee={employee} />
+          ) : (
+            <div className="text-center py-12">
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You don't have permission to access USPS Labels.</p>
             </div>
           )
         ) : (

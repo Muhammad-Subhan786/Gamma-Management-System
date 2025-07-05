@@ -23,7 +23,8 @@ import {
   Line
 } from 'recharts';
 import moment from 'moment';
-import { shiftAPI } from '../../services/api';
+import { shiftAPI, uspsGoalsAPI } from '../../services/api';
+import GoalMeter from './GoalMeter';
 
 const DashboardTab = ({ employee }) => {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -39,10 +40,14 @@ const DashboardTab = ({ employee }) => {
     lateDays: 0,
     onTimeDays: 0
   });
+  const [goal, setGoal] = useState(null);
+  const [goalLoading, setGoalLoading] = useState(true);
+  const [goalError, setGoalError] = useState('');
 
   useEffect(() => {
     loadAttendanceData();
     loadCurrentShift();
+    loadGoal();
   }, [employee._id, currentMonth]);
 
   const loadAttendanceData = async () => {
@@ -92,6 +97,20 @@ const DashboardTab = ({ employee }) => {
     } catch (error) {
       console.error('Error loading current shift:', error);
     }
+  };
+
+  const loadGoal = async () => {
+    setGoalLoading(true);
+    setGoalError('');
+    try {
+      const token = localStorage.getItem('employeeToken');
+      const response = await uspsGoalsAPI.getCurrentGoal();
+      setGoal(response.data || null);
+    } catch (err) {
+      setGoal(null);
+      setGoalError('No active goal for this month.');
+    }
+    setGoalLoading(false);
   };
 
   const calculateStats = (data) => {
@@ -168,6 +187,18 @@ const DashboardTab = ({ employee }) => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Monthly Goal Section */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Monthly Goal</h3>
+        {goalLoading ? (
+          <div className="text-gray-400">Loading goal...</div>
+        ) : goal ? (
+          <GoalMeter goal={goal} />
+        ) : (
+          <div className="text-gray-400">{goalError}</div>
+        )}
       </div>
 
       {/* Stats Cards */}

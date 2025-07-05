@@ -40,6 +40,13 @@ const SessionManagementTab = () => {
       description: 'Manage and track tasks in a Trello-style board',
       icon: CheckCircle,
       color: 'purple'
+    },
+    {
+      id: 'aura_nest',
+      name: 'Aura Nest',
+      description: 'Financial, inventory, and order management',
+      icon: DollarSign,
+      color: 'purple'
     }
   ];
 

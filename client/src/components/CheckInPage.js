@@ -6,8 +6,7 @@ import { Link } from 'react-router-dom';
 
 const CheckInPage = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: ''
+    employeeId: ''
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [checkInStatus, setCheckInStatus] = useState(null);
@@ -20,6 +19,7 @@ const CheckInPage = () => {
   const [shiftEndTime, setShiftEndTime] = useState(null);
   const [employeeShiftEnded, setEmployeeShiftEnded] = useState(false);
   const [employeeShiftEndTime, setEmployeeShiftEndTime] = useState(null);
+  const [employeeData, setEmployeeData] = useState(null);
 
   // Update current time every second
   useEffect(() => {
@@ -71,19 +71,36 @@ const CheckInPage = () => {
     });
   };
 
+  // Fetch employee data when employeeId changes
+  useEffect(() => {
+    if (formData.employeeId) {
+      const id = formData.employeeId.trim().toLowerCase();
+      fetch(`/api/employees/search/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          // If search returns an array, find exact match (case-insensitive)
+          const found = Array.isArray(data)
+            ? data.find(emp => emp.employeeId && emp.employeeId.toLowerCase() === id)
+            : null;
+          setEmployeeData(found || null);
+        })
+        .catch(() => setEmployeeData(null));
+    } else {
+      setEmployeeData(null);
+    }
+  }, [formData.employeeId]);
+
   const checkEmployeeShiftStatus = async () => {
-    if (!formData.name && !formData.email) {
+    if (!formData.employeeId) {
       setEmployeeShiftEnded(false);
       setEmployeeShiftEndTime(null);
       return;
     }
-
     try {
-      const response = await attendanceAPI.getEmployeeShiftStatus(formData.name, formData.email);
+      const response = await attendanceAPI.getEmployeeShiftStatusById(formData.employeeId);
       setEmployeeShiftEnded(response.data.shiftEnded);
       setEmployeeShiftEndTime(response.data.shiftEndTime);
     } catch (error) {
-      // If employee not found or other error, assume shift is active
       setEmployeeShiftEnded(false);
       setEmployeeShiftEndTime(null);
     }
@@ -96,14 +113,14 @@ const CheckInPage = () => {
     }, 500); // Debounce the check
 
     return () => clearTimeout(timeoutId);
-  }, [formData.name, formData.email]);
+  }, [formData.employeeId]);
 
   const handleCheckIn = async (e) => {
     e.preventDefault();
-    if (!formData.name && !formData.email) {
+    if (!formData.employeeId) {
       setModalData({
         title: 'Hey there! 👋',
-        message: 'Please let us know who you are so we can welcome you properly!',
+        message: 'Please enter your Employee ID so we can welcome you properly!',
         type: 'error'
       });
       setShowModal(true);
@@ -122,7 +139,7 @@ const CheckInPage = () => {
 
     setLoading(true);
     try {
-      const response = await attendanceAPI.checkIn(formData);
+      const response = await attendanceAPI.checkIn({ employeeId: formData.employeeId });
       setCheckInStatus(response.data);
       
       setModalData({
@@ -132,12 +149,13 @@ const CheckInPage = () => {
           : `${response.data.message} You\'re right on time - let\'s have a fantastic day!`,
         type: response.data.isLate ? 'warning' : 'success',
         checkInTime: response.data.checkInTime,
-        employee: response.data.employee
+        employee: employeeData
       });
       setShowModal(true);
       
       // Clear form after successful check-in
-      setFormData({ name: '', email: '' });
+      setFormData({ employeeId: '' });
+      setEmployeeData(null);
       
       // Reload check-ins to show the new entry
       loadTodayCheckIns();
@@ -155,10 +173,10 @@ const CheckInPage = () => {
 
   const handleCheckOut = async (e) => {
     e.preventDefault();
-    if (!formData.name && !formData.email) {
+    if (!formData.employeeId) {
       setModalData({
         title: 'Hey there! 👋',
-        message: 'Please let us know who you are so we can say goodbye properly!',
+        message: 'Please enter your Employee ID so we can say goodbye properly!',
         type: 'error'
       });
       setShowModal(true);
@@ -177,7 +195,7 @@ const CheckInPage = () => {
 
     setLoading(true);
     try {
-      const response = await attendanceAPI.checkOut(formData);
+      const response = await attendanceAPI.checkOut({ employeeId: formData.employeeId });
       setCheckInStatus(null);
       
       setModalData({
@@ -186,12 +204,13 @@ const CheckInPage = () => {
         type: 'success',
         checkOutTime: response.data.checkOutTime,
         totalHours: response.data.totalHours,
-        employee: response.data.employee
+        employee: employeeData
       });
       setShowModal(true);
       
       // Clear form after successful check-out
-      setFormData({ name: '', email: '' });
+      setFormData({ employeeId: '' });
+      setEmployeeData(null);
       
       // Reload check-ins to update the display
       loadTodayCheckIns();
@@ -208,10 +227,10 @@ const CheckInPage = () => {
   };
 
   const handleTimeToGo = async () => {
-    if (!formData.name && !formData.email) {
+    if (!formData.employeeId) {
       setModalData({
         title: 'Hey there! 👋',
-        message: 'Please let us know who you are so we can wrap up your day properly!',
+        message: 'Please enter your Employee ID so we can wrap up your day properly!',
         type: 'error'
       });
       setShowModal(true);
@@ -224,15 +243,17 @@ const CheckInPage = () => {
 
     setLoading(true);
     try {
-      const response = await attendanceAPI.employeeTimeToGo(formData);
+      const response = await attendanceAPI.employeeTimeToGo({ employeeId: formData.employeeId });
       if (response.data.success) {
         setModalData({
           title: 'Have a great evening! 🌙',
           message: response.data.message,
-          type: 'success'
+          type: 'success',
+          employee: employeeData
         });
         setShowModal(true);
-        setFormData({ name: '', email: '' });
+        setFormData({ employeeId: '' });
+        setEmployeeData(null);
         loadTodayCheckIns();
       } else {
         setModalData({
@@ -330,9 +351,9 @@ const CheckInPage = () => {
             Let's start your day together - check in and let's make today amazing!
           </p>
           <div className="text-sm text-gray-500 mb-6">
-            <span className="font-semibold text-blue-600">Digital Marketing</span> • 
-            <span className="font-semibold text-purple-600"> Software Development</span> • 
-            <span className="font-semibold text-indigo-600"> GHL Solutions</span>
+            <span className="font-semibold text-blue-600">Ebay, Wallmart</span> • 
+            <span className="font-semibold text-purple-600"> Software House</span> • 
+            <span className="font-semibold text-indigo-600"> Ecommerce Solutions</span>
           </div>
           <div className="flex justify-center space-x-4">
             <Link 
@@ -376,16 +397,22 @@ const CheckInPage = () => {
                         Team finished at: {moment(shiftEndTime).format('HH:mm')}
                       </p>
                     )}
-                    {formData.name || formData.email ? (
+                    {formData.employeeId && employeeData ? (
                       <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className={`text-sm font-medium ${employeeShiftEnded ? 'text-red-600' : 'text-green-600'}`}>
-                          {employeeShiftEnded ? '🏠 You\'re done for today' : '💪 You\'re still active'}
-                        </p>
+                        <div className="flex items-center space-x-3">
+                          {employeeData.profilePicture && (
+                            <img src={`/api/employees/profile-picture/${employeeData._id}`} alt={employeeData.name} className="w-8 h-8 rounded-full object-cover" />
+                          )}
+                          <span className="font-semibold text-gray-900">{employeeData.name}</span>
+                        </div>
+                        <p className={`text-sm font-medium ${employeeShiftEnded ? 'text-red-600' : 'text-green-600'}`}>{employeeShiftEnded ? '🏠 You\'re done for today' : '💪 You\'re still active'}</p>
                         {employeeShiftEndTime && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            You finished at: {moment(employeeShiftEndTime).format('HH:mm')}
-                          </p>
+                          <p className="text-xs text-gray-500 mt-1">You finished at: {moment(employeeShiftEndTime).format('HH:mm')}</p>
                         )}
+                      </div>
+                    ) : formData.employeeId && !employeeData ? (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-sm text-red-600 font-semibold">Employee ID not found. Please check your ID.</p>
                       </div>
                     ) : null}
                   </div>
@@ -401,7 +428,7 @@ const CheckInPage = () => {
                     ) : (
                       <button
                         onClick={handleTimeToGo}
-                        disabled={loading || !formData.name && !formData.email || employeeShiftEnded}
+                        disabled={loading || !formData.employeeId || employeeShiftEnded}
                         className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-300 disabled:to-red-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                       >
                         {loading ? 'Wrapping up...' : '🏠 Call it a Day'}
@@ -413,38 +440,19 @@ const CheckInPage = () => {
 
               <form className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                    What's your name? 👤
+                  <label htmlFor="employeeId" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Employee ID 🆔
                   </label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
-                      id="name"
-                      name="name"
+                      id="employeeId"
+                      name="employeeId"
                       type="text"
-                      value={formData.name}
+                      value={formData.employeeId}
                       onChange={handleInputChange}
                       className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter your name"
-                      disabled={shiftEnded || employeeShiftEnded}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Or your email? 📧
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter your email"
+                      placeholder="Enter your Employee ID"
                       disabled={shiftEnded || employeeShiftEnded}
                     />
                   </div>
@@ -556,7 +564,6 @@ const CheckInPage = () => {
                         </div>
                         <div className="ml-4">
                           <p className="font-semibold text-gray-900 text-lg">{checkIn.employee.name}</p>
-                          <p className="text-sm text-gray-500">{checkIn.employee.email}</p>
                         </div>
                       </div>
                       <div className="text-right">

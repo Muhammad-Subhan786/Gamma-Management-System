@@ -7,17 +7,22 @@ const Attendance = require('../models/Attendance');
 // Check-in endpoint
 router.post('/checkin', async (req, res) => {
   try {
-    const { name, email } = req.body;
-    
-    // Find employee by name or email
-    const employee = await Employee.findOne({
-      $or: [
-        { name: { $regex: new RegExp(name, 'i') } },
-        { email: { $regex: new RegExp(email, 'i') } }
-      ]
-    });
-
+    const { employeeId, name, email } = req.body;
+    let employee;
+    if (employeeId) {
+      console.log('[Check-in] Received employeeId:', employeeId);
+      employee = await Employee.findOne({ employeeId: employeeId.trim().toLowerCase() });
+      console.log('[Check-in] Matched employee:', employee ? employee._id : null, employee ? employee.name : null);
+    } else {
+      employee = await Employee.findOne({
+        $or: [
+          { name: { $regex: new RegExp(name, 'i') } },
+          { email: { $regex: new RegExp(email, 'i') } }
+        ]
+      });
+    }
     if (!employee) {
+      console.log('[Check-in] Employee not found for ID:', employeeId);
       return res.status(404).json({ error: 'Employee not found' });
     }
 
@@ -33,6 +38,7 @@ router.post('/checkin', async (req, res) => {
       employeeId: employee._id,
       date: today.toDate()
     });
+    console.log('[Check-in] Attendance record before:', attendance);
 
     if (!attendance) {
       attendance = new Attendance({
@@ -60,6 +66,7 @@ router.post('/checkin', async (req, res) => {
     attendance.wasLate = isLate;
     
     await attendance.save();
+    console.log('[Check-in] Attendance record after save:', attendance);
 
     res.json({
       success: true,
@@ -80,16 +87,18 @@ router.post('/checkin', async (req, res) => {
 // Check-out endpoint
 router.post('/checkout', async (req, res) => {
   try {
-    const { name, email } = req.body;
-    
-    // Find employee by name or email
-    const employee = await Employee.findOne({
-      $or: [
-        { name: { $regex: new RegExp(name, 'i') } },
-        { email: { $regex: new RegExp(email, 'i') } }
-      ]
-    });
-
+    const { employeeId, name, email } = req.body;
+    let employee;
+    if (employeeId) {
+      employee = await Employee.findOne({ employeeId: employeeId.trim().toLowerCase() });
+    } else {
+      employee = await Employee.findOne({
+        $or: [
+          { name: { $regex: new RegExp(name, 'i') } },
+          { email: { $regex: new RegExp(email, 'i') } }
+        ]
+      });
+    }
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
@@ -194,22 +203,25 @@ router.post('/time-to-go', async (req, res) => {
 // Employee Time to Go endpoint - End individual employee shift
 router.post('/employee-time-to-go', async (req, res) => {
   try {
-    const { name, email } = req.body;
-    const now = moment();
-    const today = moment().startOf('day');
-    
-    // Find employee by name or email
-    const employee = await Employee.findOne({
-      $or: [
-        { name: { $regex: new RegExp(name, 'i') } },
-        { email: { $regex: new RegExp(email, 'i') } }
-      ]
-    });
-
+    const { employeeId, name, email } = req.body;
+    let employee;
+    if (employeeId) {
+      employee = await Employee.findOne({ employeeId: employeeId.trim().toLowerCase() });
+    } else {
+      employee = await Employee.findOne({
+        $or: [
+          { name: { $regex: new RegExp(name, 'i') } },
+          { email: { $regex: new RegExp(email, 'i') } }
+        ]
+      });
+    }
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
 
+    const now = moment();
+    const today = moment().startOf('day');
+    
     // Get attendance record for today
     let attendance = await Attendance.findOne({
       employeeId: employee._id,
@@ -355,7 +367,8 @@ router.get('/today-checkins', async (req, res) => {
     // Get all attendance records for today
     const todayAttendance = await Attendance.find({
       date: targetDate.toDate()
-    }).populate('employeeId', 'name email');
+    }).populate('employeeId', 'name email profilePicture employeeId');
+    console.log('[TodayCheckIns] Attendance records found:', todayAttendance.length);
 
     // Format the data for display
     const checkIns = [];
@@ -366,8 +379,11 @@ router.get('/today-checkins', async (req, res) => {
         
         checkIns.push({
           employee: {
+            _id: attendance.employeeId._id,
+            employeeId: attendance.employeeId.employeeId,
             name: attendance.employeeId.name,
-            email: attendance.employeeId.email
+            email: attendance.employeeId.email,
+            profilePicture: attendance.employeeId.profilePicture
           },
           checkInTime: latestCheckIn.format('YYYY-MM-DD HH:mm:ss'),
           isLate: attendance.wasLate,

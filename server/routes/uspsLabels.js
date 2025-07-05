@@ -137,6 +137,30 @@ router.post('/employee', verifyEmployeeToken, upload.array('paymentScreenshots',
     const newLabel = new USPSLabel(labelData);
     await newLabel.save();
 
+    // --- Bonus logic: check if employee closed a client with 100+ paid labels ---
+    if (newLabel.status === 'paid') {
+      // Sum all paid labels for this employee and customerEmail
+      const paidLabelsSum = await USPSLabel.aggregate([
+        { $match: { employeeId: req.employee._id, customerEmail: customerEmail.toLowerCase(), status: 'paid' } },
+        { $group: { _id: null, total: { $sum: "$paidLabels" } } }
+      ]);
+      const totalPaid = paidLabelsSum[0]?.total || 0;
+      if (totalPaid >= 100) {
+        // Check if bonus already awarded for this client
+        const employee = await Employee.findById(req.employee._id);
+        const alreadyAwarded = employee.bonuses.some(b => b.reason.includes(customerEmail.toLowerCase()));
+        if (!alreadyAwarded) {
+          employee.bonuses.push({
+            amount: 2000,
+            reason: `Closed client (${customerEmail.toLowerCase()}) with 100+ paid labels`,
+            date: new Date()
+          });
+          await employee.save();
+        }
+      }
+    }
+    // --- End bonus logic ---
+
     res.status(201).json(newLabel);
   } catch (error) {
     console.error('Error creating USPS label:', error);

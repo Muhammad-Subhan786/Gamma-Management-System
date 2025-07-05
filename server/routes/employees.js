@@ -67,6 +67,12 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Middleware to check admin
+const requireAdmin = (req, res, next) => {
+  if (req.employee && req.employee.role === 'admin') return next();
+  return res.status(403).json({ error: 'Admin access required' });
+};
+
 // Employee login
 router.post('/login', async (req, res) => {
   try {
@@ -306,20 +312,49 @@ router.get('/profile-picture/:employeeId', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const employees = await Employee.find({}, '-password');
-    res.json(employees);
+    // Only return necessary fields for the frontend
+    const employeeList = employees.map(emp => ({
+      _id: emp._id,
+      name: emp.name,
+      email: emp.email,
+      position: emp.position,
+      profilePicture: emp.profilePicture,
+      employeeId: emp.employeeId,
+      role: emp.role,
+      // add more fields if needed
+    }));
+    res.json(employeeList);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get employee by ID
+// Get employee by Mongo _id
 router.get('/:id', async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id, '-password');
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
-    res.json(employee);
+    // Add employeeId to response
+    const employeeResponse = employee.toObject();
+    delete employeeResponse.password;
+    res.json(employeeResponse);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get employee by business employeeId
+router.get('/by-employee-id/:employeeId', async (req, res) => {
+  try {
+    const employee = await Employee.findOne({ employeeId: req.params.employeeId }, '-password');
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+    const employeeResponse = employee.toObject();
+    delete employeeResponse.password;
+    res.json(employeeResponse);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -330,6 +365,10 @@ router.post('/', async (req, res) => {
   try {
     const employeeData = req.body;
     
+    // Require employeeId
+    if (!employeeData.employeeId) {
+      return res.status(400).json({ error: 'Employee ID is required' });
+    }
     // Hash password if provided, otherwise use default
     if (employeeData.password) {
       employeeData.password = await bcrypt.hash(employeeData.password, 10);
@@ -347,7 +386,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(employeeResponse);
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ error: 'Email or CNIC already exists' });
+      return res.status(400).json({ error: 'Email, CNIC, or Employee ID already exists' });
     }
     res.status(500).json({ error: error.message });
   }
@@ -356,15 +395,17 @@ router.post('/', async (req, res) => {
 // Update employee
 router.put('/:id', async (req, res) => {
   try {
+    // Prevent employeeId from being updated
+    if (req.body.employeeId) {
+      delete req.body.employeeId;
+    }
     const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
-    
     // Return employee data without password
     const employeeResponse = employee.toObject();
     delete employeeResponse.password;
-    
     res.json(employeeResponse);
   } catch (error) {
     if (error.code === 11000) {
@@ -387,19 +428,34 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Search employees by name or email
+// Search employees by name, email, or employeeId
 router.get('/search/:query', async (req, res) => {
   try {
     const query = req.params.query;
     const employees = await Employee.find({
       $or: [
         { name: { $regex: query, $options: 'i' } },
-        { email: { $regex: query, $options: 'i' } }
+        { email: { $regex: query, $options: 'i' } },
+        { employeeId: { $regex: query, $options: 'i' } }
       ]
     });
     res.json(employees);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Get salary breakdown for employee (authenticated)
+router.get('/profile/salary-breakdown', authenticateToken, async (req, res) => {
+  try {
+    const employee = req.employee;
+    const basicSalary = employee.salary || 0;
+    const bonuses = employee.bonuses || [];
+    const totalBonuses = bonuses.reduce((sum, b) => sum + b.amount, 0);
+    const totalSalary = basicSalary + totalBonuses;
+    res.json({ basicSalary, bonuses, totalSalary });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

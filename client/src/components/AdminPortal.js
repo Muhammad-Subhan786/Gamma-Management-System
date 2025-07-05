@@ -39,9 +39,10 @@ import {
 } from 'recharts';
 import moment from 'moment';
 import ShiftsTab from './ShiftsTab';
-import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 import SessionManagementTab from './SessionManagementTab';
 import AdminTasksBoard from './AdminTasksBoard';
+import AuraNestTab from './AuraNestTab';
+import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -55,6 +56,7 @@ const AdminPortal = () => {
   const [shiftEnded, setShiftEnded] = useState(false);
   const [shiftEndTime, setShiftEndTime] = useState(null);
   const [formData, setFormData] = useState({
+    employeeId: '',
     name: '',
     email: '',
     phone: '',
@@ -162,6 +164,7 @@ const AdminPortal = () => {
     setSelectedEmployee(employee);
     if (type === 'edit' && employee) {
       setFormData({
+        employeeId: employee.employeeId || '',
         name: employee.name,
         email: employee.email,
         phone: employee.phone,
@@ -173,6 +176,7 @@ const AdminPortal = () => {
       });
     } else {
       setFormData({
+        employeeId: '',
         name: '',
         email: '',
         phone: '',
@@ -190,6 +194,7 @@ const AdminPortal = () => {
     setShowModal(false);
     setSelectedEmployee(null);
     setFormData({
+      employeeId: '',
       name: '',
       email: '',
       phone: '',
@@ -589,7 +594,7 @@ const AdminPortal = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-lg font-semibold text-gray-900">{employee.name}</div>
-                        <div className="text-sm text-gray-500">ID: {employee.cnic}</div>
+                        <div className="text-sm text-gray-500">ID: {employee.employeeId || 'N/A'}</div>
                       </div>
                     </div>
                   </td>
@@ -599,7 +604,7 @@ const AdminPortal = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800">
-                      {employee.role}
+                      {employee.role || 'N/A'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -720,17 +725,6 @@ const AdminPortal = () => {
               Shifts
             </button>
             <button
-              onClick={() => setActiveTab('usps')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-                activeTab === 'usps'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <DollarSign className="h-4 w-4 mr-2" />
-              USPS Labels
-            </button>
-            <button
               onClick={() => setActiveTab('sessions')}
               className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === 'sessions'
@@ -752,6 +746,28 @@ const AdminPortal = () => {
               <CheckCircle className="h-4 w-4 mr-2" />
               Tasks
             </button>
+            <button
+              onClick={() => setActiveTab('aura-nest')}
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'aura-nest'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Aura Nest
+            </button>
+            <button
+              onClick={() => setActiveTab('usps-labels')}
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                activeTab === 'usps-labels'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Code className="h-4 w-4 mr-2" />
+              USPS Labels
+            </button>
           </nav>
         </div>
       </div>
@@ -767,9 +783,10 @@ const AdminPortal = () => {
             {activeTab === 'dashboard' && <DashboardTab />}
             {activeTab === 'employees' && <EmployeesTab />}
             {activeTab === 'shifts' && <ShiftsTab />}
-            {activeTab === 'usps' && <USPSLabelsTabAdmin />}
             {activeTab === 'sessions' && <SessionManagementTab />}
             {activeTab === 'tasks' && <AdminTasksBoard />}
+            {activeTab === 'aura-nest' && <AuraNestTab />}
+            {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
           </>
         )}
       </div>
@@ -784,6 +801,18 @@ const AdminPortal = () => {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    value={formData.employeeId}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    required={modalType === 'add'}
+                    disabled={modalType === 'edit'}
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Name</label>
                   <div className="mt-1 relative">

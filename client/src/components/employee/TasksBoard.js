@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { tasksAPI } from '../../services/api';
-import { Calendar, Clock, StickyNote, User, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, StickyNote, User, MessageCircle, CheckCircle } from 'lucide-react';
 import Avatar from './Avatar';
 
 const columns = [
@@ -21,6 +21,7 @@ const TasksBoard = ({ employee }) => {
   const [showModal, setShowModal] = useState(false);
   const [modalTask, setModalTask] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchTasks();
@@ -29,11 +30,13 @@ const TasksBoard = ({ employee }) => {
 
   const fetchTasks = async () => {
     setLoading(true);
+    setError('');
     try {
       const { data } = await tasksAPI.getAll();
       setTasks(data.filter(t => t.assignedTo && t.assignedTo._id === employee._id));
-    } catch {
+    } catch (err) {
       setTasks([]);
+      setError('Failed to load tasks. Please try again.');
     }
     setLoading(false);
   };
@@ -183,6 +186,9 @@ const TasksBoard = ({ employee }) => {
             )}
           </div>
         </div>
+      )}
+      {error && (
+        <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-center">{error}</div>
       )}
     </div>
   );
