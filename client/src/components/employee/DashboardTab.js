@@ -42,6 +42,26 @@ const DashboardTab = ({ employee }) => {
   const [goalLoading, setGoalLoading] = useState(true);
   const [goalError, setGoalError] = useState('');
 
+  const calculateStats = useCallback((data) => {
+    const totalDays = data.length;
+    const presentDays = data.filter(record => record.checkIns.length > 0).length;
+    const absentDays = totalDays - presentDays;
+    const totalHours = data.reduce((sum, record) => sum + (record.totalHours || 0), 0);
+    const averageHours = presentDays > 0 ? totalHours / presentDays : 0;
+    const lateDays = data.filter(record => record.wasLate).length;
+    const onTimeDays = presentDays - lateDays;
+
+    setStats({
+      totalDays,
+      presentDays,
+      absentDays,
+      totalHours,
+      averageHours,
+      lateDays,
+      onTimeDays
+    });
+  }, []);
+
   const loadAttendanceData = useCallback(async () => {
     if (!employee || !employee._id) return;
     
@@ -120,27 +140,6 @@ const DashboardTab = ({ employee }) => {
     }
   }, [employee?._id, currentMonth, loadAttendanceData, loadCurrentShift, loadGoal]);
 
-
-
-  const calculateStats = useCallback((data) => {
-    const totalDays = data.length;
-    const presentDays = data.filter(record => record.checkIns.length > 0).length;
-    const absentDays = totalDays - presentDays;
-    const totalHours = data.reduce((sum, record) => sum + (record.totalHours || 0), 0);
-    const averageHours = presentDays > 0 ? totalHours / presentDays : 0;
-    const lateDays = data.filter(record => record.wasLate).length;
-    const onTimeDays = presentDays - lateDays;
-
-    setStats({
-      totalDays,
-      presentDays,
-      absentDays,
-      totalHours,
-      averageHours,
-      lateDays,
-      onTimeDays
-    });
-  }, []);
 
   const formatChartData = () => {
     return attendanceData.map(record => ({
