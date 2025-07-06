@@ -42,6 +42,19 @@ const USPSLabelsTab = ({ employee }) => {
   const entryDateRef = useRef();
   const notesRef = useRef();
 
+  // Move loadDashboard inside the component
+  const loadDashboard = async () => {
+    try {
+      const { data } = await uspsLabelsAPI.getMyDashboard();
+      setDashboard(data);
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      }
+    }
+  };
+
   useEffect(() => {
     loadDashboard();
     loadLabels();
