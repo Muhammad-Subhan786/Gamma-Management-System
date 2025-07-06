@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { employeeAPI } from '../services/api';
 import { 
@@ -28,11 +28,7 @@ const EmployeePortal = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const token = localStorage.getItem('employeeToken');
     if (!token) {
       navigate('/employee-login');
@@ -64,7 +60,11 @@ const EmployeePortal = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleLogout = () => {
     localStorage.removeItem('employeeToken');
@@ -78,13 +78,13 @@ const EmployeePortal = () => {
   };
 
   // Helper function to check if employee has access to a session
-  const hasSessionAccess = (sessionId) => {
+  const hasSessionAccess = useCallback((sessionId) => {
     if (!employee || !employee.allowedSessions) return false;
     return employee.allowedSessions.includes(sessionId);
-  };
+  }, [employee]);
 
   // Get available tabs based on session permissions
-  const getAvailableTabs = () => {
+  const getAvailableTabs = useCallback(() => {
     const tabs = [
       { id: 'dashboard', label: 'My Dashboard', icon: BarChart3, alwaysVisible: true },
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
@@ -95,7 +95,7 @@ const EmployeePortal = () => {
     ];
 
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
-  };
+  }, [employee, hasSessionAccess]);
 
   // Set default active tab if current tab is not available
   useEffect(() => {
