@@ -22,7 +22,10 @@ import {
   Globe,
   Zap,
   Shield,
-  CheckCircle
+  CheckCircle,
+  Menu,
+  X,
+  Settings
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -46,9 +49,10 @@ import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [analytics, setAnalytics] = useState({});
-  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
