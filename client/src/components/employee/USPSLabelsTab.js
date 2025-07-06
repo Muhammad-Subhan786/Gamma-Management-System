@@ -31,6 +31,10 @@ const USPSLabelsTab = ({ employee }) => {
   const [editId, setEditId] = useState(null);
   const [uploadFiles, setUploadFiles] = useState([]);
   const [activeTab, setActiveTab] = useState('labels');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [error, setError] = useState('');
 
   // Refs for form navigation
@@ -251,6 +255,12 @@ const USPSLabelsTab = ({ employee }) => {
           onClick={() => setActiveTab('goal')}
         >
           Monthly Goal
+        </button>
+        <button
+          className={`py-2 px-4 font-semibold text-sm border-b-2 transition-colors ${activeTab === 'finance' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-purple-600'}`}
+          onClick={() => setActiveTab('finance')}
+        >
+          Finance
         </button>
       </div>
 
@@ -545,6 +555,109 @@ const USPSLabelsTab = ({ employee }) => {
               </form>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Finance Tab */}
+      {activeTab === 'finance' && (
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <label className="font-medium">Select Month:
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+          </div>
+          {/* Salary Calculation */}
+          {(() => {
+            // Filter labels for selected month
+            const [year, month] = selectedMonth.split('-');
+            const monthLabels = labels.filter(label => {
+              const d = new Date(label.entryDate || label.createdAt);
+              return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+            });
+            // Group by client (customerEmail)
+            const clientMap = {};
+            labels.forEach(label => {
+              const email = label.customerEmail;
+              if (!clientMap[email]) clientMap[email] = [];
+              clientMap[email].push(label);
+            });
+            // For each client, find their first month
+            const clientFirstMonth = {};
+            Object.entries(clientMap).forEach(([email, arr]) => {
+              const first = arr.reduce((min, l) => {
+                const d = new Date(l.entryDate || l.createdAt);
+                return (!min || d < min) ? d : min;
+              }, null);
+              clientFirstMonth[email] = first ? `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}` : null;
+            });
+            // For selected month, for each client, sum paid labels in that month
+            const clientStats = Object.entries(clientMap).map(([email, arr]) => {
+              const monthArr = arr.filter(l => {
+                const d = new Date(l.entryDate || l.createdAt);
+                return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+              });
+              const paidLabels = monthArr.reduce((sum, l) => sum + Number(l.paidLabels || 0), 0);
+              const totalLabels = monthArr.reduce((sum, l) => sum + Number(l.totalLabels || 0), 0);
+              const clientName = monthArr[0]?.customerName || email;
+              // Only first month counts for bonus
+              const qualifies = clientFirstMonth[email] === selectedMonth && paidLabels >= 100;
+              return { email, clientName, paidLabels, totalLabels, qualifies };
+            });
+            // Calculate bonus
+            const baseSalary = 10000;
+            const bonusClients = clientStats.filter(c => c.qualifies);
+            const bonus = bonusClients.length * 2000;
+            const totalSalary = baseSalary + bonus;
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold mb-4 text-purple-700">Salary Breakdown for {selectedMonth}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
+                    <div className="text-lg font-semibold text-blue-700">Base Salary</div>
+                    <div className="text-2xl font-bold text-blue-900">10,000 PKR</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-green-100 to-green-200">
+                    <div className="text-lg font-semibold text-green-700">Performance Bonus</div>
+                    <div className="text-2xl font-bold text-green-900">{bonus.toLocaleString()} PKR</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200">
+                    <div className="text-lg font-semibold text-purple-700">Total Salary</div>
+                    <div className="text-2xl font-bold text-purple-900">{totalSalary.toLocaleString()} PKR</div>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Bonus-Qualifying Clients</h3>
+                <table className="min-w-full bg-white rounded shadow">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 text-left">Client</th>
+                      <th className="p-2 text-center">Paid Labels</th>
+                      <th className="p-2 text-center">Qualified</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clientStats.map(c => (
+                      <tr key={c.email} className={c.qualifies ? 'bg-green-50' : ''}>
+                        <td className="p-2">{c.clientName}</td>
+                        <td className="p-2 text-center">{c.paidLabels}</td>
+                        <td className="p-2 text-center font-bold">{c.qualifies ? 'Yes (+2,000 PKR)' : '-'}</td>
+                      </tr>
+                    ))}
+                    {clientStats.length === 0 && (
+                      <tr><td colSpan={3} className="text-center p-4 text-gray-400">No sales for this month.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+                <div className="mt-4 text-gray-600 text-sm">
+                  <p>Bonus is awarded for each client with at least 100 paid labels in their first month of sales. Only the first month counts for bonus. No carry-forward.</p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
