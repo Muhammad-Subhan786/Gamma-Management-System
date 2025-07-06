@@ -244,4 +244,10 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
+  console.log(`🔐 JWT test: http://localhost:${PORT}/api/test-jwt`);
+});
+
+// Connect to MongoDB
+connectDB().catch(console.error);
