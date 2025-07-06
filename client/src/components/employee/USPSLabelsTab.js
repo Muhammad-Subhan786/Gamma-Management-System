@@ -10,6 +10,7 @@ const initialForm = {
   rate: '',
   paidLabels: '',
   notes: '',
+  status: 'pending',
   paymentScreenshots: [],
   entryDate: new Date().toISOString().slice(0, 10),
 };
@@ -118,17 +119,21 @@ const USPSLabelsTab = ({ employee }) => {
         if (k !== 'paymentScreenshots') formData.append(k, v);
       });
       uploadFiles.forEach(f => formData.append('paymentScreenshots', f));
+      
       if (editId) {
         await uspsLabelsAPI.updateLabel(editId, formData);
+        alert('Label updated successfully!');
       } else {
         await uspsLabelsAPI.addLabel(formData);
+        alert('Label added successfully!');
       }
       closeForm();
       loadLabels();
       loadDashboard();
       loadCurrentGoal(); // Refresh goal progress
     } catch (err) {
-      alert('Error saving label');
+      console.error('Error saving label:', err);
+      alert(err.response?.data?.error || 'Error saving label. Please try again.');
     }
     setLoading(false);
   };
@@ -138,10 +143,12 @@ const USPSLabelsTab = ({ employee }) => {
     setLoading(true);
     try {
       await uspsGoalsAPI.updateCurrentGoal(goalForm);
+      alert('Goal updated successfully!');
       closeGoalForm();
       loadCurrentGoal();
     } catch (err) {
-      alert('Error updating goal');
+      console.error('Error updating goal:', err);
+      alert(err.response?.data?.error || 'Error updating goal. Please try again.');
     }
     setLoading(false);
   };
@@ -292,6 +299,7 @@ const USPSLabelsTab = ({ employee }) => {
                     onChange={handleGoalInput}
                     className="input-field w-full"
                     min="1"
+                    placeholder="Enter target number of labels"
                     required
                   />
                 </div>
@@ -305,14 +313,34 @@ const USPSLabelsTab = ({ employee }) => {
                     className="input-field w-full"
                     min="0.01"
                     step="0.01"
+                    placeholder="Enter target revenue amount"
                     required
                   />
                 </div>
-                <div className="flex space-x-2">
-                  <button type="submit" className="btn-primary flex-1" disabled={loading}>
-                    <Target className="h-4 w-4 mr-2" /> Update Goal
+                <div className="flex space-x-2 pt-4">
+                  <button 
+                    type="submit" 
+                    className="btn-primary flex-1 flex items-center justify-center" 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Target className="h-4 w-4 mr-2" /> 
+                        Update Goal
+                      </>
+                    )}
                   </button>
-                  <button type="button" className="btn-secondary flex-1" onClick={closeGoalForm}>
+                  <button 
+                    type="button" 
+                    className="btn-secondary flex-1" 
+                    onClick={closeGoalForm}
+                    disabled={loading}
+                  >
                     Cancel
                   </button>
                 </div>
@@ -323,11 +351,14 @@ const USPSLabelsTab = ({ employee }) => {
       )}
 
       {showForm && (
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {editId ? 'Edit Label' : 'Add New Label'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium">Customer Name</label>
+                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
                 <input
                   name="customerName"
                   type="text"
@@ -338,7 +369,7 @@ const USPSLabelsTab = ({ employee }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Customer Email</label>
+                <label className="block text-sm font-medium text-gray-700">Customer Email</label>
                 <input
                   name="customerEmail"
                   type="email"
@@ -349,50 +380,58 @@ const USPSLabelsTab = ({ employee }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Total Labels</label>
+                <label className="block text-sm font-medium text-gray-700">Total Labels</label>
                 <input
                   name="totalLabels"
                   type="number"
                   value={form.totalLabels}
                   onChange={handleInput}
                   className="input-field w-full"
+                  min="1"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Rate</label>
+                <label className="block text-sm font-medium text-gray-700">Rate ($)</label>
                 <input
                   name="rate"
                   type="number"
                   value={form.rate}
                   onChange={handleInput}
                   className="input-field w-full"
+                  min="0.01"
+                  step="0.01"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Paid Labels</label>
+                <label className="block text-sm font-medium text-gray-700">Paid Labels</label>
                 <input
                   name="paidLabels"
                   type="number"
                   value={form.paidLabels}
                   onChange={handleInput}
                   className="input-field w-full"
+                  min="0"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Notes</label>
-                <textarea
-                  name="notes"
-                  value={form.notes}
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  name="status"
+                  value={form.status || 'pending'}
                   onChange={handleInput}
                   className="input-field w-full"
                   required
-                />
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="completed">Completed</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium">Customer Entry Date</label>
+                <label className="block text-sm font-medium text-gray-700">Entry Date</label>
                 <input
                   name="entryDate"
                   type="date"
@@ -403,11 +442,57 @@ const USPSLabelsTab = ({ employee }) => {
                 />
               </div>
             </div>
-            <div className="mt-4">
-              <button type="submit" className="btn-primary flex-1" disabled={loading}>
-                {editId ? 'Update Label' : 'Add Label'}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Notes</label>
+              <textarea
+                name="notes"
+                value={form.notes}
+                onChange={handleInput}
+                className="input-field w-full"
+                rows="3"
+                placeholder="Additional notes about this label..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Payment Screenshots</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFile}
+                className="input-field w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Upload payment screenshots (JPG, PNG, PDF up to 5MB each)
+              </p>
+            </div>
+
+            <div className="flex space-x-4 pt-4">
+              <button 
+                type="submit" 
+                className="btn-primary flex-1 flex items-center justify-center" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {editId ? 'Updating...' : 'Saving...'}
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    {editId ? 'Update Label' : 'Add Label'}
+                  </>
+                )}
               </button>
-              <button type="button" className="btn-secondary flex-1" onClick={closeForm}>
+              <button 
+                type="button" 
+                className="btn-secondary flex-1" 
+                onClick={closeForm}
+                disabled={loading}
+              >
                 Cancel
               </button>
             </div>
