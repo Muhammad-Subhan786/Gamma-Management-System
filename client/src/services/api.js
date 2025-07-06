@@ -114,20 +114,6 @@ export const uspsGoalsAPI = {
   updateAllProgress: () => api.post('/usps-goals/update-progress')
 };
 
-export const uspsTransactionsAPI = {
-  // Employee endpoints
-  getMyTransactions: () => api.get('/usps-transactions/my', { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
-  getMyDashboard: () => api.get('/usps-transactions/dashboard', { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
-  addTransaction: (formData) => api.post('/usps-transactions', formData, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}`, 'Content-Type': 'multipart/form-data' } }),
-  updateTransaction: (id, formData) => api.put(`/usps-transactions/${id}`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}`, 'Content-Type': 'multipart/form-data' } }),
-  deleteTransaction: (id) => api.delete(`/usps-transactions/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
-  getTransaction: (id) => api.get(`/usps-transactions/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
-  // Admin endpoints
-  getAllTransactions: () => api.get('/usps-transactions/admin'),
-  // File
-  getScreenshot: (filename) => `${API_BASE_URL}/usps-transactions/screenshot/${filename}`
-};
-
 export const tasksAPI = {
   getAll: () => api.get('/tasks', { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
   create: (data) => api.post('/tasks', data, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),

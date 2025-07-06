@@ -20,7 +20,6 @@ const analyticsRoutes = require('./routes/analytics');
 const shiftRoutes = require('./routes/shifts');
 const uspsLabelsRoute = require('./routes/uspsLabels');
 const uspsGoalsRoute = require('./routes/uspsGoals');
-const uspsTransactionsRoute = require('./routes/uspsTransactions');
 const auraNestRoutes = require('./routes/auraNest');
 const inventoryRoutes = require('./routes/inventory');
 
@@ -138,7 +137,6 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/usps-labels', uspsLabelsRoute);
 app.use('/api/usps-goals', uspsGoalsRoute);
-app.use('/api/usps-transactions', uspsTransactionsRoute);
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/aura-nest', auraNestRoutes);
 app.use('/api/inventory', inventoryRoutes);
