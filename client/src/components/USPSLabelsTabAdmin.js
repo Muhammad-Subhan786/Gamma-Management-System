@@ -32,6 +32,8 @@ const USPSLabelsTabAdmin = () => {
   });
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [employeesLoading, setEmployeesLoading] = useState(false);
+  // Add error state for employees
+  const [employeesError, setEmployeesError] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -40,6 +42,16 @@ const USPSLabelsTabAdmin = () => {
     loadGoals();
     loadGoalAnalytics();
   }, []);
+
+  // Add useEffect to reload dashboard and employees on tab switch
+  useEffect(() => {
+    if (activeTab === 'salaries' || activeTab === 'goals') {
+      loadEmployees();
+    }
+    if (activeTab === 'overview') {
+      loadDashboard();
+    }
+  }, [activeTab]);
 
   const loadDashboard = async () => {
     try {
@@ -65,6 +77,7 @@ const USPSLabelsTabAdmin = () => {
 
   const loadEmployees = async () => {
     setEmployeesLoading(true);
+    setEmployeesError('');
     try {
       const response = await fetch('/api/employees');
       const { data } = await response.json();
@@ -72,6 +85,7 @@ const USPSLabelsTabAdmin = () => {
     } catch (error) {
       console.error('Error loading employees:', error);
       setEmployees([]);
+      setEmployeesError('Failed to load employees.');
     }
     setEmployeesLoading(false);
   };
@@ -226,6 +240,14 @@ const USPSLabelsTabAdmin = () => {
       alert('Error updating labels');
     }
     setLoading(false);
+  };
+
+  // After any label add/edit/delete, reload dashboard and employees
+  // (Assume handleLabelChange is called after any label change)
+  const handleLabelChange = () => {
+    loadLabels();
+    loadDashboard();
+    loadEmployees();
   };
 
   return (
@@ -780,6 +802,12 @@ const USPSLabelsTabAdmin = () => {
       {/* Salaries Tab */}
       {activeTab === 'salaries' && (
         <div className="space-y-8">
+          {employeesError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+              <span className="text-red-700">{employeesError}</span>
+              <button onClick={loadEmployees} className="ml-4 px-3 py-1 rounded bg-red-600 text-white">Retry</button>
+            </div>
+          )}
           <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
             <label className="font-medium">Select Month:
               <input
