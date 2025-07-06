@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { employeeAPI, analyticsAPI, attendanceAPI, shiftAPI } from '../services/api';
+import { employeeAPI, analyticsAPI, attendanceAPI } from '../services/api';
 import { 
   Users, 
-  Plus, 
   Edit, 
   Trash2, 
   Search, 
@@ -19,13 +18,16 @@ import {
   Power,
   DollarSign,
   Code,
-  Globe,
-  Zap,
   Shield,
   CheckCircle,
   Menu,
   X,
-  Settings
+  Settings,
+  Crown,
+  Sparkles,
+  Zap,
+  Target,
+  Activity
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -34,7 +36,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -216,294 +217,286 @@ const AdminPortal = () => {
     try {
       if (modalType === 'add') {
         await employeeAPI.create(formData);
+        alert('Team member added successfully! 🎉');
       } else {
         await employeeAPI.update(selectedEmployee._id, formData);
+        alert('Team member updated successfully! ✨');
       }
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error saving employee:', error);
+      alert('Error: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      setLoading(true);
-      try {
-        await employeeAPI.delete(id);
-        loadData();
-      } catch (error) {
-        console.error('Error deleting employee:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (!window.confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+      return;
+    }
+    setLoading(true);
+    try {
+      await employeeAPI.delete(id);
+      alert('Team member removed successfully! 🗑️');
+      loadData();
+    } catch (error) {
+      alert('Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredEmployees = employees.filter(employee =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const DashboardTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Welcome to Your Team Hub! 👋
-          </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Here's how our amazing folks are doing today
-          </p>
-          
-          {/* Shift Status */}
-          <div className="inline-flex items-center space-x-4 p-4 bg-white rounded-xl shadow-md">
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${shiftEnded ? 'bg-red-500' : 'bg-green-500'}`}></div>
-              <span className="font-medium text-gray-700">
-                {shiftEnded ? '🌙 Team wrapped up for the day' : '☀️ Team is active and working'}
-              </span>
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl p-8 text-white shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2 flex items-center">
+              <Crown className="h-8 w-8 mr-3 text-yellow-300" />
+              Welcome to Admin Hub
+            </h2>
+            <p className="text-blue-100 text-lg">Manage your team, track performance, and drive success</p>
+          </div>
+          <div className="hidden lg:flex items-center space-x-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{employees.length}</div>
+              <div className="text-blue-200 text-sm">Team Members</div>
             </div>
-            {shiftEndTime && (
-              <span className="text-sm text-gray-500">
-                Finished at: {moment(shiftEndTime).format('HH:mm')}
-              </span>
-            )}
+            <div className="w-px h-12 bg-blue-400"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{analytics.summary?.totalCheckIns || 0}</div>
+              <div className="text-blue-200 text-sm">Today's Check-ins</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <Users className="h-6 w-6 mr-3 text-blue-600" />
-            Team Management
-          </h3>
-          <div className="space-y-3">
-            <button
-              onClick={() => openModal('add')}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-            >
-              <UserPlus className="h-5 w-5 mr-2" />
-              Add New Team Member
-            </button>
-            <button
-              onClick={() => setActiveTab('employees')}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-            >
-              <Users className="h-5 w-5 mr-2" />
-              View All Team Members
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <Clock className="h-6 w-6 mr-3 text-purple-600" />
-            Shift Management
-          </h3>
-          <div className="space-y-3">
-            {shiftEnded ? (
-              <button
-                onClick={handleStartShift}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-green-300 disabled:to-green-400 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-              >
-                {loading ? 'Starting...' : '🌅 Start Fresh Day'}
-              </button>
-            ) : (
-              <button
-                onClick={handleTimeToGo}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-300 disabled:to-red-400 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-              >
-                {loading ? 'Wrapping up...' : '🌙 Wrap Up Day'}
-              </button>
-            )}
-            <button
-              onClick={() => setActiveTab('shifts')}
-              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-            >
-              <Calendar className="h-5 w-5 mr-2" />
-              Manage Shifts
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
+        <button
+          onClick={() => openModal('add')}
+          className="group bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 transform hover:-translate-y-1"
+        >
           <div className="flex items-center">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <Users className="h-6 w-6 text-primary-600" />
+            <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <UserPlus className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Employees</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analytics.summary?.totalEmployees || 0}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Add Team Member</p>
+              <p className="text-lg font-semibold text-gray-900">New Employee</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={handleStartShift}
+          className="group bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-green-200 transform hover:-translate-y-1"
+        >
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Start Shift</p>
+              <p className="text-lg font-semibold text-gray-900">Begin Day</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={handleTimeToGo}
+          className="group bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-orange-200 transform hover:-translate-y-1"
+        >
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <Clock className="h-6 w-6 text-white" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">End Shift</p>
+              <p className="text-lg font-semibold text-gray-900">Wrap Up</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className="group bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-purple-200 transform hover:-translate-y-1"
+        >
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">View Analytics</p>
+              <p className="text-lg font-semibold text-gray-900">Reports</p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
+              <Users className="h-6 w-6 text-white" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Team</p>
+              <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-success-100 rounded-lg">
-              <Clock className="h-6 w-6 text-success-600" />
+            <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
+              <CheckCircle className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Today's Attendance</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analytics.summary?.todayAttendance || 0}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Present Today</p>
+              <p className="text-2xl font-bold text-gray-900">{analytics.summary?.presentToday || 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-warning-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-warning-600" />
+            <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl">
+              <Clock className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Week Hours</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analytics.summary?.weekHours?.toFixed(1) || 0}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Total Hours</p>
+              <p className="text-2xl font-bold text-gray-900">{analytics.totalHours?.totalHours || 0}h</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-red-600" />
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl">
+              <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Late Today</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analytics.summary?.lateToday || 0}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Avg. Hours</p>
+              <p className="text-2xl font-bold text-gray-900">{analytics.totalHours?.averageHours || 0}h</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Total Hours Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Total Hours per Employee</h3>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+            Attendance Overview
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={analytics.totalHours?.slice(0, 10) || []}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="totalHours" fill="#3B82F6" />
+            <BarChart data={analytics.summary?.dailyData || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar dataKey="checkIns" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Top Performers Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Punctual Employees</h3>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Target className="h-5 w-5 mr-2 text-purple-600" />
+            Performance Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={analytics.topPunctual || []}
+                data={[
+                  { name: 'On Time', value: analytics.summary?.onTime || 0 },
+                  { name: 'Late', value: analytics.summary?.late || 0 },
+                  { name: 'Absent', value: analytics.summary?.absent || 0 }
+                ]}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={({ name, punctualityRate }) => `${name}: ${punctualityRate}%`}
                 outerRadius={80}
                 fill="#8884d8"
-                dataKey="punctualityRate"
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
-                {analytics.topPunctual?.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {COLORS.map((color, index) => (
+                  <Cell key={`cell-${index}`} fill={color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Top Performers Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top 3 Most Punctual</h3>
+      {/* Top Performers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+            Top Punctual Team Members
+          </h3>
           <div className="space-y-3">
-            {analytics.topPunctual?.map((employee, index) => (
-              <div key={employee.employeeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {analytics.topPunctual?.slice(0, 5).map((employee, index) => (
+              <div key={employee._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
-                    {employee.profilePicture ? (
-                      <img 
-                        src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee.employeeId}`}
-                        alt={employee.name}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        {employee.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {index + 1}
                   </div>
                   <div className="ml-3">
                     <p className="font-medium text-gray-900">{employee.name}</p>
-                    <p className="text-sm text-gray-500">{employee.email}</p>
+                    <p className="text-sm text-gray-600">{employee.role}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-success-600">{employee.punctualityRate}%</p>
-                  <p className="text-sm text-gray-500">{employee.totalHours}h</p>
+                  <p className="font-semibold text-green-600">{employee.onTimeDays} days</p>
+                  <p className="text-xs text-gray-500">On time</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top 3 Hardworking</h3>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Activity className="h-5 w-5 mr-2 text-blue-600" />
+            Most Hardworking Team Members
+          </h3>
           <div className="space-y-3">
-            {analytics.topHardworking?.map((employee, index) => (
-              <div key={employee.employeeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {analytics.topHardworking?.slice(0, 5).map((employee, index) => (
+              <div key={employee._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-warning-100 rounded-full flex items-center justify-center overflow-hidden">
-                    {employee.profilePicture ? (
-                      <img 
-                        src={`/api/employees/profile-picture/${employee.employeeId}`}
-                        alt={employee.name}
-                        className="w-8 h-8 object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <span 
-                      className={`text-sm font-bold text-warning-600 ${
-                        employee.profilePicture ? 'hidden' : 'flex'
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {index + 1}
                   </div>
                   <div className="ml-3">
                     <p className="font-medium text-gray-900">{employee.name}</p>
-                    <p className="text-sm text-gray-500">{employee.email}</p>
+                    <p className="text-sm text-gray-600">{employee.role}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-warning-600">{employee.totalHours}h</p>
-                  <p className="text-sm text-gray-500">{employee.averageHoursPerDay}h/day</p>
+                  <p className="font-semibold text-blue-600">{employee.totalHours}h</p>
+                  <p className="text-xs text-gray-500">Total hours</p>
                 </div>
               </div>
             ))}
@@ -513,123 +506,115 @@ const AdminPortal = () => {
     </div>
   );
 
-  const EmployeesTab = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Our Amazing Team! 👥
-          </h2>
-          <p className="text-lg text-gray-600 mt-2">Manage and support our wonderful folks</p>
+  const EmployeesTab = () => {
+    const filteredEmployees = employees.filter(employee =>
+      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.role?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Users className="h-6 w-6 mr-2 text-blue-600" />
+              Team Members
+            </h2>
+            <p className="text-gray-600 mt-1">Manage your team members and their information</p>
+          </div>
+          <button
+            onClick={() => openModal('add')}
+            className="mt-4 sm:mt-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
+          >
+            <UserPlus className="h-5 w-5 mr-2" />
+            Add Team Member
+          </button>
         </div>
-        <button
-          onClick={() => openModal('add')}
-          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
-        >
-          <UserPlus className="h-5 w-5 mr-2" />
-          Add Team Member
-        </button>
-      </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Find someone by name or email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-        />
-      </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search team members..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+        </div>
 
-      {/* Team Members Table */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-blue-50 to-purple-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Team Member
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Contact Info
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {filteredEmployees.map((employee) => (
-                <tr key={employee._id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
-                        {employee.profilePicture ? (
-                          <img 
-                            src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
-                            alt={employee.name}
-                            className="w-12 h-12 object-cover"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <span 
-                          className={`text-lg font-bold text-white ${
-                            employee.profilePicture ? 'hidden' : 'flex'
-                          }`}
-                        >
-                          {employee.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-lg font-semibold text-gray-900">{employee.name}</div>
-                        <div className="text-sm text-gray-500">ID: {employee.employeeId || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 font-medium">{employee.email}</div>
-                    <div className="text-sm text-gray-500">{employee.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800">
-                      {employee.role || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => openModal('edit', employee)}
-                        className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50"
-                        title="Edit team member"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(employee._id)}
-                        className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-50"
-                        title="Remove team member"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
+        {/* Table */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Team Member
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEmployees.map((employee) => (
+                  <tr key={employee._id} className="hover:bg-gray-50 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {employee.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                          <div className="text-sm text-gray-500">{employee.employeeId}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{employee.email}</div>
+                      <div className="text-sm text-gray-500">{employee.phone}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800">
+                        {employee.role || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => openModal('edit', employee)}
+                          className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                          title="Edit team member"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(employee._id)}
+                          className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-50"
+                          title="Remove team member"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         
         {filteredEmployees.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-white rounded-xl shadow-lg border border-gray-100">
             <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg font-medium">
               {searchTerm ? 'No team members found matching your search' : 'No team members yet'}
@@ -644,20 +629,28 @@ const AdminPortal = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header with Logo */}
-      <div className="bg-white shadow-lg border-b border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Enhanced Header */}
+      <div className="bg-white shadow-xl border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-6">
-              {/* Company Logo */}
-              <img src="/logo.png" alt="Company Logo" className="h-16 w-16 rounded-xl shadow-lg object-cover border-4 border-white bg-white" />
+              {/* Enhanced Logo */}
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-2xl flex items-center justify-center border-4 border-white">
+                  <Crown className="h-8 w-8 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Sparkles className="h-3 w-3 text-white" />
+                </div>
+              </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Team Management Hub
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Admin Hub
                 </h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Digital Marketing • Software Development • GHL Solutions
+                <p className="text-sm text-gray-600 mt-1 flex items-center">
+                  <Target className="h-3 w-3 mr-1" />
+                  Command Center for Team Management
                 </p>
               </div>
             </div>
@@ -665,7 +658,7 @@ const AdminPortal = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => window.location.href = '/'}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Check-In Page
               </button>
@@ -674,7 +667,7 @@ const AdminPortal = () => {
                   localStorage.removeItem('adminToken');
                   window.location.href = '/admin-login';
                 }}
-                className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
               >
                 <Power className="h-4 w-4 mr-2" />
                 Sign Out
@@ -684,15 +677,15 @@ const AdminPortal = () => {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Enhanced Navigation Tabs */}
       <div className="bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'dashboard'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -701,9 +694,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('employees')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'employees'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -712,9 +705,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('shifts')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'shifts'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -723,9 +716,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('sessions')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'sessions'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -734,9 +727,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'tasks'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -745,9 +738,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('aura-nest')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'aura-nest'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -756,9 +749,9 @@ const AdminPortal = () => {
             </button>
             <button
               onClick={() => setActiveTab('usps-labels')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'usps-labels'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -773,7 +766,7 @@ const AdminPortal = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
           <>
@@ -788,124 +781,127 @@ const AdminPortal = () => {
         )}
       </div>
 
-      {/* Employee Modal */}
+      {/* Enhanced Employee Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content max-w-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {modalType === 'add' ? 'Add New Employee' : 'Edit Employee'}
-            </h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                {modalType === 'add' ? 'Add New Team Member' : 'Edit Team Member'}
+              </h3>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Employee ID</label>
                   <input
                     type="text"
                     name="employeeId"
                     value={formData.employeeId}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     required={modalType === 'add'}
                     disabled={modalType === 'edit'}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <div className="mt-1 relative">
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <div className="mt-1 relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone</label>
-                  <div className="mt-1 relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">CNIC</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">CNIC</label>
                   <input
                     type="text"
                     name="cnic"
                     value={formData.cnic}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                  <div className="mt-1 relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="date"
                       name="dob"
                       value={formData.dob}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
-                  <div className="mt-1 relative">
-                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
                       name="role"
                       value={formData.role}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Address</label>
-                  <div className="mt-1 relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <textarea
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       rows="3"
                       required
                     />
@@ -913,35 +909,35 @@ const AdminPortal = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Bank Account</label>
-                  <div className="mt-1 relative">
-                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
                       name="bankAccount"
                       value={formData.bankAccount}
                       onChange={handleInputChange}
-                      className="input-field pl-10"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="btn-secondary"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Saving...' : (modalType === 'add' ? 'Add Employee' : 'Update Employee')}
+                  {loading ? 'Saving...' : (modalType === 'add' ? 'Add Team Member' : 'Update Team Member')}
                 </button>
               </div>
             </form>
