@@ -124,4 +124,16 @@ export const tasksAPI = {
   deleteComment: (id, commentId) => api.delete(`/tasks/${id}/comments/${commentId}`, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
 };
 
+// Admin Settings API for cloud-based cost per label and expenses
+export const adminSettingsAPI = {
+  get: (month) =>
+    fetch(`/api/admin-settings/${month}`).then(res => res.json()),
+  save: (month, data) =>
+    fetch(`/api/admin-settings/${month}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(res => res.json())
+};
+
 export default api; 

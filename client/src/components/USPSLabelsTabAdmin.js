@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { uspsLabelsAPI, uspsGoalsAPI } from '../services/api';
+import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
 import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
@@ -38,12 +38,18 @@ const USPSLabelsTabAdmin = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [costPerLabel, setCostPerLabel] = useState(() => {
-    const saved = localStorage.getItem('usps_cost_per_label_' + profitMonth);
-    return saved ? Number(saved) : 0.10;
+  const [settingsMonth, setSettingsMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [costLocked, setCostLocked] = useState(true);
-  const [costInput, setCostInput] = useState(costPerLabel);
+  const [adminSettings, setAdminSettings] = useState({
+    costPerLabel: 0.10,
+    expenses: { office: 0, internet: 0, ads: 0, acquisition: 0 }
+  });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsLocked, setSettingsLocked] = useState(true);
+  const [settingsDraft, setSettingsDraft] = useState(adminSettings);
 
   const [finalMonth, setFinalMonth] = useState(() => {
     const now = new Date();
@@ -82,6 +88,43 @@ const USPSLabelsTabAdmin = () => {
       loadDashboard();
     }
   }, [activeTab]);
+
+  // Fetch settings from API on month change
+  useEffect(() => {
+    setSettingsLoading(true);
+    setSettingsError('');
+    adminSettingsAPI.get(settingsMonth)
+      .then(data => {
+        setAdminSettings({
+          costPerLabel: data.costPerLabel ?? 0.10,
+          expenses: data.expenses ?? { office: 0, internet: 0, ads: 0, acquisition: 0 }
+        });
+        setSettingsDraft({
+          costPerLabel: data.costPerLabel ?? 0.10,
+          expenses: data.expenses ?? { office: 0, internet: 0, ads: 0, acquisition: 0 }
+        });
+        setSettingsLocked(true);
+      })
+      .catch(err => {
+        setSettingsError('Failed to load admin settings.');
+      })
+      .finally(() => setSettingsLoading(false));
+  }, [settingsMonth]);
+
+  const saveSettings = () => {
+    setSettingsLoading(true);
+    setSettingsError('');
+    adminSettingsAPI.save(settingsMonth, settingsDraft)
+      .then(data => {
+        setAdminSettings({
+          costPerLabel: data.costPerLabel ?? 0.10,
+          expenses: data.expenses ?? { office: 0, internet: 0, ads: 0, acquisition: 0 }
+        });
+        setSettingsLocked(true);
+      })
+      .catch(err => setSettingsError('Failed to save admin settings.'))
+      .finally(() => setSettingsLoading(false));
+  };
 
   // When profitMonth changes, load cost from localStorage
   useEffect(() => {
@@ -1086,27 +1129,23 @@ const USPSLabelsTabAdmin = () => {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={costInput}
-                  onChange={e => setCostInput(Number(e.target.value))}
+                  value={settingsDraft.costPerLabel}
+                  onChange={e => setSettingsDraft(s => ({ ...s, costPerLabel: Number(e.target.value) }))}
                   className="border rounded px-2 py-1 w-24 mr-2 focus:ring-2 focus:ring-green-400 transition-all duration-200"
-                  disabled={costLocked}
+                  disabled={settingsLocked}
                 />
                 <button
-                  className={`mr-2 p-1 rounded-full border ${costLocked ? 'border-gray-300 bg-gray-100' : 'border-green-400 bg-green-50'} transition-all duration-200`}
-                  onClick={() => setCostLocked(l => !l)}
-                  title={costLocked ? 'Unlock to edit' : 'Lock'}
+                  className={`mr-2 p-1 rounded-full border ${settingsLocked ? 'border-gray-300 bg-gray-100' : 'border-green-400 bg-green-50'} transition-all duration-200`}
+                  onClick={() => setSettingsLocked(l => !l)}
+                  title={settingsLocked ? 'Unlock to edit' : 'Lock'}
                   type="button"
                 >
-                  {costLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-green-500" />}
+                  {settingsLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-green-500" />}
                 </button>
-                {!costLocked && (
+                {!settingsLocked && (
                   <button
                     className="px-3 py-1 rounded bg-green-600 text-white flex items-center hover:bg-green-700 transition-all duration-200"
-                    onClick={() => {
-                      setCostPerLabel(costInput);
-                      localStorage.setItem('usps_cost_per_label_' + profitMonth, costInput);
-                      setCostLocked(true);
-                    }}
+                    onClick={saveSettings}
                     type="button"
                   >
                     <SaveIcon className="h-4 w-4 mr-1" /> Save
@@ -1135,7 +1174,7 @@ const USPSLabelsTabAdmin = () => {
               const totalLabels = empLabels.reduce((sum, l) => sum + Number(l.totalLabels || 0), 0);
               const totalRevenue = empLabels.reduce((sum, l) => sum + Number(l.totalRevenue || 0), 0);
               const avgSaleRate = totalLabels > 0 ? totalRevenue / totalLabels : 0;
-              const totalCost = totalLabels * costPerLabel;
+              const totalCost = totalLabels * settingsDraft.costPerLabel;
               const grossProfit = totalRevenue - totalCost;
               return {
                 empId,
@@ -1144,7 +1183,7 @@ const USPSLabelsTabAdmin = () => {
                 totalLabels,
                 totalRevenue,
                 avgSaleRate,
-                costPerLabel,
+                costPerLabel: settingsDraft.costPerLabel,
                 totalCost,
                 grossProfit
               };
@@ -1194,7 +1233,7 @@ const USPSLabelsTabAdmin = () => {
                         <td className="p-2 text-center">{row.totalLabels}</td>
                         <td className="p-2 text-center">${row.totalRevenue.toFixed(2)}</td>
                         <td className="p-2 text-center">${row.avgSaleRate.toFixed(2)}</td>
-                        <td className="p-2 text-center">${costPerLabel.toFixed(2)}</td>
+                        <td className="p-2 text-center">${settingsDraft.costPerLabel.toFixed(2)}</td>
                         <td className="p-2 text-center">${row.totalCost.toFixed(2)}</td>
                         <td className="p-2 text-center font-bold">${row.grossProfit.toFixed(2)}</td>
                       </tr>
@@ -1229,56 +1268,52 @@ const USPSLabelsTabAdmin = () => {
                   <input
                     type="number"
                     min="0"
-                    value={finalInputDraft.office}
-                    onChange={e => setFinalInputDraft(d => ({ ...d, office: Number(e.target.value) }))}
+                    value={settingsDraft.expenses.office}
+                    onChange={e => setSettingsDraft(s => ({ ...s, expenses: { ...s.expenses, office: Number(e.target.value) } }))}
                     className="border rounded px-2 py-1 w-28"
-                    disabled={finalLocked}
+                    disabled={settingsLocked}
                     placeholder="Office Expense"
                   />
                   <input
                     type="number"
                     min="0"
-                    value={finalInputDraft.internet}
-                    onChange={e => setFinalInputDraft(d => ({ ...d, internet: Number(e.target.value) }))}
+                    value={settingsDraft.expenses.internet}
+                    onChange={e => setSettingsDraft(s => ({ ...s, expenses: { ...s.expenses, internet: Number(e.target.value) } }))}
                     className="border rounded px-2 py-1 w-28"
-                    disabled={finalLocked}
+                    disabled={settingsLocked}
                     placeholder="Internet Bills"
                   />
                   <input
                     type="number"
                     min="0"
-                    value={finalInputDraft.ads}
-                    onChange={e => setFinalInputDraft(d => ({ ...d, ads: Number(e.target.value) }))}
+                    value={settingsDraft.expenses.ads}
+                    onChange={e => setSettingsDraft(s => ({ ...s, expenses: { ...s.expenses, ads: Number(e.target.value) } }))}
                     className="border rounded px-2 py-1 w-28"
-                    disabled={finalLocked}
+                    disabled={settingsLocked}
                     placeholder="Ads Cost"
                   />
                   <input
                     type="number"
                     min="0"
-                    value={finalInputDraft.acquisition}
-                    onChange={e => setFinalInputDraft(d => ({ ...d, acquisition: Number(e.target.value) }))}
+                    value={settingsDraft.expenses.acquisition}
+                    onChange={e => setSettingsDraft(s => ({ ...s, expenses: { ...s.expenses, acquisition: Number(e.target.value) } }))}
                     className="border rounded px-2 py-1 w-36"
-                    disabled={finalLocked}
+                    disabled={settingsLocked}
                     placeholder="Acquisition Cost"
                   />
                 </div>
                 <button
-                  className={`ml-2 p-1 rounded-full border ${finalLocked ? 'border-gray-300 bg-gray-100' : 'border-red-400 bg-red-50'} transition-all duration-200`}
-                  onClick={() => setFinalLocked(l => !l)}
-                  title={finalLocked ? 'Unlock to edit' : 'Lock'}
+                  className={`ml-2 p-1 rounded-full border ${settingsLocked ? 'border-gray-300 bg-gray-100' : 'border-red-400 bg-red-50'} transition-all duration-200`}
+                  onClick={() => setSettingsLocked(l => !l)}
+                  title={settingsLocked ? 'Unlock to edit' : 'Lock'}
                   type="button"
                 >
-                  {finalLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-red-500" />}
+                  {settingsLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-red-500" />}
                 </button>
-                {!finalLocked && (
+                {!settingsLocked && (
                   <button
                     className="px-3 py-1 rounded bg-red-600 text-white flex items-center hover:bg-red-700 transition-all duration-200 ml-2"
-                    onClick={() => {
-                      setFinalInputs(finalInputDraft);
-                      localStorage.setItem('usps_final_expenses_' + finalMonth, JSON.stringify(finalInputDraft));
-                      setFinalLocked(true);
-                    }}
+                    onClick={saveSettings}
                     type="button"
                   >
                     <SaveIcon className="h-4 w-4 mr-1" /> Save
@@ -1295,7 +1330,7 @@ const USPSLabelsTabAdmin = () => {
               return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
             });
             // Use cost per label from localStorage for this month
-            const costPerLabel = Number(localStorage.getItem('usps_cost_per_label_' + finalMonth) || 0.10);
+            const costPerLabel = settingsDraft.costPerLabel;
             // Group by employee
             const employeeMap = {};
             monthLabels.forEach(label => {
@@ -1312,7 +1347,7 @@ const USPSLabelsTabAdmin = () => {
               return grossProfit;
             });
             const grossProfit = profitRows.reduce((sum, gp) => sum + gp, 0);
-            const totalExpenses = finalInputs.office + finalInputs.internet + finalInputs.ads + finalInputs.acquisition;
+            const totalExpenses = settingsDraft.expenses.office + settingsDraft.expenses.internet + settingsDraft.expenses.ads + settingsDraft.expenses.acquisition;
             const netProfit = grossProfit - totalExpenses;
             return (
               <div className="bg-white rounded-xl shadow-lg p-6">
@@ -1348,10 +1383,10 @@ const USPSLabelsTabAdmin = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td className="p-2">Office Expense</td><td className="p-2 text-center">${finalInputs.office.toFixed(2)}</td></tr>
-                    <tr><td className="p-2">Internet Bills</td><td className="p-2 text-center">${finalInputs.internet.toFixed(2)}</td></tr>
-                    <tr><td className="p-2">Ads Cost</td><td className="p-2 text-center">${finalInputs.ads.toFixed(2)}</td></tr>
-                    <tr><td className="p-2">Customer Acquisition</td><td className="p-2 text-center">${finalInputs.acquisition.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Office Expense</td><td className="p-2 text-center">${settingsDraft.expenses.office.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Internet Bills</td><td className="p-2 text-center">${settingsDraft.expenses.internet.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Ads Cost</td><td className="p-2 text-center">${settingsDraft.expenses.ads.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Customer Acquisition</td><td className="p-2 text-center">${settingsDraft.expenses.acquisition.toFixed(2)}</td></tr>
                     <tr className="font-bold bg-gray-50"><td className="p-2">Total Expenses</td><td className="p-2 text-center">${totalExpenses.toFixed(2)}</td></tr>
                   </tbody>
                 </table>
