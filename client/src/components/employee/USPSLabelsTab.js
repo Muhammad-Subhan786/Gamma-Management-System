@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../../services/api';
-import { Plus, Edit, Trash2, Upload, DollarSign, Mail, User, FileImage, XCircle, Target, Users, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, DollarSign, Mail, User, FileImage, XCircle, Target, Users, BarChart3, Save, X } from 'lucide-react';
 import GoalMeter from './GoalMeter';
 
 const initialForm = {
@@ -32,6 +32,15 @@ const USPSLabelsTab = ({ employee }) => {
   const [editId, setEditId] = useState(null);
   const [uploadFiles, setUploadFiles] = useState([]);
   const [activeTab, setActiveTab] = useState('labels');
+
+  // Refs for form navigation
+  const emailRef = useRef();
+  const totalLabelsRef = useRef();
+  const rateRef = useRef();
+  const paidLabelsRef = useRef();
+  const statusRef = useRef();
+  const entryDateRef = useRef();
+  const notesRef = useRef();
 
   useEffect(() => {
     loadDashboard();
@@ -220,7 +229,113 @@ const USPSLabelsTab = ({ employee }) => {
             </div>
           </div>
 
-          {/* Labels List and Add/Edit Forms (existing code) */}
+          {/* Add Label Form - Horizontal Layout like AuraNest */}
+          <div className="w-full">
+            <form onSubmit={handleSubmit} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4">
+              <input
+                type="text"
+                name="customerName"
+                value={form.customerName}
+                onChange={handleInput}
+                placeholder="Customer Name"
+                className="input-field flex-1"
+                required
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); emailRef.current && emailRef.current.focus(); } }}
+              />
+              <input
+                type="email"
+                name="customerEmail"
+                value={form.customerEmail}
+                onChange={handleInput}
+                placeholder="Customer Email"
+                className="input-field flex-1"
+                required
+                ref={emailRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); totalLabelsRef.current && totalLabelsRef.current.focus(); } }}
+              />
+              <input
+                type="number"
+                name="totalLabels"
+                value={form.totalLabels}
+                onChange={handleInput}
+                placeholder="Total Labels"
+                className="input-field flex-1"
+                min="1"
+                required
+                ref={totalLabelsRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); rateRef.current && rateRef.current.focus(); } }}
+              />
+              <input
+                type="number"
+                name="rate"
+                value={form.rate}
+                onChange={handleInput}
+                placeholder="Rate ($)"
+                className="input-field flex-1"
+                min="0.01"
+                step="0.01"
+                required
+                ref={rateRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); paidLabelsRef.current && paidLabelsRef.current.focus(); } }}
+              />
+              <input
+                type="number"
+                name="paidLabels"
+                value={form.paidLabels}
+                onChange={handleInput}
+                placeholder="Paid Labels"
+                className="input-field flex-1"
+                min="0"
+                required
+                ref={paidLabelsRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); statusRef.current && statusRef.current.focus(); } }}
+              />
+              <select
+                name="status"
+                value={form.status || 'pending'}
+                onChange={handleInput}
+                className="input-field flex-1"
+                required
+                ref={statusRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); entryDateRef.current && entryDateRef.current.focus(); } }}
+              >
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="completed">Completed</option>
+              </select>
+              <input
+                type="date"
+                name="entryDate"
+                value={form.entryDate}
+                onChange={handleInput}
+                className="input-field flex-1"
+                required
+                ref={entryDateRef}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); notesRef.current && notesRef.current.focus(); } }}
+              />
+              <input
+                type="text"
+                name="notes"
+                value={form.notes}
+                onChange={handleInput}
+                placeholder="Notes"
+                className="input-field flex-1"
+                ref={notesRef}
+              />
+              <div className="flex flex-col gap-2 md:flex-row md:gap-2">
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </button>
+                <button type="button" onClick={closeForm} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Labels List */}
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">My USPS Labels</h2>
             <button className="btn-primary flex items-center" onClick={openAdd}>
@@ -347,156 +462,6 @@ const USPSLabelsTab = ({ employee }) => {
               </form>
             </div>
           )}
-        </div>
-      )}
-
-      {showForm && (
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {editId ? 'Edit Label' : 'Add New Label'}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-                <input
-                  name="customerName"
-                  type="text"
-                  value={form.customerName}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Customer Email</label>
-                <input
-                  name="customerEmail"
-                  type="email"
-                  value={form.customerEmail}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Total Labels</label>
-                <input
-                  name="totalLabels"
-                  type="number"
-                  value={form.totalLabels}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  min="1"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Rate ($)</label>
-                <input
-                  name="rate"
-                  type="number"
-                  value={form.rate}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  min="0.01"
-                  step="0.01"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Paid Labels</label>
-                <input
-                  name="paidLabels"
-                  type="number"
-                  value={form.paidLabels}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  min="0"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select
-                  name="status"
-                  value={form.status || 'pending'}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  required
-                >
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Entry Date</label>
-                <input
-                  name="entryDate"
-                  type="date"
-                  value={form.entryDate}
-                  onChange={handleInput}
-                  className="input-field w-full"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Notes</label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleInput}
-                className="input-field w-full"
-                rows="3"
-                placeholder="Additional notes about this label..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Payment Screenshots</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*,.pdf"
-                onChange={handleFile}
-                className="input-field w-full"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Upload payment screenshots (JPG, PNG, PDF up to 5MB each)
-              </p>
-            </div>
-
-            <div className="flex space-x-4 pt-4">
-              <button 
-                type="submit" 
-                className="btn-primary flex-1 flex items-center justify-center" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {editId ? 'Updating...' : 'Saving...'}
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4 mr-2" />
-                    {editId ? 'Update Label' : 'Add Label'}
-                  </>
-                )}
-              </button>
-              <button 
-                type="button" 
-                className="btn-secondary flex-1" 
-                onClick={closeForm}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         </div>
       )}
     </div>
