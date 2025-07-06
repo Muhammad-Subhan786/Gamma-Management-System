@@ -20,9 +20,9 @@ const analyticsRoutes = require('./routes/analytics');
 const shiftRoutes = require('./routes/shifts');
 const uspsLabelsRoute = require('./routes/uspsLabels');
 const uspsGoalsRoute = require('./routes/uspsGoals');
+const uspsTransactionsRoute = require('./routes/uspsTransactions');
 const auraNestRoutes = require('./routes/auraNest');
 const inventoryRoutes = require('./routes/inventory');
-const transactionRoutes = require('./routes/transactions');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -138,10 +138,10 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/usps-labels', uspsLabelsRoute);
 app.use('/api/usps-goals', uspsGoalsRoute);
+app.use('/api/usps-transactions', uspsTransactionsRoute);
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/aura-nest', auraNestRoutes);
 app.use('/api/inventory', inventoryRoutes);
-app.use('/api/transactions', transactionRoutes);
 
 // Enhanced health check endpoint
 app.get('/api/health', (req, res) => {
@@ -244,10 +244,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
-  console.log(`🔐 JWT test: http://localhost:${PORT}/api/test-jwt`);
-});
-
-// Connect to MongoDB
-connectDB().catch(console.error);
+  
+  // Connect to MongoDB
+  connectDB();
+}); 

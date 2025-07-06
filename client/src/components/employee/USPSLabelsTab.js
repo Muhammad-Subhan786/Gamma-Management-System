@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../../services/api';
 import { Plus, Edit, Trash2, DollarSign, Mail, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle } from 'lucide-react';
 import GoalMeter from './GoalMeter';
+import USPSTransactionsTab from './USPSTransactionsTab';
 
 const initialForm = {
   customerName: '',
@@ -253,6 +254,12 @@ const USPSLabelsTab = ({ employee }) => {
           onClick={() => setActiveTab('goal')}
         >
           Monthly Goal
+        </button>
+        <button
+          className={`py-2 px-4 font-semibold text-sm border-b-2 transition-colors ${activeTab === 'transactions' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-purple-600'}`}
+          onClick={() => setActiveTab('transactions')}
+        >
+          Transactions
         </button>
       </div>
 
@@ -548,6 +555,11 @@ const USPSLabelsTab = ({ employee }) => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Transactions Tab */}
+      {activeTab === 'transactions' && (
+        <USPSTransactionsTab employee={employee} />
       )}
     </div>
   );

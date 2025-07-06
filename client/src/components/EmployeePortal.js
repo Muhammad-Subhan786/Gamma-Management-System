@@ -20,7 +20,6 @@ import ShiftsTab from './employee/ShiftsTab';
 import TasksBoard from './employee/TasksBoard';
 import AuraNestTab from './AuraNestTab';
 import USPSLabelsTab from './employee/USPSLabelsTab';
-import TransactionsTab from './employee/TransactionsTab';
 
 const EmployeePortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -92,8 +91,7 @@ const EmployeePortal = () => {
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
-      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' },
-      { id: 'transactions', label: 'My Transactions', icon: DollarSign, alwaysVisible: true }
+      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
     ];
 
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
@@ -292,8 +290,6 @@ const EmployeePortal = () => {
               <p className="text-gray-600">You don't have permission to access USPS Labels.</p>
             </div>
           )
-        ) : activeTab === 'transactions' ? (
-          <TransactionsTab employee={employee} />
         ) : (
           <div className="text-center py-12">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
