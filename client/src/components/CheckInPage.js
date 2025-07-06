@@ -400,7 +400,7 @@ const CheckInPage = () => {
                       <div className="mt-3 pt-3 border-t border-blue-200">
                         <div className="flex items-center space-x-3">
                           {employeeData.profilePicture && (
-                            <img src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/employees/profile-picture/${employeeData._id}`} alt={employeeData.name} className="w-8 h-8 rounded-full object-cover" />
+                            <img src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employeeData._id}`} alt={employeeData.name} className="w-8 h-8 rounded-full object-cover" />
                           )}
                           <span className="font-semibold text-gray-900">{employeeData.name}</span>
                         </div>
@@ -544,7 +544,7 @@ const CheckInPage = () => {
                         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
                           {checkIn.employee.profilePicture ? (
                             <img 
-                              src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/employees/profile-picture/${checkIn.employee._id}`}
+                              src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${checkIn.employee._id}`}
                               alt={checkIn.employee.name}
                               className="w-12 h-12 object-cover"
                               onError={(e) => {

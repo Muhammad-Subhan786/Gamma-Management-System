@@ -46,9 +46,9 @@ const DashboardTab = ({ employee }) => {
 
   useEffect(() => {
     if (employee && employee._id) {
-      loadAttendanceData();
-      loadCurrentShift();
-      loadGoal();
+    loadAttendanceData();
+    loadCurrentShift();
+    loadGoal();
     }
   }, [employee?._id, currentMonth]);
 
