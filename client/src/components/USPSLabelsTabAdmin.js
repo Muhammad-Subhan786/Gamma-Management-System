@@ -26,6 +26,11 @@ const USPSLabelsTabAdmin = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedLabels, setSelectedLabels] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [selectedEmployee, setSelectedEmployee] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -253,6 +258,16 @@ const USPSLabelsTabAdmin = () => {
           }`}
         >
           Goal Management
+        </button>
+        <button
+          onClick={() => setActiveTab('salaries')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'salaries'
+              ? 'border-purple-500 text-purple-600'
+              : 'border-transparent text-gray-500 hover:text-purple-600'
+          }`}
+        >
+          Salaries
         </button>
       </div>
 
@@ -740,6 +755,142 @@ const USPSLabelsTabAdmin = () => {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Salaries Tab */}
+      {activeTab === 'salaries' && (
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <label className="font-medium">Select Month:
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <label className="font-medium">Employee:
+              <select
+                value={selectedEmployee}
+                onChange={e => setSelectedEmployee(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              >
+                <option value="">All Employees</option>
+                {employees.map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {/* Salary Calculation */}
+          {(() => {
+            // Filter labels for selected month
+            const [year, month] = selectedMonth.split('-');
+            const monthLabels = labels.filter(label => {
+              const d = new Date(label.entryDate || label.createdAt);
+              return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+            });
+            // Group by employee
+            const employeeMap = {};
+            labels.forEach(label => {
+              const empId = label.employeeId?._id;
+              if (!empId) return;
+              if (!employeeMap[empId]) employeeMap[empId] = [];
+              employeeMap[empId].push(label);
+            });
+            // For each employee, group by client
+            const salaryRows = Object.entries(employeeMap)
+              .filter(([empId]) => !selectedEmployee || empId === selectedEmployee)
+              .map(([empId, empLabels]) => {
+                // Group by client
+                const clientMap = {};
+                empLabels.forEach(label => {
+                  const email = label.customerEmail;
+                  if (!clientMap[email]) clientMap[email] = [];
+                  clientMap[email].push(label);
+                });
+                // For each client, find their first month
+                const clientFirstMonth = {};
+                Object.entries(clientMap).forEach(([email, arr]) => {
+                  const first = arr.reduce((min, l) => {
+                    const d = new Date(l.entryDate || l.createdAt);
+                    return (!min || d < min) ? d : min;
+                  }, null);
+                  clientFirstMonth[email] = first ? `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}` : null;
+                });
+                // For selected month, for each client, sum paid labels in that month
+                const clientStats = Object.entries(clientMap).map(([email, arr]) => {
+                  const monthArr = arr.filter(l => {
+                    const d = new Date(l.entryDate || l.createdAt);
+                    return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+                  });
+                  const paidLabels = monthArr.reduce((sum, l) => sum + Number(l.paidLabels || 0), 0);
+                  const clientName = monthArr[0]?.customerName || email;
+                  // Only first month counts for bonus
+                  const qualifies = clientFirstMonth[email] === selectedMonth && paidLabels >= 100;
+                  return { email, clientName, paidLabels, qualifies };
+                });
+                // Calculate bonus
+                const baseSalary = 10000;
+                const bonusClients = clientStats.filter(c => c.qualifies);
+                const bonus = bonusClients.length * 2000;
+                const totalSalary = baseSalary + bonus;
+                const emp = employees.find(e => e._id === empId);
+                return {
+                  empId,
+                  empName: emp?.name || 'Unknown',
+                  baseSalary,
+                  bonus,
+                  totalSalary,
+                  clientStats
+                };
+              });
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold mb-4 text-purple-700">Salary Breakdown for {selectedMonth}</h2>
+                <table className="min-w-full bg-white rounded shadow">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 text-left">Employee</th>
+                      <th className="p-2 text-center">Base Salary</th>
+                      <th className="p-2 text-center">Bonus</th>
+                      <th className="p-2 text-center">Total Salary</th>
+                      <th className="p-2 text-center">Bonus-Qualifying Clients</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salaryRows.map(row => (
+                      <tr key={row.empId}>
+                        <td className="p-2 font-semibold">{row.empName}</td>
+                        <td className="p-2 text-center">10,000 PKR</td>
+                        <td className="p-2 text-center">{row.bonus.toLocaleString()} PKR</td>
+                        <td className="p-2 text-center font-bold">{row.totalSalary.toLocaleString()} PKR</td>
+                        <td className="p-2">
+                          <ul className="list-disc pl-4">
+                            {row.clientStats.map(c => (
+                              <li key={c.email} className={c.qualifies ? 'text-green-700 font-bold' : ''}>
+                                {c.clientName}: {c.paidLabels} paid labels {c.qualifies ? '(+2,000 PKR)' : ''}
+                              </li>
+                            ))}
+                            {row.clientStats.length === 0 && (
+                              <li className="text-gray-400">No sales for this month.</li>
+                            )}
+                          </ul>
+                        </td>
+                      </tr>
+                    ))}
+                    {salaryRows.length === 0 && (
+                      <tr><td colSpan={5} className="text-center p-4 text-gray-400">No salary data for this month.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+                <div className="mt-4 text-gray-600 text-sm">
+                  <p>Bonus is awarded for each client with at least 100 paid labels in their first month of sales. Only the first month counts for bonus. No carry-forward.</p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
