@@ -45,6 +45,22 @@ const USPSLabelsTabAdmin = () => {
   const [costLocked, setCostLocked] = useState(true);
   const [costInput, setCostInput] = useState(costPerLabel);
 
+  const [finalMonth, setFinalMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [finalInputs, setFinalInputs] = useState(() => {
+    const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
+    return saved ? JSON.parse(saved) : {
+      office: 0,
+      internet: 0,
+      ads: 0,
+      acquisition: 0
+    };
+  });
+  const [finalLocked, setFinalLocked] = useState(true);
+  const [finalInputDraft, setFinalInputDraft] = useState(finalInputs);
+
   useEffect(() => {
     loadDashboard();
     loadLabels();
@@ -70,6 +86,20 @@ const USPSLabelsTabAdmin = () => {
     setCostInput(saved ? Number(saved) : 0.10);
     setCostLocked(true);
   }, [profitMonth]);
+
+  // When finalMonth changes, load from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
+    const val = saved ? JSON.parse(saved) : {
+      office: 0,
+      internet: 0,
+      ads: 0,
+      acquisition: 0
+    };
+    setFinalInputs(val);
+    setFinalInputDraft(val);
+    setFinalLocked(true);
+  }, [finalMonth]);
 
   const loadDashboard = async () => {
     try {
@@ -322,6 +352,16 @@ const USPSLabelsTabAdmin = () => {
             }`}
           >
             Profit Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('final')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'final'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-red-600'
+            }`}
+          >
+            Final Calculations
           </button>
         </div>
         <button
@@ -1148,6 +1188,157 @@ const USPSLabelsTabAdmin = () => {
                     {profitRows.length === 0 && (
                       <tr><td colSpan={7} className="text-center p-4 text-gray-400">No data for this month.</td></tr>
                     )}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Final Calculations Tab */}
+      {activeTab === 'final' && (
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <label className="font-medium">Select Month:
+              <input
+                type="month"
+                value={finalMonth}
+                onChange={e => setFinalMonth(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <div className="flex-1 flex items-center">
+              <div className="bg-white rounded-xl shadow flex items-center px-4 py-2 transition-all duration-200 border border-red-200">
+                <span className="font-medium mr-2">Expenses:</span>
+                <div className="flex flex-col md:flex-row gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    value={finalInputDraft.office}
+                    onChange={e => setFinalInputDraft(d => ({ ...d, office: Number(e.target.value) }))}
+                    className="border rounded px-2 py-1 w-28"
+                    disabled={finalLocked}
+                    placeholder="Office Expense"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={finalInputDraft.internet}
+                    onChange={e => setFinalInputDraft(d => ({ ...d, internet: Number(e.target.value) }))}
+                    className="border rounded px-2 py-1 w-28"
+                    disabled={finalLocked}
+                    placeholder="Internet Bills"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={finalInputDraft.ads}
+                    onChange={e => setFinalInputDraft(d => ({ ...d, ads: Number(e.target.value) }))}
+                    className="border rounded px-2 py-1 w-28"
+                    disabled={finalLocked}
+                    placeholder="Ads Cost"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={finalInputDraft.acquisition}
+                    onChange={e => setFinalInputDraft(d => ({ ...d, acquisition: Number(e.target.value) }))}
+                    className="border rounded px-2 py-1 w-36"
+                    disabled={finalLocked}
+                    placeholder="Acquisition Cost"
+                  />
+                </div>
+                <button
+                  className={`ml-2 p-1 rounded-full border ${finalLocked ? 'border-gray-300 bg-gray-100' : 'border-red-400 bg-red-50'} transition-all duration-200`}
+                  onClick={() => setFinalLocked(l => !l)}
+                  title={finalLocked ? 'Unlock to edit' : 'Lock'}
+                  type="button"
+                >
+                  {finalLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-red-500" />}
+                </button>
+                {!finalLocked && (
+                  <button
+                    className="px-3 py-1 rounded bg-red-600 text-white flex items-center hover:bg-red-700 transition-all duration-200 ml-2"
+                    onClick={() => {
+                      setFinalInputs(finalInputDraft);
+                      localStorage.setItem('usps_final_expenses_' + finalMonth, JSON.stringify(finalInputDraft));
+                      setFinalLocked(true);
+                    }}
+                    type="button"
+                  >
+                    <SaveIcon className="h-4 w-4 mr-1" /> Save
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          {(() => {
+            // Pull gross profit from Profit Analysis for the month
+            const [year, month] = finalMonth.split('-');
+            const monthLabels = labels.filter(label => {
+              const d = new Date(label.entryDate || label.createdAt);
+              return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+            });
+            // Use cost per label from localStorage for this month
+            const costPerLabel = Number(localStorage.getItem('usps_cost_per_label_' + finalMonth) || 0.10);
+            // Group by employee
+            const employeeMap = {};
+            monthLabels.forEach(label => {
+              const empId = label.employeeId?._id;
+              if (!empId) return;
+              if (!employeeMap[empId]) employeeMap[empId] = [];
+              employeeMap[empId].push(label);
+            });
+            const profitRows = Object.entries(employeeMap).map(([empId, empLabels]) => {
+              const totalLabels = empLabels.reduce((sum, l) => sum + Number(l.totalLabels || 0), 0);
+              const totalRevenue = empLabels.reduce((sum, l) => sum + Number(l.totalRevenue || 0), 0);
+              const totalCost = totalLabels * costPerLabel;
+              const grossProfit = totalRevenue - totalCost;
+              return grossProfit;
+            });
+            const grossProfit = profitRows.reduce((sum, gp) => sum + gp, 0);
+            const totalExpenses = finalInputs.office + finalInputs.internet + finalInputs.ads + finalInputs.acquisition;
+            const netProfit = grossProfit - totalExpenses;
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold mb-4 text-red-700">Final Calculations for {finalMonth}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex items-center">
+                    <Trophy className="h-8 w-8 text-green-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-green-700">Gross Profit</div>
+                      <div className="text-2xl font-bold text-green-900">${grossProfit.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center">
+                    <DollarSign className="h-8 w-8 text-yellow-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-yellow-700">Total Expenses</div>
+                      <div className="text-2xl font-bold text-yellow-900">${totalExpenses.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-red-100 to-red-200 flex items-center">
+                    <Trophy className="h-8 w-8 text-red-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-red-700">Net Profit</div>
+                      <div className="text-2xl font-bold text-red-900">${netProfit.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+                <table className="min-w-full bg-white rounded shadow">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 text-left">Expense Type</th>
+                      <th className="p-2 text-center">Amount ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td className="p-2">Office Expense</td><td className="p-2 text-center">${finalInputs.office.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Internet Bills</td><td className="p-2 text-center">${finalInputs.internet.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Ads Cost</td><td className="p-2 text-center">${finalInputs.ads.toFixed(2)}</td></tr>
+                    <tr><td className="p-2">Customer Acquisition</td><td className="p-2 text-center">${finalInputs.acquisition.toFixed(2)}</td></tr>
+                    <tr className="font-bold bg-gray-50"><td className="p-2">Total Expenses</td><td className="p-2 text-center">${totalExpenses.toFixed(2)}</td></tr>
                   </tbody>
                 </table>
               </div>
