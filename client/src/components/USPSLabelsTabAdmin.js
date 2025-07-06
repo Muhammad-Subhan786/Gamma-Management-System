@@ -50,16 +50,20 @@ const USPSLabelsTabAdmin = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [finalInputs, setFinalInputs] = useState(() => {
-    const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
-    return saved ? JSON.parse(saved) : {
-      office: 0,
-      internet: 0,
-      ads: 0,
-      acquisition: 0
-    };
+    let val = { office: 0, internet: 0, ads: 0, acquisition: 0 };
+    try {
+      const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
+      if (saved) val = JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing final expenses from localStorage:', e);
+    }
+    return val;
   });
   const [finalLocked, setFinalLocked] = useState(true);
   const [finalInputDraft, setFinalInputDraft] = useState(finalInputs);
+
+  const [dashboardError, setDashboardError] = useState('');
+  const [goalAnalyticsError, setGoalAnalyticsError] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -89,25 +93,27 @@ const USPSLabelsTabAdmin = () => {
 
   // When finalMonth changes, load from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
-    const val = saved ? JSON.parse(saved) : {
-      office: 0,
-      internet: 0,
-      ads: 0,
-      acquisition: 0
-    };
+    let val = { office: 0, internet: 0, ads: 0, acquisition: 0 };
+    try {
+      const saved = localStorage.getItem('usps_final_expenses_' + finalMonth);
+      if (saved) val = JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing final expenses from localStorage:', e);
+    }
     setFinalInputs(val);
     setFinalInputDraft(val);
     setFinalLocked(true);
   }, [finalMonth]);
 
   const loadDashboard = async () => {
+    setDashboardError('');
     try {
       const { data } = await uspsLabelsAPI.getAdminDashboard();
       setDashboard(data || { totalLabels: 0, averageRate: 0, totalRevenue: 0 });
     } catch (error) {
       console.error('Error loading dashboard:', error);
       setDashboard({ totalLabels: 0, averageRate: 0, totalRevenue: 0 });
+      setDashboardError('Failed to load dashboard data.');
     }
   };
 
@@ -149,12 +155,14 @@ const USPSLabelsTabAdmin = () => {
   };
 
   const loadGoalAnalytics = async () => {
+    setGoalAnalyticsError('');
     try {
       const { data } = await uspsGoalsAPI.getAdminAnalytics();
       setGoalAnalytics(data || {});
     } catch (error) {
       console.error('Error loading goal analytics:', error);
       setGoalAnalytics({});
+      setGoalAnalyticsError('Failed to load goal analytics.');
     }
   };
 
@@ -383,6 +391,12 @@ const USPSLabelsTabAdmin = () => {
       {/* Overview & Analytics Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
+          {(dashboardError || goalAnalyticsError) && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 font-medium mb-4">
+              {dashboardError && <div>{dashboardError}</div>}
+              {goalAnalyticsError && <div>{goalAnalyticsError}</div>}
+            </div>
+          )}
           {/* Dashboard Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white rounded-lg shadow-md p-6">
