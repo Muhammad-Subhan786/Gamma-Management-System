@@ -8,14 +8,12 @@ import {
   Rocket, 
   Star, 
   Trophy, 
-  Fire, 
+  Flame, 
   Lightning,
   Calendar,
   Clock,
   DollarSign,
   BarChart3,
-  Crown,
-  Sparkles,
   ArrowUp,
   CheckCircle,
   Play,
@@ -24,7 +22,7 @@ import {
 
 const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) => {
   const [animateProgress, setAnimateProgress] = useState(false);
-  const [showSparkles, setShowSparkles] = useState(false);
+  const [showStars, setShowStars] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState('');
 
@@ -42,9 +40,9 @@ const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) =
     // Simulate streak (in real app, this would come from backend)
     setCurrentStreak(Math.floor(Math.random() * 15) + 5);
 
-    // Show sparkles for high achievers
+    // Show stars for high achievers
     if (goal?.overallProgress >= 100) {
-      setShowSparkles(true);
+      setShowStars(true);
     }
   }, [goal]);
 
@@ -58,7 +56,7 @@ const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) =
   };
 
   const getStatusIcon = (progress) => {
-    if (progress >= 100) return <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />;
+    if (progress >= 100) return <Award className="h-10 w-10 text-yellow-500 animate-bounce" />;
     if (progress >= 75) return <Rocket className="h-10 w-10 text-blue-500 animate-pulse" />;
     if (progress >= 50) return <Target className="h-10 w-10 text-yellow-500 animate-pulse" />;
     return <Zap className="h-10 w-10 text-red-500 animate-pulse" />;
@@ -106,11 +104,11 @@ const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) =
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse"></div>
       
-      {/* Sparkles for high achievers */}
-      {showSparkles && (
+      {/* Stars for high achievers */}
+      {showStars && (
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(20)].map((_, i) => (
-            <Sparkles 
+            <Star 
               key={i}
               className="absolute text-yellow-400 animate-ping"
               style={{
@@ -255,7 +253,7 @@ const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) =
               {/* Streak Counter */}
               <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200">
                 <div className="flex items-center justify-between mb-3">
-                  <Fire className="h-6 w-6 text-orange-600" />
+                  <Flame className="h-6 w-6 text-orange-600" />
                   <span className="text-xs font-semibold text-orange-700 bg-orange-200 px-2 py-1 rounded-full">
                     STREAK
                   </span>
