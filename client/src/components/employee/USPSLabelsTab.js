@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../../services/api';
-import { Plus, Edit, Trash2, DollarSign, Mail, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle } from 'lucide-react';
 import GoalMeter from './GoalMeter';
 
 const initialForm = {
@@ -124,9 +124,7 @@ const USPSLabelsTab = ({ employee }) => {
     setGoalForm(f => ({ ...f, [name]: value }));
   };
 
-  const handleFile = (e) => {
-    setUploadFiles([...e.target.files]);
-  };
+
 
   const openAdd = () => {
     setForm({ ...initialForm, entryDate: new Date().toISOString().slice(0, 10) });

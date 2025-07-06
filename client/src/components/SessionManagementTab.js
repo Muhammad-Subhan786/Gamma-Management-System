@@ -3,13 +3,9 @@ import { employeeAPI } from '../services/api';
 import { 
   Users, 
   DollarSign, 
-  ShoppingCart, 
   CheckCircle, 
-  XCircle, 
-  Save,
   RefreshCw,
-  Shield,
-  Zap
+  Shield
 } from 'lucide-react';
 
 const SessionManagementTab = () => {
@@ -144,15 +140,7 @@ const SessionManagementTab = () => {
     employee.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getSessionIcon = (sessionId) => {
-    const session = sessions.find(s => s.id === sessionId);
-    return session ? session.icon : Users;
-  };
 
-  const getSessionColor = (sessionId) => {
-    const session = sessions.find(s => s.id === sessionId);
-    return session ? session.color : 'gray';
-  };
 
   const hasSessionAccess = (employee, sessionId) => {
     return (employee.allowedSessions || []).includes(sessionId);

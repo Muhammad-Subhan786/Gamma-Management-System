@@ -10,15 +10,11 @@ import {
   PieChart,
   Users,
   Download,
-  CheckCircle,
-  XCircle,
   Package,
   ShoppingCart
 } from 'lucide-react';
 import moment from 'moment';
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -231,8 +227,7 @@ const AuraNestTab = () => {
     products: [{ name: '', description: '', attributes: {}, cost: '', price: '' }],
     notes: ''
   });
-  const [orderError, setOrderError] = useState('');
-  const [showOrderForm, setShowOrderForm] = useState(false);
+
   const [orderLoading, setOrderLoading] = useState(false);
   const [inventoryStatusFilter, setInventoryStatusFilter] = useState('');
   const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3ViaGFuMzIzMjMiLCJhIjoiY21jazN0M3M2MGJyODJrcXh2eDhud3RubyJ9.oCTz3PbwjaF1GL_93hd3zQ';

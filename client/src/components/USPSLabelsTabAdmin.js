@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../services/api';
-import { Edit, Trash2, FileImage, DollarSign, Mail, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle } from 'lucide-react';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
 
@@ -12,17 +12,7 @@ const USPSLabelsTabAdmin = () => {
   const [goals, setGoals] = useState([]);
   const [goalAnalytics, setGoalAnalytics] = useState({});
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
-  const [form, setForm] = useState({
-    customerName: '',
-    customerEmail: '',
-    totalLabels: '',
-    rate: '',
-    paidLabels: '',
-    notes: '',
-    status: 'pending'
-  });
   const [goalForm, setGoalForm] = useState({
     employeeId: '',
     month: new Date().toISOString().slice(0, 7),
@@ -30,7 +20,6 @@ const USPSLabelsTabAdmin = () => {
     targetRevenue: '',
     deadline: ''
   });
-  const [editId, setEditId] = useState(null);
   const [editGoalId, setEditGoalId] = useState(null);
   const [search, setSearch] = useState('');
   const [employeeFilter, setEmployeeFilter] = useState('');

@@ -20,9 +20,6 @@ import {
   Code,
   Shield,
   CheckCircle,
-  Menu,
-  X,
-  Settings,
   Crown,
   Sparkles,
   Zap,
@@ -51,7 +48,6 @@ import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [analytics, setAnalytics] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -59,7 +55,6 @@ const AdminPortal = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [shiftEnded, setShiftEnded] = useState(false);
-  const [shiftEndTime, setShiftEndTime] = useState(null);
   const [formData, setFormData] = useState({
     employeeId: '',
     name: '',

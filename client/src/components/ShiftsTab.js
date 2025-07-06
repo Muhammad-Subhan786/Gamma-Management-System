@@ -16,7 +16,7 @@ import {
 
 const ShiftsTab = () => {
   const [shifts, setShifts] = useState([]);
-  const [employees, setEmployees] = useState([]);
+
   const [unassignedEmployees, setUnassignedEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);

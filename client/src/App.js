@@ -6,12 +6,8 @@ import AdminLogin from './components/AdminLogin';
 import EmployeeLogin from './components/EmployeeLogin';
 import EmployeePortal from './components/EmployeePortal';
 import { 
-  Users, 
-  Clock, 
-  BarChart3, 
   LogOut, 
   User, 
-  Sparkles, 
   Home, 
   Target, 
   Menu, 

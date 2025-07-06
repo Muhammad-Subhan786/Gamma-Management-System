@@ -20,7 +20,7 @@ const TasksBoard = ({ employee }) => {
   const [draggedTask, setDraggedTask] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalTask, setModalTask] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState('');
 
   useEffect(() => {

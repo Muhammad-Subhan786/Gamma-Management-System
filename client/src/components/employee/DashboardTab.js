@@ -5,14 +5,9 @@ import {
   TrendingUp, 
   AlertTriangle, 
   CheckCircle,
-  BarChart3,
-  CalendarDays,
-  Clock3,
   Briefcase
 } from 'lucide-react';
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -50,7 +45,7 @@ const DashboardTab = ({ employee }) => {
     loadCurrentShift();
     loadGoal();
     }
-  }, [employee?._id, currentMonth]);
+  }, [employee?._id, currentMonth, loadAttendanceData, loadCurrentShift, loadGoal]);
 
   const loadAttendanceData = async () => {
     if (!employee || !employee._id) return;
@@ -113,7 +108,6 @@ const DashboardTab = ({ employee }) => {
     setGoalLoading(true);
     setGoalError('');
     try {
-      const token = localStorage.getItem('employeeToken');
       const response = await uspsGoalsAPI.getCurrentGoal();
       setGoal(response.data || null);
     } catch (err) {

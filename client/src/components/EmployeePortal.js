@@ -30,7 +30,7 @@ const EmployeePortal = () => {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   const checkAuth = async () => {
     const token = localStorage.getItem('employeeToken');
@@ -107,7 +107,7 @@ const EmployeePortal = () => {
         setActiveTab(availableTabs[0].id);
       }
     }
-  }, [employee]);
+  }, [employee, activeTab, getAvailableTabs]);
 
   if (loading) {
     return (

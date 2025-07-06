@@ -4,12 +4,7 @@ import { Target, TrendingUp, Award, AlertTriangle } from 'lucide-react';
 const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) => {
   if (!goal) return null;
 
-  const getProgressColor = (progress) => {
-    if (progress >= 100) return 'text-green-600 bg-green-100';
-    if (progress >= 75) return 'text-blue-600 bg-blue-100';
-    if (progress >= 50) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
-  };
+
 
   const getStatusIcon = (progress) => {
     if (progress >= 100) return <Award className="h-8 w-8 text-green-500 animate-bounce" />;

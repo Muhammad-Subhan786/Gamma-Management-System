@@ -6,7 +6,6 @@ import {
   LogIn, 
   LogOut, 
   AlertTriangle, 
-  CheckCircle, 
   Users, 
   Heart, 
   Coffee, 
@@ -16,13 +15,9 @@ import {
   Zap, 
   Sparkles, 
   Sun, 
-  Moon, 
   Star, 
   Target, 
   TrendingUp,
-  Award,
-  Calendar,
-  MapPin,
   Bell,
   Smile
 } from 'lucide-react';
@@ -34,7 +29,7 @@ const CheckInPage = () => {
     employeeId: ''
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [checkInStatus, setCheckInStatus] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -172,7 +167,7 @@ const CheckInPage = () => {
     }, 500); // Debounce the check
 
     return () => clearTimeout(timeoutId);
-  }, [formData.employeeId]);
+  }, [formData.employeeId, checkEmployeeShiftStatus]);
 
   const handleCheckIn = async (e) => {
     e.preventDefault();

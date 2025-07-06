@@ -3,12 +3,9 @@ import { shiftAPI } from '../../services/api';
 import { 
   Clock, 
   Calendar, 
-  Users, 
   CheckCircle,
   XCircle,
-  AlertCircle,
-  MapPin,
-  Briefcase
+  AlertCircle
 } from 'lucide-react';
 import moment from 'moment';
 
@@ -21,7 +18,7 @@ const ShiftsTab = ({ employee }) => {
     if (employee && employee._id) {
       loadAssignedShifts();
     }
-  }, [employee?._id]);
+  }, [employee?._id, loadAssignedShifts]);
 
   const loadAssignedShifts = async () => {
     if (!employee || !employee._id) return;
