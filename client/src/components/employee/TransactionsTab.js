@@ -242,7 +242,7 @@ const TransactionsTab = ({ employee }) => {
             </span>
           </div>
           <div className="text-3xl font-black text-blue-900 mb-1">
-            ${dashboard.totalAmount.toLocaleString()}
+            ${(dashboard.totalAmount || 0).toLocaleString()}
           </div>
           <div className="text-sm text-blue-700">
             {dashboard.approvedTransactions} approved transactions
@@ -287,7 +287,7 @@ const TransactionsTab = ({ employee }) => {
             </span>
           </div>
           <div className="text-3xl font-black text-purple-900 mb-1">
-            ${dashboard.monthlyAmount.toLocaleString()}
+            ${(dashboard.monthlyAmount || 0).toLocaleString()}
           </div>
           <div className="text-sm text-purple-700">
             {dashboard.monthlyTransactions} this month
@@ -597,7 +597,7 @@ const TransactionsTab = ({ employee }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-gray-900">
-                        ${transaction.amount.toLocaleString()}
+                        ${(transaction.amount || 0).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
