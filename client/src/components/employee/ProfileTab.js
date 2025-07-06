@@ -152,7 +152,7 @@ const ProfileTab = ({ employee, updateEmployeeData }) => {
       const formData = new FormData();
       formData.append('profilePicture', selectedFile);
 
-      const response = await fetch('/api/employees/upload-profile-picture', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/upload-profile-picture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -318,7 +318,7 @@ const ProfileTab = ({ employee, updateEmployeeData }) => {
                 <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center">
                   {employee.profilePicture ? (
                     <img 
-                      src={`/api/employees/profile-picture/${employee._id}`}
+                      src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
                       alt={employee.name}
                       className="w-20 h-20 rounded-full object-cover"
                     />
@@ -416,7 +416,7 @@ const ProfileTab = ({ employee, updateEmployeeData }) => {
                   />
                 ) : employee.profilePicture ? (
                   <img 
-                    src={`/api/employees/profile-picture/${employee._id}`}
+                    src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
                     alt={employee.name}
                     className="w-32 h-32 rounded-full object-cover"
                   />

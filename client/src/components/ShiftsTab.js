@@ -366,7 +366,7 @@ const ShiftsTab = () => {
                       <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
                         {assignment.employeeId && assignment.employeeId.profilePicture ? (
                           <img 
-                            src={`/api/employees/profile-picture/${assignment.employeeId._id}`}
+                            src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${assignment.employeeId._id}`}
                             alt={assignment.employeeId.name}
                             className="w-6 h-6 object-cover"
                           />
@@ -560,7 +560,7 @@ const ShiftsTab = () => {
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
                         {employee.profilePicture ? (
                           <img 
-                            src={`/api/employees/profile-picture/${employee._id}`}
+                            src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
                             alt={employee.name}
                             className="w-8 h-8 object-cover"
                           />

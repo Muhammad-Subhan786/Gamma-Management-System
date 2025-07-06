@@ -442,22 +442,15 @@ const AdminPortal = () => {
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
                     {employee.profilePicture ? (
                       <img 
-                        src={`/api/employees/profile-picture/${employee.employeeId}`}
+                        src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee.employeeId}`}
                         alt={employee.name}
-                        className="w-8 h-8 object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
+                        className="w-8 h-8 rounded-full object-cover"
                       />
-                    ) : null}
-                    <span 
-                      className={`text-sm font-bold text-primary-600 ${
-                        employee.profilePicture ? 'hidden' : 'flex'
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
+                    ) : (
+                      <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {employee.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="ml-3">
                     <p className="font-medium text-gray-900">{employee.name}</p>
@@ -575,7 +568,7 @@ const AdminPortal = () => {
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
                         {employee.profilePicture ? (
                           <img 
-                            src={`/api/employees/profile-picture/${employee._id}`}
+                            src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
                             alt={employee.name}
                             className="w-12 h-12 object-cover"
                             onError={(e) => {

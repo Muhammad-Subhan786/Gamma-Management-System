@@ -145,7 +145,7 @@ const EmployeePortal = () => {
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
                   {employee.profilePicture ? (
                     <img 
-                      src={`/api/employees/profile-picture/${employee._id}`}
+                      src={`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/employees/profile-picture/${employee._id}`}
                       alt={employee.name}
                       className="w-12 h-12 rounded-full object-cover"
                     />
