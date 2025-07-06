@@ -31,6 +31,7 @@ const USPSLabelsTabAdmin = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [employeesLoading, setEmployeesLoading] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -63,6 +64,7 @@ const USPSLabelsTabAdmin = () => {
   };
 
   const loadEmployees = async () => {
+    setEmployeesLoading(true);
     try {
       const response = await fetch('/api/employees');
       const { data } = await response.json();
@@ -71,6 +73,7 @@ const USPSLabelsTabAdmin = () => {
       console.error('Error loading employees:', error);
       setEmployees([]);
     }
+    setEmployeesLoading(false);
   };
 
   const loadGoals = async () => {
@@ -228,46 +231,62 @@ const USPSLabelsTabAdmin = () => {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex space-x-4 border-b border-gray-200">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex space-x-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'overview'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Overview & Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab('labels')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'labels'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Labels Management
+          </button>
+          <button
+            onClick={() => setActiveTab('goals')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'goals'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Goal Management
+          </button>
+          <button
+            onClick={() => setActiveTab('salaries')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'salaries'
+                ? 'border-purple-500 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-purple-600'
+            }`}
+          >
+            Salaries
+          </button>
+        </div>
         <button
-          onClick={() => setActiveTab('overview')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'overview'
-              ? 'border-primary-500 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
+          className="ml-4 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200 flex items-center"
+          onClick={() => {
+            loadDashboard();
+            loadLabels();
+            loadEmployees();
+            loadGoals();
+            loadGoalAnalytics();
+          }}
+          disabled={loading || employeesLoading}
         >
-          Overview & Analytics
-        </button>
-        <button
-          onClick={() => setActiveTab('labels')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'labels'
-              ? 'border-primary-500 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Labels Management
-        </button>
-        <button
-          onClick={() => setActiveTab('goals')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'goals'
-              ? 'border-primary-500 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Goal Management
-        </button>
-        <button
-          onClick={() => setActiveTab('salaries')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'salaries'
-              ? 'border-purple-500 text-purple-600'
-              : 'border-transparent text-gray-500 hover:text-purple-600'
-          }`}
-        >
-          Salaries
+          <Loader2 className={`h-5 w-5 mr-2 animate-spin ${loading || employeesLoading ? '' : 'hidden'}`} />
+          Refresh
         </button>
       </div>
 
@@ -770,17 +789,19 @@ const USPSLabelsTabAdmin = () => {
                 className="ml-2 border rounded px-2 py-1"
               />
             </label>
-            <label className="font-medium">Employee:
+            <label className="font-medium flex items-center">Employee:
               <select
                 value={selectedEmployee}
                 onChange={e => setSelectedEmployee(e.target.value)}
-                className="ml-2 border rounded px-2 py-1"
+                className="ml-2 border rounded px-2 py-1 min-w-[180px]"
+                disabled={employeesLoading}
               >
                 <option value="">All Employees</option>
                 {employees.map(emp => (
                   <option key={emp._id} value={emp._id}>{emp.name}</option>
                 ))}
               </select>
+              {employeesLoading && <Loader2 className="h-4 w-4 ml-2 animate-spin text-blue-500" />}
             </label>
           </div>
           {/* Salary Calculation */}
@@ -846,49 +867,91 @@ const USPSLabelsTabAdmin = () => {
                   clientStats
                 };
               });
+            // Calculate summary
+            const totalPayroll = salaryRows.reduce((sum, row) => sum + row.totalSalary, 0);
+            const totalBonus = salaryRows.reduce((sum, row) => sum + row.bonus, 0);
+            const totalEmployees = salaryRows.length;
             return (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold mb-4 text-purple-700">Salary Breakdown for {selectedMonth}</h2>
-                <table className="min-w-full bg-white rounded shadow">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 text-left">Employee</th>
-                      <th className="p-2 text-center">Base Salary</th>
-                      <th className="p-2 text-center">Bonus</th>
-                      <th className="p-2 text-center">Total Salary</th>
-                      <th className="p-2 text-center">Bonus-Qualifying Clients</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {salaryRows.map(row => (
-                      <tr key={row.empId}>
-                        <td className="p-2 font-semibold">{row.empName}</td>
-                        <td className="p-2 text-center">10,000 PKR</td>
-                        <td className="p-2 text-center">{row.bonus.toLocaleString()} PKR</td>
-                        <td className="p-2 text-center font-bold">{row.totalSalary.toLocaleString()} PKR</td>
-                        <td className="p-2">
-                          <ul className="list-disc pl-4">
-                            {row.clientStats.map(c => (
-                              <li key={c.email} className={c.qualifies ? 'text-green-700 font-bold' : ''}>
-                                {c.clientName}: {c.paidLabels} paid labels {c.qualifies ? '(+2,000 PKR)' : ''}
-                              </li>
-                            ))}
-                            {row.clientStats.length === 0 && (
-                              <li className="text-gray-400">No sales for this month.</li>
-                            )}
-                          </ul>
-                        </td>
-                      </tr>
-                    ))}
-                    {salaryRows.length === 0 && (
-                      <tr><td colSpan={5} className="text-center p-4 text-gray-400">No salary data for this month.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-                <div className="mt-4 text-gray-600 text-sm">
-                  <p>Bonus is awarded for each client with at least 100 paid labels in their first month of sales. Only the first month counts for bonus. No carry-forward.</p>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center">
+                    <DollarSign className="h-8 w-8 text-blue-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-blue-700">Total Payroll</div>
+                      <div className="text-2xl font-bold text-blue-900">{totalPayroll.toLocaleString()} PKR</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex items-center">
+                    <User className="h-8 w-8 text-green-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-green-700">Employees</div>
+                      <div className="text-2xl font-bold text-green-900">{totalEmployees}</div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 flex items-center">
+                    <Trophy className="h-8 w-8 text-purple-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-purple-700">Total Bonus</div>
+                      <div className="text-2xl font-bold text-purple-900">{totalBonus.toLocaleString()} PKR</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-bold mb-4 text-purple-700">Salary Breakdown for {selectedMonth}</h2>
+                  <table className="min-w-full bg-white rounded shadow">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="p-2 text-left">Employee</th>
+                        <th className="p-2 text-center">Base Salary</th>
+                        <th className="p-2 text-center">Bonus</th>
+                        <th className="p-2 text-center">Total Salary</th>
+                        <th className="p-2 text-center">Bonus-Qualifying Clients</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salaryRows.map(row => (
+                        <tr key={row.empId} className="hover:bg-blue-50">
+                          <td className="p-2 font-semibold flex items-center">
+                            {row.empId && employees.find(e => e._id === row.empId)?.profilePicture ? (
+                              <img
+                                src={`/api/employees/profile-picture/${row.empId}`}
+                                alt={row.empName}
+                                className="w-8 h-8 rounded-full object-cover mr-2"
+                              />
+                            ) : (
+                              <span className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center mr-2 text-blue-700 font-bold">
+                                {row.empName?.charAt(0) || '?'}
+                              </span>
+                            )}
+                            {row.empName}
+                          </td>
+                          <td className="p-2 text-center">10,000 PKR</td>
+                          <td className="p-2 text-center">{row.bonus.toLocaleString()} PKR</td>
+                          <td className="p-2 text-center font-bold">{row.totalSalary.toLocaleString()} PKR</td>
+                          <td className="p-2">
+                            <ul className="list-disc pl-4">
+                              {row.clientStats.map(c => (
+                                <li key={c.email} className={c.qualifies ? 'text-green-700 font-bold' : ''}>
+                                  {c.clientName}: {c.paidLabels} paid labels {c.qualifies ? '(+2,000 PKR)' : ''}
+                                </li>
+                              ))}
+                              {row.clientStats.length === 0 && (
+                                <li className="text-gray-400">No sales for this month.</li>
+                              )}
+                            </ul>
+                          </td>
+                        </tr>
+                      ))}
+                      {salaryRows.length === 0 && (
+                        <tr><td colSpan={5} className="text-center p-4 text-gray-400">No salary data for this month.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <div className="mt-4 text-gray-600 text-sm">
+                    <p>Bonus is awarded for each client with at least 100 paid labels in their first month of sales. Only the first month counts for bonus. No carry-forward.</p>
+                  </div>
+                </div>
+              </>
             );
           })()}
         </div>
