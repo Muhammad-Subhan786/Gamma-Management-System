@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { shiftAPI } from '../../services/api';
 import { 
   Clock, 
@@ -15,13 +15,7 @@ const ShiftsTab = ({ employee }) => {
   const [loading, setLoading] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
 
-  useEffect(() => {
-    if (employee && employee._id) {
-      loadAssignedShifts();
-    }
-  }, [employee?._id, loadAssignedShifts]);
-
-  const loadAssignedShifts = async () => {
+  const loadAssignedShifts = useCallback(async () => {
     if (!employee || !employee._id) return;
     
     setLoading(true);
@@ -55,7 +49,13 @@ const ShiftsTab = ({ employee }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [employee]);
+
+  useEffect(() => {
+    if (employee && employee._id) {
+      loadAssignedShifts();
+    }
+  }, [employee?._id, loadAssignedShifts]);
 
   const getShiftStatus = (shift) => {
     if (!shift.isActive) return { status: 'inactive', text: 'Inactive', icon: <XCircle className="h-4 w-4 text-red-500" /> };
