@@ -6,6 +6,14 @@ const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
 
+// Debug environment variables
+console.log('🔧 Environment Variables Debug:');
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   PORT:', process.env.PORT);
+console.log('   MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
+console.log('   JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+console.log('   JWT_SECRET length:', process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0);
+
 const employeeRoutes = require('./routes/employees');
 const attendanceRoutes = require('./routes/attendance');
 const analyticsRoutes = require('./routes/analytics');
@@ -182,7 +190,9 @@ app.get('/api/test', async (req, res) => {
       employeeQuery: employeeTest,
       employeeCount: employeeCount,
       environment: process.env.NODE_ENV || 'development',
-      mongodbUri: process.env.MONGODB_URI ? 'set' : 'not set'
+      mongodbUri: process.env.MONGODB_URI ? 'set' : 'not set',
+      jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
+      jwtSecretLength: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0
     };
     
     console.log('🧪 Test result:', testResult);
@@ -192,6 +202,21 @@ app.get('/api/test', async (req, res) => {
     console.error('Test endpoint error:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// JWT Secret test endpoint
+app.get('/api/test-jwt', (req, res) => {
+  const jwtSecret = process.env.JWT_SECRET;
+  const result = {
+    jwtSecretSet: !!jwtSecret,
+    jwtSecretLength: jwtSecret ? jwtSecret.length : 0,
+    jwtSecretPreview: jwtSecret ? jwtSecret.substring(0, 10) + '...' : 'not set',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('🔐 JWT Secret test:', result);
+  res.json(result);
 });
 
 // Serve static files from the React build
