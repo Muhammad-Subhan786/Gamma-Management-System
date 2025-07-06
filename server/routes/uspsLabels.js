@@ -354,4 +354,49 @@ router.delete('/admin/:id', async (req, res) => {
   }
 });
 
+// Debug endpoint to test JWT verification
+router.get('/debug-auth', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    console.log('Debug - Token received:', token ? 'Yes' : 'No');
+    console.log('Debug - JWT_SECRET:', JWT_SECRET ? 'Set' : 'Not set');
+    console.log('Debug - JWT_SECRET value:', JWT_SECRET);
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided', debug: { jwtSecretSet: !!JWT_SECRET } });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      console.log('Debug - Token decoded successfully:', decoded);
+      
+      const employee = await Employee.findById(decoded.employeeId);
+      console.log('Debug - Employee found:', employee ? 'Yes' : 'No');
+      
+      if (!employee) {
+        return res.status(401).json({ error: 'Employee not found', debug: { decoded, jwtSecretSet: !!JWT_SECRET } });
+      }
+
+      res.json({ 
+        success: true, 
+        employee: { id: employee._id, name: employee.name, email: employee.email },
+        debug: { jwtSecretSet: !!JWT_SECRET, tokenLength: token.length }
+      });
+    } catch (jwtError) {
+      console.log('Debug - JWT verification failed:', jwtError.message);
+      return res.status(401).json({ 
+        error: 'JWT verification failed', 
+        debug: { 
+          jwtError: jwtError.message, 
+          jwtSecretSet: !!JWT_SECRET,
+          tokenLength: token.length
+        } 
+      });
+    }
+  } catch (error) {
+    console.log('Debug - General error:', error.message);
+    res.status(500).json({ error: 'Debug endpoint error', debug: { error: error.message } });
+  }
+});
+
 module.exports = router; 

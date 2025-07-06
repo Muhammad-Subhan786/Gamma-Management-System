@@ -46,17 +46,31 @@ const USPSLabelsTab = ({ employee }) => {
     loadDashboard();
     loadLabels();
     loadCurrentGoal();
+    // Debug authentication
+    debugAuth();
   }, []);
 
-  const loadDashboard = async () => {
+  const debugAuth = async () => {
     try {
-      const { data } = await uspsLabelsAPI.getMyDashboard();
-      setDashboard(data);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-      if (error.response?.status === 401) {
-        setError('Authentication required. Please log in again.');
+      const token = localStorage.getItem('employeeToken');
+      console.log('Debug - Token in localStorage:', token ? 'Present' : 'Missing');
+      console.log('Debug - Token value:', token);
+      
+      if (!token) {
+        console.log('Debug - No token found in localStorage');
+        return;
       }
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://gamma-management-system-production.up.railway.app'}/api/usps-labels/debug-auth`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      console.log('Debug - Auth test response:', data);
+    } catch (error) {
+      console.log('Debug - Auth test error:', error);
     }
   };
   
