@@ -126,14 +126,6 @@ const USPSLabelsTabAdmin = () => {
       .finally(() => setSettingsLoading(false));
   };
 
-  // When profitMonth changes, load cost from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('usps_cost_per_label_' + profitMonth);
-    setCostPerLabel(saved ? Number(saved) : 0.10);
-    setCostInput(saved ? Number(saved) : 0.10);
-    setCostLocked(true);
-  }, [profitMonth]);
-
   // When finalMonth changes, load from localStorage
   useEffect(() => {
     let val = { office: 0, internet: 0, ads: 0, acquisition: 0 };
