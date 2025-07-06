@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../services/api';
-import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle } from 'lucide-react';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
 
@@ -38,7 +38,12 @@ const USPSLabelsTabAdmin = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [costPerLabel, setCostPerLabel] = useState(0.10);
+  const [costPerLabel, setCostPerLabel] = useState(() => {
+    const saved = localStorage.getItem('usps_cost_per_label_' + profitMonth);
+    return saved ? Number(saved) : 0.10;
+  });
+  const [costLocked, setCostLocked] = useState(true);
+  const [costInput, setCostInput] = useState(costPerLabel);
 
   useEffect(() => {
     loadDashboard();
@@ -57,6 +62,14 @@ const USPSLabelsTabAdmin = () => {
       loadDashboard();
     }
   }, [activeTab]);
+
+  // When profitMonth changes, load cost from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('usps_cost_per_label_' + profitMonth);
+    setCostPerLabel(saved ? Number(saved) : 0.10);
+    setCostInput(saved ? Number(saved) : 0.10);
+    setCostLocked(true);
+  }, [profitMonth]);
 
   const loadDashboard = async () => {
     try {
@@ -1012,16 +1025,41 @@ const USPSLabelsTabAdmin = () => {
                 className="ml-2 border rounded px-2 py-1"
               />
             </label>
-            <label className="font-medium flex items-center">Cost per Label ($):
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={costPerLabel}
-                onChange={e => setCostPerLabel(Number(e.target.value))}
-                className="ml-2 border rounded px-2 py-1 w-24"
-              />
-            </label>
+            <div className="flex-1 flex items-center">
+              <div className="bg-white rounded-xl shadow flex items-center px-4 py-2 transition-all duration-200 border border-green-200">
+                <span className="font-medium mr-2">Cost per Label ($):</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={costInput}
+                  onChange={e => setCostInput(Number(e.target.value))}
+                  className="border rounded px-2 py-1 w-24 mr-2 focus:ring-2 focus:ring-green-400 transition-all duration-200"
+                  disabled={costLocked}
+                />
+                <button
+                  className={`mr-2 p-1 rounded-full border ${costLocked ? 'border-gray-300 bg-gray-100' : 'border-green-400 bg-green-50'} transition-all duration-200`}
+                  onClick={() => setCostLocked(l => !l)}
+                  title={costLocked ? 'Unlock to edit' : 'Lock'}
+                  type="button"
+                >
+                  {costLocked ? <Lock className="h-5 w-5 text-gray-500" /> : <Unlock className="h-5 w-5 text-green-500" />}
+                </button>
+                {!costLocked && (
+                  <button
+                    className="px-3 py-1 rounded bg-green-600 text-white flex items-center hover:bg-green-700 transition-all duration-200"
+                    onClick={() => {
+                      setCostPerLabel(costInput);
+                      localStorage.setItem('usps_cost_per_label_' + profitMonth, costInput);
+                      setCostLocked(true);
+                    }}
+                    type="button"
+                  >
+                    <SaveIcon className="h-4 w-4 mr-1" /> Save
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
           {(() => {
             // Filter labels for selected month
