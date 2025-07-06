@@ -9,7 +9,6 @@ import {
   Star, 
   Trophy, 
   Flame, 
-  Lightning,
   Calendar,
   Clock,
   DollarSign,
@@ -342,7 +341,6 @@ const GoalMeter = ({ goal, title = "Monthly Goal", showEdit = false, onEdit }) =
         {/* Motivational Call to Action */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white text-center">
           <div className="flex items-center justify-center mb-3">
-            <Lightning className="h-8 w-8 mr-3 animate-pulse" />
             <h3 className="text-2xl font-bold">Ready to Level Up?</h3>
           </div>
           <p className="text-lg mb-4 opacity-90">
