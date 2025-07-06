@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { attendanceAPI, analyticsAPI, employeeAPI } from '../services/api';
 import { 
   Clock, 
@@ -144,7 +144,7 @@ const CheckInPage = () => {
     }
   }, [formData.employeeId]);
 
-  const checkEmployeeShiftStatus = async () => {
+  const checkEmployeeShiftStatus = useCallback(async () => {
     if (!formData.employeeId) {
       setEmployeeShiftEnded(false);
       setEmployeeShiftEndTime(null);
@@ -158,7 +158,7 @@ const CheckInPage = () => {
       setEmployeeShiftEnded(false);
       setEmployeeShiftEndTime(null);
     }
-  };
+  }, [formData.employeeId]);
 
   // Check employee shift status when name/email changes
   useEffect(() => {
