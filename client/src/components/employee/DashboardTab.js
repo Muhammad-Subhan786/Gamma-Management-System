@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Clock, 
   Calendar, 
@@ -42,15 +42,7 @@ const DashboardTab = ({ employee }) => {
   const [goalLoading, setGoalLoading] = useState(true);
   const [goalError, setGoalError] = useState('');
 
-  useEffect(() => {
-    if (employee && employee._id) {
-    loadAttendanceData();
-    loadCurrentShift();
-    loadGoal();
-    }
-  }, [employee?._id, currentMonth, loadAttendanceData, loadCurrentShift, loadGoal]);
-
-  const loadAttendanceData = async () => {
+  const loadAttendanceData = useCallback(async () => {
     if (!employee || !employee._id) return;
     
     setLoading(true);
@@ -75,9 +67,9 @@ const DashboardTab = ({ employee }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [employee, currentMonth, calculateStats]);
 
-  const loadCurrentShift = async () => {
+  const loadCurrentShift = useCallback(async () => {
     if (!employee || !employee._id) return;
     
     try {
@@ -103,9 +95,9 @@ const DashboardTab = ({ employee }) => {
     } catch (error) {
       console.error('Error loading current shift:', error);
     }
-  };
+  }, [employee]);
 
-  const loadGoal = async () => {
+  const loadGoal = useCallback(async () => {
     if (!employee || !employee._id) return;
     
     setGoalLoading(true);
@@ -118,9 +110,19 @@ const DashboardTab = ({ employee }) => {
       setGoalError('No active goal for this month.');
     }
     setGoalLoading(false);
-  };
+  }, [employee]);
 
-  const calculateStats = (data) => {
+  useEffect(() => {
+    if (employee && employee._id) {
+      loadAttendanceData();
+      loadCurrentShift();
+      loadGoal();
+    }
+  }, [employee?._id, currentMonth, loadAttendanceData, loadCurrentShift, loadGoal]);
+
+
+
+  const calculateStats = useCallback((data) => {
     const totalDays = data.length;
     const presentDays = data.filter(record => record.checkIns.length > 0).length;
     const absentDays = totalDays - presentDays;
@@ -138,7 +140,7 @@ const DashboardTab = ({ employee }) => {
       lateDays,
       onTimeDays
     });
-  };
+  }, []);
 
   const formatChartData = () => {
     return attendanceData.map(record => ({
