@@ -5,6 +5,9 @@ const USPSLabel = require('../models/USPSLabel');
 const Employee = require('../models/Employee');
 const jwt = require('jsonwebtoken');
 
+// JWT Secret (in production, use environment variable)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
 // Middleware to verify employee token
 const verifyEmployeeToken = async (req, res, next) => {
   try {
@@ -13,7 +16,7 @@ const verifyEmployeeToken = async (req, res, next) => {
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     const employee = await Employee.findById(decoded.employeeId);
     
     if (!employee) {

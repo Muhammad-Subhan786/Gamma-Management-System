@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../../services/api';
-import { Plus, Edit, Trash2, Upload, DollarSign, Mail, User, FileImage, XCircle, Target, Users, BarChart3, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, Mail, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle } from 'lucide-react';
 import GoalMeter from './GoalMeter';
 
 const initialForm = {
@@ -25,13 +25,13 @@ const USPSLabelsTab = ({ employee }) => {
   const [labels, setLabels] = useState([]);
   const [currentGoal, setCurrentGoal] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [goalForm, setGoalForm] = useState(initialGoalForm);
   const [editId, setEditId] = useState(null);
   const [uploadFiles, setUploadFiles] = useState([]);
   const [activeTab, setActiveTab] = useState('labels');
+  const [error, setError] = useState('');
 
   // Refs for form navigation
   const emailRef = useRef();
@@ -52,7 +52,12 @@ const USPSLabelsTab = ({ employee }) => {
     try {
       const { data } = await uspsLabelsAPI.getMyDashboard();
       setDashboard(data);
-    } catch {}
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      }
+    }
   };
   
   const loadLabels = async () => {
@@ -60,7 +65,12 @@ const USPSLabelsTab = ({ employee }) => {
     try {
       const { data } = await uspsLabelsAPI.getMyLabels();
       setLabels(data);
-    } catch {}
+    } catch (error) {
+      console.error('Error loading labels:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      }
+    }
     setLoading(false);
   };
 
@@ -68,12 +78,18 @@ const USPSLabelsTab = ({ employee }) => {
     try {
       const { data } = await uspsGoalsAPI.getCurrentGoal();
       setCurrentGoal(data);
-    } catch {}
+    } catch (error) {
+      console.error('Error loading goal:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      }
+    }
   };
 
   const handleInput = (e) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+    setError(''); // Clear error when user types
   };
 
   const handleGoalInput = (e) => {
@@ -89,14 +105,14 @@ const USPSLabelsTab = ({ employee }) => {
     setForm({ ...initialForm, entryDate: new Date().toISOString().slice(0, 10) });
     setEditId(null);
     setUploadFiles([]);
-    setShowForm(true);
+    setError('');
   };
 
   const openEdit = (label) => {
     setForm({ ...label, paymentScreenshots: [], entryDate: label.createdAt ? label.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10) });
     setEditId(label._id);
     setUploadFiles([]);
-    setShowForm(true);
+    setError('');
   };
 
   const openGoalEdit = () => {
@@ -108,10 +124,10 @@ const USPSLabelsTab = ({ employee }) => {
   };
 
   const closeForm = () => {
-    setShowForm(false);
     setForm(initialForm);
     setEditId(null);
     setUploadFiles([]);
+    setError('');
   };
 
   const closeGoalForm = () => {
@@ -121,7 +137,17 @@ const USPSLabelsTab = ({ employee }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if employee token exists
+    const employeeToken = localStorage.getItem('employeeToken');
+    if (!employeeToken) {
+      setError('Authentication required. Please log in again.');
+      return;
+    }
+
     setLoading(true);
+    setError('');
+    
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([k, v]) => {
@@ -142,7 +168,11 @@ const USPSLabelsTab = ({ employee }) => {
       loadCurrentGoal(); // Refresh goal progress
     } catch (err) {
       console.error('Error saving label:', err);
-      alert(err.response?.data?.error || 'Error saving label. Please try again.');
+      if (err.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      } else {
+        setError(err.response?.data?.error || 'Error saving label. Please try again.');
+      }
     }
     setLoading(false);
   };
@@ -170,8 +200,13 @@ const USPSLabelsTab = ({ employee }) => {
       loadLabels();
       loadDashboard();
       loadCurrentGoal(); // Refresh goal progress
-    } catch {
-      alert('Error deleting label');
+    } catch (error) {
+      console.error('Error deleting label:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      } else {
+        alert('Error deleting label');
+      }
     }
     setLoading(false);
   };
@@ -193,6 +228,20 @@ const USPSLabelsTab = ({ employee }) => {
           Monthly Goal
         </button>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* My Labels Tab */}
       {activeTab === 'labels' && (
@@ -323,11 +372,20 @@ const USPSLabelsTab = ({ employee }) => {
                 ref={notesRef}
               />
               <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save
+                    </>
+                  )}
                 </button>
-                <button type="button" onClick={closeForm} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center">
+                <button type="button" onClick={closeForm} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center" disabled={loading}>
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </button>
