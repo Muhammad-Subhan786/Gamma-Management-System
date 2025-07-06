@@ -22,6 +22,7 @@ const uspsLabelsRoute = require('./routes/uspsLabels');
 const uspsGoalsRoute = require('./routes/uspsGoals');
 const auraNestRoutes = require('./routes/auraNest');
 const inventoryRoutes = require('./routes/inventory');
+const transactionRoutes = require('./routes/transactions');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -140,6 +141,7 @@ app.use('/api/usps-goals', uspsGoalsRoute);
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/aura-nest', auraNestRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Enhanced health check endpoint
 app.get('/api/health', (req, res) => {
@@ -242,9 +244,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
-  
-  // Connect to MongoDB
-  connectDB();
-}); 
+  console.log(`

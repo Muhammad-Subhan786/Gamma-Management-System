@@ -20,6 +20,7 @@ import ShiftsTab from './employee/ShiftsTab';
 import TasksBoard from './employee/TasksBoard';
 import AuraNestTab from './AuraNestTab';
 import USPSLabelsTab from './employee/USPSLabelsTab';
+import TransactionsTab from './employee/TransactionsTab';
 
 const EmployeePortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -91,7 +92,8 @@ const EmployeePortal = () => {
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
-      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
+      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' },
+      { id: 'transactions', label: 'My Transactions', icon: DollarSign, sessionId: 'transactions' }
     ];
 
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));

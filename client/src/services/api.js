@@ -124,4 +124,37 @@ export const tasksAPI = {
   deleteComment: (id, commentId) => api.delete(`/tasks/${id}/comments/${commentId}`, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
 };
 
+// Transaction API
+export const transactionAPI = {
+  // Get all transactions (Admin only)
+  getAllTransactions: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/transactions?${queryString}`);
+  },
+
+  // Get employee's own transactions
+  getMyTransactions: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/transactions/my-transactions?${queryString}`);
+  },
+
+  // Get transaction dashboard stats
+  getDashboard: () => api.get('/transactions/dashboard'),
+
+  // Get admin dashboard stats
+  getAdminDashboard: () => api.get('/transactions/admin-dashboard'),
+
+  // Add new transaction
+  addTransaction: (formData) => api.post('/transactions', formData),
+
+  // Update transaction (Admin only)
+  updateTransaction: (id, formData) => api.put(`/transactions/${id}`, formData),
+
+  // Delete transaction (Admin only)
+  deleteTransaction: (id) => api.delete(`/transactions/${id}`),
+
+  // Approve/Reject transaction (Admin only)
+  updateStatus: (id, status) => api.patch(`/transactions/${id}/status`, { status })
+};
+
 export default api; 
