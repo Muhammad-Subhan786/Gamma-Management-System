@@ -34,6 +34,11 @@ const USPSLabelsTabAdmin = () => {
   const [employeesLoading, setEmployeesLoading] = useState(false);
   // Add error state for employees
   const [employeesError, setEmployeesError] = useState('');
+  const [profitMonth, setProfitMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [costPerLabel, setCostPerLabel] = useState(0.10);
 
   useEffect(() => {
     loadDashboard();
@@ -294,6 +299,16 @@ const USPSLabelsTabAdmin = () => {
             }`}
           >
             Salaries
+          </button>
+          <button
+            onClick={() => setActiveTab('profit')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'profit'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-green-600'
+            }`}
+          >
+            Profit Analysis
           </button>
         </div>
         <button
@@ -980,6 +995,124 @@ const USPSLabelsTabAdmin = () => {
                   </div>
                 </div>
               </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Profit Analysis Tab */}
+      {activeTab === 'profit' && (
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <label className="font-medium">Select Month:
+              <input
+                type="month"
+                value={profitMonth}
+                onChange={e => setProfitMonth(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <label className="font-medium flex items-center">Cost per Label ($):
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={costPerLabel}
+                onChange={e => setCostPerLabel(Number(e.target.value))}
+                className="ml-2 border rounded px-2 py-1 w-24"
+              />
+            </label>
+          </div>
+          {(() => {
+            // Filter labels for selected month
+            const [year, month] = profitMonth.split('-');
+            const monthLabels = labels.filter(label => {
+              const d = new Date(label.entryDate || label.createdAt);
+              return d.getFullYear() === Number(year) && (d.getMonth() + 1) === Number(month);
+            });
+            // Group by employee
+            const employeeMap = {};
+            monthLabels.forEach(label => {
+              const empId = label.employeeId?._id;
+              if (!empId) return;
+              if (!employeeMap[empId]) employeeMap[empId] = [];
+              employeeMap[empId].push(label);
+            });
+            const profitRows = Object.entries(employeeMap).map(([empId, empLabels]) => {
+              const emp = employees.find(e => e._id === empId);
+              const totalLabels = empLabels.reduce((sum, l) => sum + Number(l.totalLabels || 0), 0);
+              const totalRevenue = empLabels.reduce((sum, l) => sum + Number(l.totalRevenue || 0), 0);
+              const avgSaleRate = totalLabels > 0 ? totalRevenue / totalLabels : 0;
+              const totalCost = totalLabels * costPerLabel;
+              const grossProfit = totalRevenue - totalCost;
+              return {
+                empId,
+                empName: emp?.name || 'Unknown',
+                profilePicture: emp?.profilePicture,
+                totalLabels,
+                totalRevenue,
+                avgSaleRate,
+                costPerLabel,
+                totalCost,
+                grossProfit
+              };
+            });
+            const totalGrossProfit = profitRows.reduce((sum, row) => sum + row.grossProfit, 0);
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold mb-4 text-green-700">Profit Analysis for {profitMonth}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex items-center">
+                    <Trophy className="h-8 w-8 text-green-600 mr-3" />
+                    <div>
+                      <div className="text-lg font-semibold text-green-700">Total Gross Profit</div>
+                      <div className="text-2xl font-bold text-green-900">${totalGrossProfit.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+                <table className="min-w-full bg-white rounded shadow">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 text-left">Employee</th>
+                      <th className="p-2 text-center">Total Labels</th>
+                      <th className="p-2 text-center">Total Revenue ($)</th>
+                      <th className="p-2 text-center">Avg Sale Rate ($)</th>
+                      <th className="p-2 text-center">Cost/Label ($)</th>
+                      <th className="p-2 text-center">Total Cost ($)</th>
+                      <th className="p-2 text-center">Gross Profit ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profitRows.map(row => (
+                      <tr key={row.empId} className="hover:bg-green-50">
+                        <td className="p-2 font-semibold flex items-center">
+                          {row.profilePicture ? (
+                            <img
+                              src={`/api/employees/profile-picture/${row.empId}`}
+                              alt={row.empName}
+                              className="w-8 h-8 rounded-full object-cover mr-2"
+                            />
+                          ) : (
+                            <span className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center mr-2 text-green-700 font-bold">
+                              {row.empName?.charAt(0) || '?'}
+                            </span>
+                          )}
+                          {row.empName}
+                        </td>
+                        <td className="p-2 text-center">{row.totalLabels}</td>
+                        <td className="p-2 text-center">${row.totalRevenue.toFixed(2)}</td>
+                        <td className="p-2 text-center">${row.avgSaleRate.toFixed(2)}</td>
+                        <td className="p-2 text-center">${costPerLabel.toFixed(2)}</td>
+                        <td className="p-2 text-center">${row.totalCost.toFixed(2)}</td>
+                        <td className="p-2 text-center font-bold">${row.grossProfit.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {profitRows.length === 0 && (
+                      <tr><td colSpan={7} className="text-center p-4 text-gray-400">No data for this month.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             );
           })()}
         </div>
