@@ -5,7 +5,9 @@ import {
   DollarSign, 
   CheckCircle, 
   RefreshCw,
-  Shield
+  Shield,
+  Zap,
+  XCircle
 } from 'lucide-react';
 
 const SessionManagementTab = () => {

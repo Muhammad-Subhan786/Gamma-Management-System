@@ -229,6 +229,8 @@ const AuraNestTab = () => {
   });
 
   const [orderLoading, setOrderLoading] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [showOrderForm, setShowOrderForm] = useState(false);
   const [inventoryStatusFilter, setInventoryStatusFilter] = useState('');
   const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3ViaGFuMzIzMjMiLCJhIjoiY21jazN0M3M2MGJyODJrcXh2eDhud3RubyJ9.oCTz3PbwjaF1GL_93hd3zQ';
   const [orderQuickForm, setOrderQuickForm] = useState({

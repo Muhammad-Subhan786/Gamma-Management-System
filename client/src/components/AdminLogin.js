@@ -27,6 +27,7 @@ const AdminLogin = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
 
   // Auto-rotate admin features

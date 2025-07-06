@@ -28,8 +28,8 @@ const CheckInPage = () => {
   const [formData, setFormData] = useState({
     employeeId: ''
   });
-  const [currentTime, setCurrentTime] = useState(new Date());
-
+    const [currentTime, setCurrentTime] = useState(new Date());
+  const [checkInStatus, setCheckInStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({});
   const [loading, setLoading] = useState(false);

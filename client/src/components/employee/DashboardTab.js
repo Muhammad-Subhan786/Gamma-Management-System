@@ -5,9 +5,12 @@ import {
   TrendingUp, 
   AlertTriangle, 
   CheckCircle,
-  Briefcase
+  Briefcase,
+  Clock3
 } from 'lucide-react';
 import { 
+  BarChart,
+  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 

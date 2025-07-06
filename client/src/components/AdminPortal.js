@@ -55,6 +55,7 @@ const AdminPortal = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [shiftEnded, setShiftEnded] = useState(false);
+  const [shiftEndTime, setShiftEndTime] = useState(null);
   const [formData, setFormData] = useState({
     employeeId: '',
     name: '',

@@ -3,6 +3,7 @@ import { shiftAPI } from '../../services/api';
 import { 
   Clock, 
   Calendar, 
+  Users,
   CheckCircle,
   XCircle,
   AlertCircle
