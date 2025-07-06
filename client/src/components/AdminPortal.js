@@ -625,141 +625,76 @@ const AdminPortal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Enhanced Header */}
-      <div className="bg-white shadow-xl border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-6">
-              {/* Enhanced Logo */}
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-2xl flex items-center justify-center border-4 border-white">
-                  <Crown className="h-8 w-8 text-white" />
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Sparkles className="h-3 w-3 text-white" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  Admin Hub
-                </h1>
-                <p className="text-sm text-gray-600 mt-1 flex items-center">
-                  <Target className="h-3 w-3 mr-1" />
-                  Command Center for Team Management
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => window.location.href = '/'}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                Check-In Page
-              </button>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('adminToken');
-                  window.location.href = '/admin-login';
-                }}
-                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
-              >
-                <Power className="h-4 w-4 mr-2" />
-                Sign Out
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#f5f3ff] to-[#f0fdfa] flex flex-col">
+      {/* Top Bar / Header */}
+      <header className="backdrop-blur-md bg-white/70 shadow-lg border-b border-indigo-100 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500 flex items-center">
+            <Sparkles className="h-8 w-8 mr-2 text-yellow-400 animate-pulse" />
+            Aura Admin Portal
+          </h1>
+          <button className="flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200">
+            <Power className="h-5 w-5 mr-2" />Logout
+          </button>
         </div>
-      </div>
+      </header>
 
-      {/* Enhanced Navigation Tabs */}
-      <div className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8 overflow-x-auto">
+      {/* Navigation Tabs */}
+      <div className="w-full bg-white/60 backdrop-blur-md shadow-md border-b border-indigo-100">
+        <nav className="max-w-7xl mx-auto flex space-x-2 px-4 py-2 overflow-x-auto">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'dashboard'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Dashboard
+              <Crown className="h-5 w-5 mr-2" /> Dashboard
             </button>
             <button
               onClick={() => setActiveTab('employees')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'employees'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'employees' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="h-5 w-5 mr-2" />
               Team Members
             </button>
             <button
               onClick={() => setActiveTab('shifts')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'shifts'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'shifts' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="h-5 w-5 mr-2" />
               Shifts
             </button>
             <button
               onClick={() => setActiveTab('sessions')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'sessions'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'sessions' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <Shield className="h-4 w-4 mr-2" />
+              <Shield className="h-5 w-5 mr-2" />
               Session Management
             </button>
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'tasks'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'tasks' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <CheckCircle className="h-4 w-4 mr-2" />
+              <CheckCircle className="h-5 w-5 mr-2" />
               Tasks
             </button>
             <button
               onClick={() => setActiveTab('aura-nest')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'aura-nest'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'aura-nest' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <DollarSign className="h-4 w-4 mr-2" />
+              <DollarSign className="h-5 w-5 mr-2" />
               Aura Nest
             </button>
             <button
               onClick={() => setActiveTab('usps-labels')}
-              className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'usps-labels'
-                  ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'usps-labels' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
-              <Code className="h-4 w-4 mr-2" />
+              <Code className="h-5 w-5 mr-2" />
               USPS Labels
             </button>
           </nav>
         </div>
-      </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -775,12 +710,12 @@ const AdminPortal = () => {
             {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
           </>
         )}
-      </div>
+      </main>
 
-      {/* Enhanced Employee Modal */}
+      {/* Modal: update to glassmorphism style */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-gradient-to-br from-indigo-200/60 via-purple-200/60 to-blue-200/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeModal}>
+          <div className="bg-white/90 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-indigo-100" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-xl font-semibold text-gray-900 flex items-center">
                 <Users className="h-5 w-5 mr-2 text-blue-600" />
