@@ -244,6 +244,20 @@ const AuraNestTab = () => {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [addressLoading, setAddressLoading] = useState(false);
 
+  // Add new state for jewelry business
+  const [leads, setLeads] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [leadForm, setLeadForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    productName: '',
+    expectedPrice: '',
+    assignedEmployee: '',
+    status: 'new',
+    notes: ''
+  });
+
   useEffect(() => {
     loadData();
     loadCategoryAnalytics();
@@ -1293,75 +1307,57 @@ const AuraNestTab = () => {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'dashboard'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'transactions'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Transactions
-          </button>
-          <button
-            onClick={() => setActiveTab('vendors')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'vendors'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Vendors
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'reports'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <PieChart className="h-4 w-4 mr-2" />
-            Reports
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'orders'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Orders
-          </button>
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-              activeTab === 'inventory'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Package className="h-4 w-4 mr-2" />
-            Inventory
-          </button>
-        </nav>
+      <div className="flex space-x-4 border-b border-gray-200 mb-6">
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'dashboard'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'leads'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-green-600'
+          }`}
+        >
+          Lead Management
+        </button>
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'inventory'
+              ? 'border-purple-500 text-purple-600'
+              : 'border-transparent text-gray-500 hover:text-purple-600'
+          }`}
+        >
+          Inventory
+        </button>
+        <button
+          onClick={() => setActiveTab('profit')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'profit'
+              ? 'border-red-500 text-red-600'
+              : 'border-transparent text-gray-500 hover:text-red-600'
+          }`}
+        >
+          Profit Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab('orders')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'orders'
+              ? 'border-orange-500 text-orange-600'
+              : 'border-transparent text-gray-500 hover:text-orange-600'
+          }`}
+        >
+          Orders
+        </button>
       </div>
 
       {/* Tab Content */}
