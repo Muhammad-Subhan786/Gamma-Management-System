@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
-import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon } from 'lucide-react';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
 
@@ -440,36 +440,39 @@ const USPSLabelsTabAdmin = () => {
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* Dashboard Filter Controls */}
-          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
-            <label className="font-medium">Select Month:
+          <div className="backdrop-blur-md bg-white/60 border border-blue-200 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4 transition-all duration-200">
+            <label className="font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-500" /> Month:
               <input
                 type="month"
                 value={dashboardMonth}
                 onChange={e => setDashboardMonth(e.target.value)}
-                className="ml-2 border rounded px-2 py-1"
+                className="input-field rounded-lg border-blue-300 focus:ring-2 focus:ring-blue-400 px-3 py-2 bg-white/80 shadow-sm"
               />
             </label>
-            <label className="font-medium">From:
+            <label className="font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-green-500" /> From:
               <input
                 type="date"
                 value={dashboardDateFrom}
                 onChange={e => setDashboardDateFrom(e.target.value)}
-                className="ml-2 border rounded px-2 py-1"
+                className="input-field rounded-lg border-green-300 focus:ring-2 focus:ring-green-400 px-3 py-2 bg-white/80 shadow-sm"
               />
             </label>
-            <label className="font-medium">To:
+            <label className="font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-500" /> To:
               <input
                 type="date"
                 value={dashboardDateTo}
                 onChange={e => setDashboardDateTo(e.target.value)}
-                className="ml-2 border rounded px-2 py-1"
+                className="input-field rounded-lg border-purple-300 focus:ring-2 focus:ring-purple-400 px-3 py-2 bg-white/80 shadow-sm"
               />
             </label>
             <button
-              className="px-3 py-1 rounded bg-blue-600 text-white ml-2"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow hover:scale-105 transition-transform duration-200 ml-2"
               onClick={loadDashboard}
             >
-              Apply Filter
+              <Search className="h-5 w-5 mr-1 inline" /> Apply Filter
             </button>
           </div>
           {(dashboardError || goalAnalyticsError) && (
@@ -647,144 +650,142 @@ const USPSLabelsTabAdmin = () => {
       {/* Labels Management Tab */}
       {activeTab === 'labels' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Search by customer name or email..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="input-field w-full"
-                />
-              </div>
-              <div>
-                <select
-                  value={employeeFilter}
-                  onChange={e => setEmployeeFilter(e.target.value)}
-                  className="input-field"
-                >
-                  <option value="">All Employees</option>
-                  {employees.map(emp => (
-                    <option key={emp._id} value={emp._id}>{emp.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={e => setDateFrom(e.target.value)}
-                  className="input-field"
-                  placeholder="From"
-                />
-              </div>
-              <div>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={e => setDateTo(e.target.value)}
-                  className="input-field"
-                  placeholder="To"
-                />
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  className="btn-danger"
-                  disabled={selectedLabels.length === 0}
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected
-                </button>
-                <button
-                  className="btn-secondary"
-                  disabled={selectedLabels.length === 0}
-                  onClick={() => handleBulkUpdateStatus('completed')}
-                >
-                  Mark Completed
-                </button>
-                <button
-                  className="btn-secondary"
-                  disabled={selectedLabels.length === 0}
-                  onClick={() => handleBulkUpdateStatus('paid')}
-                >
-                  Mark Paid
-                </button>
-              </div>
+          <div className="backdrop-blur-md bg-white/60 border border-blue-200 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4 transition-all duration-200">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search by customer name or email..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="input-field w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-400 px-3 py-2 bg-white/80 shadow-sm"
+              />
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="p-4 text-center">
+            <div>
+              <select
+                value={employeeFilter}
+                onChange={e => setEmployeeFilter(e.target.value)}
+                className="input-field rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-400 px-3 py-2 bg-white/80 shadow-sm"
+              >
+                <option value="">All Employees</option>
+                {employees.map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                className="input-field rounded-lg border-green-300 focus:ring-2 focus:ring-green-400 px-3 py-2 bg-white/80 shadow-sm"
+                placeholder="From"
+              />
+            </div>
+            <div>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                className="input-field rounded-lg border-purple-300 focus:ring-2 focus:ring-purple-400 px-3 py-2 bg-white/80 shadow-sm"
+                placeholder="To"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <button
+                className="btn-danger"
+                disabled={selectedLabels.length === 0}
+                onClick={handleBulkDelete}
+              >
+                Delete Selected
+              </button>
+              <button
+                className="btn-secondary"
+                disabled={selectedLabels.length === 0}
+                onClick={() => handleBulkUpdateStatus('completed')}
+              >
+                Mark Completed
+              </button>
+              <button
+                className="btn-secondary"
+                disabled={selectedLabels.length === 0}
+                onClick={() => handleBulkUpdateStatus('paid')}
+              >
+                Mark Paid
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedLabels.length === filteredLabels.length && filteredLabels.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-500">Employee</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-500">Customer</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-500">Email</th>
+                  <th className="p-4 text-center text-sm font-medium text-gray-500">Total</th>
+                  <th className="p-4 text-center text-sm font-medium text-gray-500">Rate</th>
+                  <th className="p-4 text-center text-sm font-medium text-gray-500">Paid</th>
+                  <th className="p-4 text-center text-sm font-medium text-gray-500">Revenue</th>
+                  <th className="p-4 text-center text-sm font-medium text-gray-500">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(filteredLabels || []).map(label => (
+                  <tr key={label._id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="p-4 text-center">
                       <input
                         type="checkbox"
-                        checked={selectedLabels.length === filteredLabels.length && filteredLabels.length > 0}
-                        onChange={handleSelectAll}
+                        checked={selectedLabels.includes(label._id)}
+                        onChange={() => handleSelectLabel(label._id)}
                       />
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">Employee</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">Customer</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-500">Email</th>
-                    <th className="p-4 text-center text-sm font-medium text-gray-500">Total</th>
-                    <th className="p-4 text-center text-sm font-medium text-gray-500">Rate</th>
-                    <th className="p-4 text-center text-sm font-medium text-gray-500">Paid</th>
-                    <th className="p-4 text-center text-sm font-medium text-gray-500">Revenue</th>
-                    <th className="p-4 text-center text-sm font-medium text-gray-500">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(filteredLabels || []).map(label => (
-                    <tr key={label._id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="p-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedLabels.includes(label._id)}
-                          onChange={() => handleSelectLabel(label._id)}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
-                            {label.employeeId?.profilePicture ? (
-                              <img 
-                                src={`/api/employees/profile-picture/${label.employeeId._id}`}
-                                alt={label.employeeId.name}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-sm font-medium text-primary-600">
-                                {label.employeeId?.name?.charAt(0).toUpperCase() || '?'}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-sm font-medium text-gray-900">{label.employeeId?.name || 'Unknown'}</span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                          {label.employeeId?.profilePicture ? (
+                            <img 
+                              src={`/api/employees/profile-picture/${label.employeeId._id}`}
+                              alt={label.employeeId.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-medium text-primary-600">
+                              {label.employeeId?.name?.charAt(0).toUpperCase() || '?'}
+                            </span>
+                          )}
                         </div>
-                      </td>
-                      <td className="p-4 text-sm text-gray-900">{label.customerName || ''}</td>
-                      <td className="p-4 text-sm text-gray-900">{label.customerEmail || ''}</td>
-                      <td className="p-4 text-center text-sm text-gray-900">{label.totalLabels || 0}</td>
-                      <td className="p-4 text-center text-sm text-gray-900">${Number(label.rate || 0).toFixed(2)}</td>
-                      <td className="p-4 text-center text-sm text-gray-900">{label.paidLabels || 0}</td>
-                      <td className="p-4 text-center text-sm text-gray-900">${Number(label.totalRevenue || 0).toFixed(2)}</td>
-                      <td className="p-4 text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          label.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          label.status === 'paid' ? 'bg-blue-100 text-blue-800' :
-                          label.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {(label.status || 'unknown').charAt(0).toUpperCase() + (label.status || 'unknown').slice(1)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {(filteredLabels || []).length === 0 && (
-                    <tr><td colSpan={8} className="text-center p-8 text-gray-400">No labels found.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        <span className="text-sm font-medium text-gray-900">{label.employeeId?.name || 'Unknown'}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-sm text-gray-900">{label.customerName || ''}</td>
+                    <td className="p-4 text-sm text-gray-900">{label.customerEmail || ''}</td>
+                    <td className="p-4 text-center text-sm text-gray-900">{label.totalLabels || 0}</td>
+                    <td className="p-4 text-center text-sm text-gray-900">${Number(label.rate || 0).toFixed(2)}</td>
+                    <td className="p-4 text-center text-sm text-gray-900">{label.paidLabels || 0}</td>
+                    <td className="p-4 text-center text-sm text-gray-900">${Number(label.totalRevenue || 0).toFixed(2)}</td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        label.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        label.status === 'paid' ? 'bg-blue-100 text-blue-800' :
+                        label.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {(label.status || 'unknown').charAt(0).toUpperCase() + (label.status || 'unknown').slice(1)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {(filteredLabels || []).length === 0 && (
+                  <tr><td colSpan={8} className="text-center p-8 text-gray-400">No labels found.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -971,20 +972,23 @@ const USPSLabelsTabAdmin = () => {
               <button onClick={loadEmployees} className="ml-4 px-3 py-1 rounded bg-red-600 text-white">Retry</button>
             </div>
           )}
-          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
-            <label className="font-medium">Select Month:
+          {/* Beautiful Salaries Filter UI */}
+          <div className="backdrop-blur-md bg-white/60 border border-purple-200 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4 transition-all duration-200">
+            <label className="font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-500" /> Month:
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
-                className="ml-2 border rounded px-2 py-1"
+                className="input-field rounded-lg border-purple-300 focus:ring-2 focus:ring-purple-400 px-3 py-2 bg-white/80 shadow-sm"
               />
             </label>
-            <label className="font-medium flex items-center">Employee:
+            <label className="font-medium flex items-center gap-2">Employee:
+              <User className="h-5 w-5 text-blue-500" />
               <select
                 value={selectedEmployee}
                 onChange={e => setSelectedEmployee(e.target.value)}
-                className="ml-2 border rounded px-2 py-1 min-w-[180px]"
+                className="input-field rounded-lg border-blue-300 focus:ring-2 focus:ring-blue-400 px-3 py-2 bg-white/80 shadow-sm min-w-[180px]"
                 disabled={employeesLoading}
               >
                 <option value="">All Employees</option>

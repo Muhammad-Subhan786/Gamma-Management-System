@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI } from '../../services/api';
-import { Plus, Edit, Trash2, DollarSign, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, User, FileImage, Target, Users, BarChart3, Save, X, AlertTriangle, Calendar } from 'lucide-react';
 import GoalMeter from './GoalMeter';
 
 const initialForm = {
@@ -561,8 +561,17 @@ const USPSLabelsTab = ({ employee }) => {
       {/* Finance Tab */}
       {activeTab === 'finance' && (
         <div className="space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
-            <label className="font-medium">Select Month:
+          {/* If there is a salaries filter or subtab, wrap the filter controls in a glassmorphism card with soft shadow, rounded corners, and icons. Use modern input styles and color accents. Example: */}
+          {/* <div className="backdrop-blur-md bg-white/60 border border-purple-200 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4 transition-all duration-200"> */}
+          {/*   <label className="font-medium flex items-center gap-2"> */}
+          {/*     <Calendar className="h-5 w-5 text-purple-500" /> Month: */}
+          {/*     <input ... /> */}
+          {/*   </label> */}
+          {/*   ... */}
+          {/* </div> */}
+          <div className="backdrop-blur-md bg-white/60 border border-purple-200 rounded-2xl shadow-lg p-4 flex flex-col md:flex-row md:items-end gap-4 mb-4 transition-all duration-200">
+            <label className="font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-500" /> Month:
               <input
                 type="month"
                 value={selectedMonth}
