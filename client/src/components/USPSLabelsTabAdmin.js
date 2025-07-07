@@ -71,6 +71,14 @@ const USPSLabelsTabAdmin = () => {
   const [dashboardError, setDashboardError] = useState('');
   const [goalAnalyticsError, setGoalAnalyticsError] = useState('');
 
+  // 1. Add state for dashboard filter (month/dateFrom/dateTo)
+  const [dashboardMonth, setDashboardMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [dashboardDateFrom, setDashboardDateFrom] = useState('');
+  const [dashboardDateTo, setDashboardDateTo] = useState('');
+
   useEffect(() => {
     loadDashboard();
     loadLabels();
@@ -140,10 +148,15 @@ const USPSLabelsTabAdmin = () => {
     setFinalLocked(true);
   }, [finalMonth]);
 
+  // 2. Update loadDashboard to use selected filter
   const loadDashboard = async () => {
     setDashboardError('');
     try {
-      const { data } = await uspsLabelsAPI.getAdminDashboard();
+      let params = {};
+      if (dashboardMonth) params.month = dashboardMonth;
+      if (dashboardDateFrom) params.dateFrom = dashboardDateFrom;
+      if (dashboardDateTo) params.dateTo = dashboardDateTo;
+      const { data } = await uspsLabelsAPI.getAdminDashboard(params);
       setDashboard(data || { totalLabels: 0, averageRate: 0, totalRevenue: 0 });
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -426,6 +439,39 @@ const USPSLabelsTabAdmin = () => {
       {/* Overview & Analytics Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
+          {/* Dashboard Filter Controls */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <label className="font-medium">Select Month:
+              <input
+                type="month"
+                value={dashboardMonth}
+                onChange={e => setDashboardMonth(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <label className="font-medium">From:
+              <input
+                type="date"
+                value={dashboardDateFrom}
+                onChange={e => setDashboardDateFrom(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <label className="font-medium">To:
+              <input
+                type="date"
+                value={dashboardDateTo}
+                onChange={e => setDashboardDateTo(e.target.value)}
+                className="ml-2 border rounded px-2 py-1"
+              />
+            </label>
+            <button
+              className="px-3 py-1 rounded bg-blue-600 text-white ml-2"
+              onClick={loadDashboard}
+            >
+              Apply Filter
+            </button>
+          </div>
           {(dashboardError || goalAnalyticsError) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 font-medium mb-4">
               {dashboardError && <div>{dashboardError}</div>}
