@@ -275,30 +275,60 @@ router.get('/admin', async (req, res) => {
   }
 });
 
-// Get admin dashboard stats
+// Update the /admin/dashboard endpoint:
 router.get('/admin/dashboard', async (req, res) => {
   try {
-    const labels = await USPSLabel.find().populate('employeeId', 'name');
-    
+    // Parse query params for filtering
+    const { month, dateFrom, dateTo } = req.query;
+    let match = {};
+    if (month) {
+      // month format: YYYY-MM
+      const [year, m] = month.split('-');
+      const start = new Date(Number(year), Number(m) - 1, 1);
+      const end = new Date(Number(year), Number(m), 1);
+      match.createdAt = { $gte: start, $lt: end };
+    } else if (dateFrom || dateTo) {
+      match.createdAt = {};
+      if (dateFrom) match.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) match.createdAt.$lte = new Date(dateTo);
+    }
+    // Use aggregation for performance
+    const pipeline = [
+      { $match: match },
+      { $lookup: {
+          from: 'employees',
+          localField: 'employeeId',
+          foreignField: '_id',
+          as: 'employeeId',
+        }
+      },
+      { $unwind: { path: '$employeeId', preserveNullAndEmptyArrays: true } },
+    ];
+    const labels = await USPSLabel.aggregate(pipeline);
+    // Guard against missing/null/NaN fields
+    const safeNum = v => typeof v === 'number' && !isNaN(v) ? v : 0;
+    const safeStr = v => typeof v === 'string' ? v : '';
+    const safeObjId = v => v && typeof v === 'object' && v._id ? v._id.toString() : '';
     const stats = {
-      totalLabels: labels.reduce((sum, label) => sum + label.totalLabels, 0),
-      totalRevenue: labels.reduce((sum, label) => sum + label.totalRevenue, 0),
+      totalLabels: labels.reduce((sum, label) => sum + safeNum(label.totalLabels), 0),
+      totalRevenue: labels.reduce((sum, label) => sum + safeNum(label.totalRevenue), 0),
       averageRate: labels.length > 0 ? 
-        labels.reduce((sum, label) => sum + label.rate, 0) / labels.length : 0,
-      totalCustomers: new Set(labels.map(label => label.customerEmail)).size,
-      totalEmployees: new Set(labels.map(label => label.employeeId._id.toString())).size,
-      pendingLabels: labels.filter(label => label.status === 'pending').length,
-      paidLabels: labels.filter(label => label.status === 'paid').length,
-      completedLabels: labels.filter(label => label.status === 'completed').length,
-      cancelledLabels: labels.filter(label => label.status === 'cancelled').length
+        labels.reduce((sum, label) => sum + safeNum(label.rate), 0) / labels.length : 0,
+      totalCustomers: new Set(labels.map(label => safeStr(label.customerEmail)).filter(Boolean)).size,
+      totalEmployees: new Set(labels.map(label => safeObjId(label.employeeId)).filter(Boolean)).size,
+      pendingLabels: labels.filter(label => safeStr(label.status) === 'pending').length,
+      paidLabels: labels.filter(label => safeStr(label.status) === 'paid').length,
+      completedLabels: labels.filter(label => safeStr(label.status) === 'completed').length,
+      cancelledLabels: labels.filter(label => safeStr(label.status) === 'cancelled').length
     };
-    
     res.json(stats);
   } catch (error) {
     console.error('Error fetching admin dashboard stats:', error);
+    if (error && error.stack) console.error(error.stack);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
   }
 });
+// TODO: Add authentication middleware for admin routes
 
 // Admin update USPS label
 router.put('/admin/:id', async (req, res) => {
