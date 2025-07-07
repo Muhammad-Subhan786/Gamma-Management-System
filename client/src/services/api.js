@@ -92,7 +92,7 @@ export const uspsLabelsAPI = {
   deleteLabel: (id) => api.delete(`/usps-labels/employee/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('employeeToken')}` } }),
   // Admin endpoints
   getAll: () => api.get('/usps-labels/admin'),
-  getAdminDashboard: () => api.get('/usps-labels/admin/dashboard'),
+  getAdminDashboard: (params = {}) => api.get('/usps-labels/admin/dashboard', { params }),
   updateAdminLabel: (id, data) => api.put(`/usps-labels/admin/${id}`, data),
   deleteAdminLabel: (id) => api.delete(`/usps-labels/admin/${id}`),
   // File
@@ -134,6 +134,44 @@ export const adminSettingsAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     }).then(res => res.json())
+};
+
+// Leads API calls
+export const leadsAPI = {
+  getAll: (params) => api.get('/leads', { params }),
+  getById: (id) => api.get(`/leads/${id}`),
+  create: (data) => api.post('/leads', data),
+  update: (id, data) => api.put(`/leads/${id}`, data),
+  delete: (id) => api.delete(`/leads/${id}`),
+  getAnalytics: () => api.get('/leads/analytics/summary')
+};
+
+// Orders API calls
+export const ordersAPI = {
+  getAll: (params) => api.get('/orders', { params }),
+  getById: (id) => api.get(`/orders/${id}`),
+  create: (data) => api.post('/orders', data),
+  update: (id, data) => api.put(`/orders/${id}`, data),
+  delete: (id) => api.delete(`/orders/${id}`),
+  updateDeliveryStatus: (id, data) => api.patch(`/orders/${id}/delivery-status`, data),
+  createFromLead: (leadId, data) => api.post(`/orders/from-lead/${leadId}`, data),
+  getAnalytics: (params) => api.get('/orders/analytics/summary', { params })
+};
+
+// Transactions API calls
+export const transactionsAPI = {
+  getAll: (params) => api.get('/transactions', { params }),
+  getById: (id) => api.get(`/transactions/${id}`),
+  create: (data) => api.post('/transactions', data),
+  update: (id, data) => api.put(`/transactions/${id}`, data),
+  delete: (id) => api.delete(`/transactions/${id}`),
+  approve: (id, data) => api.patch(`/transactions/${id}/approve`, data),
+  reject: (id, data) => api.patch(`/transactions/${id}/reject`, data),
+  validate: (id, data) => api.patch(`/transactions/${id}/validate`, data),
+  reconcile: (id, data) => api.patch(`/transactions/${id}/reconcile`, data),
+  getPendingApproval: () => api.get('/transactions/pending-approval'),
+  getAnalytics: (params) => api.get('/transactions/analytics/summary', { params }),
+  getAuditTrail: (id) => api.get(`/transactions/${id}/audit-trail`)
 };
 
 export default api; 

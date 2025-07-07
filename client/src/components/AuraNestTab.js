@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import OrdersManagement from './OrdersManagement';
+import TransactionsManagement from './TransactionsManagement';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -11,9 +13,15 @@ import {
   Users,
   Download,
   Package,
-  ShoppingCart
+  ShoppingCart,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  User,
+  Clock
 } from 'lucide-react';
 import moment from 'moment';
+import { employeeAPI, leadsAPI, ordersAPI, transactionsAPI } from '../services/api';
 import { 
   XAxis, 
   YAxis, 
@@ -25,7 +33,9 @@ import {
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
+  BarChart,
+  Bar
 } from 'recharts';
 
 const OrdersTab = ({
@@ -179,6 +189,9 @@ const AuraNestTab = () => {
   const [vendors, setVendors] = useState([]);
   const [analytics, setAnalytics] = useState({});
   const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [orderAnalytics, setOrderAnalytics] = useState({});
+  const [transactionAnalytics, setTransactionAnalytics] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('transaction');
   const [selectedItem, setSelectedItem] = useState(null);
@@ -219,7 +232,6 @@ const AuraNestTab = () => {
   const [importResult, setImportResult] = useState(null);
   const [importError, setImportError] = useState('');
   const [categoryAnalytics, setCategoryAnalytics] = useState({});
-  const [orders, setOrders] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [orderForm, setOrderForm] = useState({
     customerName: '',
@@ -292,12 +304,14 @@ const AuraNestTab = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [transactionsRes, categoriesRes, paymentMethodsRes, vendorsRes, analyticsRes] = await Promise.all([
+      const [transactionsRes, categoriesRes, paymentMethodsRes, vendorsRes, analyticsRes, leadsRes, employeesRes] = await Promise.all([
         fetch(`/api/aura-nest/transactions?${new URLSearchParams(filters)}`).then(res => res.json()),
         fetch('/api/aura-nest/categories').then(res => res.json()),
         fetch('/api/aura-nest/payment-methods').then(res => res.json()),
         fetch('/api/aura-nest/vendors').then(res => res.json()),
-        fetch(`/api/aura-nest/analytics/summary?${new URLSearchParams(filters)}`).then(res => res.json())
+        fetch(`/api/aura-nest/analytics/summary?${new URLSearchParams(filters)}`).then(res => res.json()),
+        fetch('/api/leads').then(res => res.json()),
+        fetch('/api/employees').then(res => res.json())
       ]);
 
       setTransactions(transactionsRes.transactions || []);
@@ -305,6 +319,8 @@ const AuraNestTab = () => {
       setPaymentMethods(paymentMethodsRes);
       setVendors(vendorsRes);
       setAnalytics(analyticsRes);
+      setLeads(leadsRes.leads || leadsRes || []);
+      setEmployees(employeesRes);
     } catch (error) {
       console.error('Error loading Aura Nest data:', error);
     } finally {
@@ -1236,69 +1252,855 @@ const AuraNestTab = () => {
   };
 
   const InventoryTab = () => {
-    const filteredInventory = inventoryStatusFilter ? inventory.filter(p => p.status === inventoryStatusFilter) : inventory;
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Inventory</h2>
-          <select
-            value={inventoryStatusFilter}
-            onChange={e => setInventoryStatusFilter(e.target.value)}
-            className="input-field w-48"
+          <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
+          <button
+            onClick={() => openModal('product')}
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
           >
-            <option value="">All Statuses</option>
-            <option value="in_stock">In Stock</option>
-            <option value="sold">Sold</option>
-            <option value="returned">Returned</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </button>
         </div>
-        <div className="card overflow-x-auto rounded-2xl shadow-lg bg-gradient-to-br from-blue-50 to-purple-50">
-          {orderLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+
+        {/* Inventory Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-2xl font-bold text-gray-900">{inventory.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">In Stock</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {inventory.filter(item => item.status === 'in_stock').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Low Stock</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {inventory.filter(item => item.status === 'low_stock').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <XCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Out of Stock</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {inventory.filter(item => item.status === 'out_of_stock').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Inventory Table */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Product Inventory</h3>
+            <div className="flex space-x-2">
+              <select
+                value={inventoryStatusFilter}
+                onChange={(e) => setInventoryStatusFilter(e.target.value)}
+                className="input-field"
+              >
+                <option value="">All Status</option>
+                <option value="in_stock">In Stock</option>
+                <option value="low_stock">Low Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+          {inventory.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {inventory
+                    .filter(item => !inventoryStatusFilter || item.status === inventoryStatusFilter)
+                    .map((product) => (
+                    <tr key={product._id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <img className="h-10 w-10 rounded-full" src={product.image || '/placeholder.png'} alt={product.name} />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                            <div className="text-sm text-gray-500">{product.description}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.quantity}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.cost}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.price}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          product.status === 'in_stock' ? 'bg-green-100 text-green-800' :
+                          product.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {product.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.orderId ? product.orderId.customerName : '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {product.status !== 'returned' && product.status !== 'cancelled' && (
+                          <button
+                            onClick={() => handleReturnProduct(product._id)}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            Mark Returned
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
+            <div className="text-center py-8 text-gray-400">No inventory items found.</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Lead Management Tab Component
+  const LeadsTab = () => {
+    const [showLeadForm, setShowLeadForm] = useState(false);
+    const [editingLead, setEditingLead] = useState(null);
+    const [leadForm, setLeadForm] = useState({
+      customerName: '',
+      customerPhone: '',
+      customerEmail: '',
+      productInterest: '',
+      expectedPrice: '',
+      assignedEmployee: '',
+      status: 'new',
+      source: '',
+      notes: '',
+      followUpDate: ''
+    });
+    const [leadsLoading, setLeadsLoading] = useState(false);
+    const [leadsError, setLeadsError] = useState('');
+
+    const handleLeadChange = (e) => {
+      const { name, value } = e.target;
+      setLeadForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+    const handleLeadSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        setLeadsLoading(true);
+        setLeadsError('');
+        
+        if (editingLead) {
+          await leadsAPI.update(editingLead._id, leadForm);
+        } else {
+          await leadsAPI.create(leadForm);
+        }
+        
+        // Refresh leads data
+        loadData();
+        setShowLeadForm(false);
+        setLeadForm({
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          productInterest: '',
+          expectedPrice: '',
+          assignedEmployee: '',
+          status: 'new',
+          source: '',
+          notes: '',
+          followUpDate: ''
+        });
+        setEditingLead(null);
+      } catch (error) {
+        console.error('Error saving lead:', error);
+        setLeadsError(error.response?.data?.error || 'Failed to save lead');
+      } finally {
+        setLeadsLoading(false);
+      }
+    };
+
+    const openLeadForm = (lead = null) => {
+      if (lead) {
+        setEditingLead(lead);
+        setLeadForm({
+          ...lead,
+          assignedEmployee: lead.assignedEmployee ? (typeof lead.assignedEmployee === 'object' ? lead.assignedEmployee._id : lead.assignedEmployee) : '',
+          expectedPrice: lead.expectedPrice || '',
+          followUpDate: lead.followUpDate ? new Date(lead.followUpDate).toISOString().split('T')[0] : ''
+        });
+      } else {
+        setEditingLead(null);
+        setLeadForm({
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          productInterest: '',
+          expectedPrice: '',
+          assignedEmployee: '',
+          status: 'new',
+          source: '',
+          notes: '',
+          followUpDate: ''
+        });
+      }
+      setShowLeadForm(true);
+    };
+
+    const closeLeadForm = () => {
+      setShowLeadForm(false);
+      setEditingLead(null);
+      setLeadsError('');
+    };
+
+    const handleDeleteLead = async (leadId) => {
+      if (window.confirm('Are you sure you want to delete this lead?')) {
+        try {
+          setLeadsLoading(true);
+          await leadsAPI.delete(leadId);
+          loadData(); // Refresh leads data
+        } catch (error) {
+          console.error('Error deleting lead:', error);
+          setLeadsError('Failed to delete lead');
+        } finally {
+          setLeadsLoading(false);
+        }
+      }
+    };
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case 'new': return 'bg-blue-100 text-blue-800';
+        case 'contacted': return 'bg-yellow-100 text-yellow-800';
+        case 'qualified': return 'bg-green-100 text-green-800';
+        case 'proposal': return 'bg-purple-100 text-purple-800';
+        case 'negotiation': return 'bg-orange-100 text-orange-800';
+        case 'closed_won': return 'bg-green-100 text-green-800';
+        case 'closed_lost': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Lead Management</h2>
+          <button
+            onClick={() => openLeadForm()}
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lead
+          </button>
+        </div>
+
+        {/* Lead Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Leads</p>
+                <p className="text-2xl font-bold text-gray-900">{leads.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Won</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => lead.status === 'closed_won').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => !lead.status.includes('closed')).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <XCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Lost</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => lead.status === 'closed_lost').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        {leadsError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <XCircle className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{leadsError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leads Table */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Lead Pipeline</h3>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Search leads..."
+                className="input-field"
+              />
+              <select className="input-field">
+                <option value="">All Status</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="qualified">Qualified</option>
+                <option value="proposal">Proposal</option>
+                <option value="negotiation">Negotiation</option>
+                <option value="closed_won">Won</option>
+                <option value="closed_lost">Lost</option>
+              </select>
+            </div>
+          </div>
+          
+          {leads.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Interest</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Follow Up</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leads.map((lead) => (
+                    <tr key={lead._id || lead.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{lead.customerName || 'Unknown'}</div>
+                          <div className="text-sm text-gray-500">{lead.source || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm text-gray-900">{lead.customerPhone || '-'}</div>
+                          <div className="text-sm text-gray-500">{lead.customerEmail || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.productInterest || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{lead.expectedPrice || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lead.assignedEmployee ? (typeof lead.assignedEmployee === 'object' ? lead.assignedEmployee.name : lead.assignedEmployee) : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(lead.status)}`}>
+                          {lead.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lead.followUpDate ? new Date(lead.followUpDate).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => openLeadForm(lead)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteLead(lead._id)}
+                          className="text-red-600 hover:text-red-900"
+                          disabled={leadsLoading}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <User className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-lg font-medium text-gray-500">No leads found</p>
+              <p className="text-sm text-gray-400">Start by adding your first lead</p>
+            </div>
+          )}
+        </div>
+
+        {/* Lead Form Modal */}
+        {showLeadForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {editingLead ? 'Edit Lead' : 'Add New Lead'}
+              </h3>
+              <form onSubmit={handleLeadSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Customer Name</label>
+                    <input
+                      type="text"
+                      name="customerName"
+                      value={leadForm.customerName}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <input
+                      type="tel"
+                      name="customerPhone"
+                      value={leadForm.customerPhone}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      name="customerEmail"
+                      value={leadForm.customerEmail}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Product Interest</label>
+                    <input
+                      type="text"
+                      name="productInterest"
+                      value={leadForm.productInterest}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Expected Price</label>
+                    <input
+                      type="number"
+                      name="expectedPrice"
+                      value={leadForm.expectedPrice}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Assigned Employee</label>
+                    <select
+                      name="assignedEmployee"
+                      value={leadForm.assignedEmployee}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map(emp => (
+                        <option key={emp._id} value={emp._id}>{emp.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                      name="status"
+                      value={leadForm.status}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="qualified">Qualified</option>
+                      <option value="proposal">Proposal</option>
+                      <option value="negotiation">Negotiation</option>
+                      <option value="closed_won">Won</option>
+                      <option value="closed_lost">Lost</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Source</label>
+                    <input
+                      type="text"
+                      name="source"
+                      value={leadForm.source}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      placeholder="e.g., Website, Referral, Social Media"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Follow Up Date</label>
+                    <input
+                      type="date"
+                      name="followUpDate"
+                      value={leadForm.followUpDate}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <textarea
+                    name="notes"
+                    value={leadForm.notes}
+                    onChange={handleLeadChange}
+                    className="input-field"
+                    rows="3"
+                    placeholder="Additional notes about this lead..."
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={closeLeadForm}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                    disabled={leadsLoading}
+                  >
+                    {leadsLoading ? 'Saving...' : (editingLead ? 'Update' : 'Add') + ' Lead'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Profit Analytics Tab Component
+  const ProfitAnalyticsTab = () => {
+    const [profitData, setProfitData] = useState({
+      totalRevenue: 0,
+      totalCost: 0,
+      grossProfit: 0,
+      netProfit: 0,
+      profitMargin: 0,
+      monthlyData: [],
+      categoryBreakdown: []
+    });
+
+    const [dateRange, setDateRange] = useState({
+      startDate: moment().startOf('month').format('YYYY-MM-DD'),
+      endDate: moment().endOf('month').format('YYYY-MM-DD')
+    });
+
+    // Calculate profit data from transactions
+    useEffect(() => {
+      const filteredTransactions = transactions.filter(t => {
+        const transactionDate = moment(t.date);
+        return transactionDate.isBetween(dateRange.startDate, dateRange.endDate, 'day', '[]');
+      });
+
+      const income = filteredTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
+      
+      const expenses = filteredTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+      const grossProfit = income - expenses;
+      const profitMargin = income > 0 ? (grossProfit / income) * 100 : 0;
+
+      // Calculate category breakdown
+      const categoryMap = {};
+      filteredTransactions.forEach(t => {
+        const categoryName = categories.find(c => c._id === t.category)?.name || 'Unknown';
+        if (!categoryMap[categoryName]) {
+          categoryMap[categoryName] = { income: 0, expense: 0 };
+        }
+        if (t.type === 'income') {
+          categoryMap[categoryName].income += t.amount || 0;
+        } else {
+          categoryMap[categoryName].expense += t.amount || 0;
+        }
+      });
+
+      const categoryBreakdown = Object.entries(categoryMap).map(([name, data]) => ({
+        name,
+        income: data.income,
+        expense: data.expense,
+        profit: data.income - data.expense
+      }));
+
+      // Calculate monthly data for the last 6 months
+      const monthlyData = [];
+      for (let i = 5; i >= 0; i--) {
+        const month = moment().subtract(i, 'months');
+        const monthStart = month.startOf('month');
+        const monthEnd = month.endOf('month');
+        
+        const monthTransactions = transactions.filter(t => {
+          const transactionDate = moment(t.date);
+          return transactionDate.isBetween(monthStart, monthEnd, 'day', '[]');
+        });
+
+        const monthIncome = monthTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+        
+        const monthExpenses = monthTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        monthlyData.push({
+          month: month.format('MMM YYYY'),
+          income: monthIncome,
+          expenses: monthExpenses,
+          profit: monthIncome - monthExpenses
+        });
+      }
+
+      setProfitData({
+        totalRevenue: income,
+        totalCost: expenses,
+        grossProfit,
+        netProfit: grossProfit, // Simplified for now
+        profitMargin,
+        monthlyData,
+        categoryBreakdown
+      });
+    }, [transactions, categories, dateRange]);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Profit Analytics</h2>
+          <div className="flex space-x-2">
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+              className="input-field"
+            />
+            <span className="text-gray-500">to</span>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+              className="input-field"
+            />
+          </div>
+        </div>
+
+        {/* Profit Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">₹{profitData.totalRevenue.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Cost</p>
+                <p className="text-2xl font-bold text-gray-900">₹{profitData.totalCost.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Gross Profit</p>
+                <p className={`text-2xl font-bold ${profitData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  ₹{profitData.grossProfit.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <BarChart3 className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Profit Margin</p>
+                <p className={`text-2xl font-bold ${profitData.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {profitData.profitMargin.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Monthly Trend Chart */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Profit Trend</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={profitData.monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                <Legend />
+                <Bar dataKey="income" fill="#10B981" name="Income" />
+                <Bar dataKey="expenses" fill="#EF4444" name="Expenses" />
+                <Bar dataKey="profit" fill="#3B82F6" name="Profit" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Category Breakdown */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Profit Breakdown</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={profitData.categoryBreakdown.filter(cat => cat.profit !== 0)}
+                  dataKey="profit"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ name, profit }) => `${name}: ₹${profit.toLocaleString()}`}
+                >
+                  {profitData.categoryBreakdown.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#10B981' : '#EF4444'} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Category Breakdown Table */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Category Analysis</h3>
+          <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attributes</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Income</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expenses</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margin</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredInventory.map(product => (
-                  <tr key={product._id} className="hover:bg-blue-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.attributes?.custom || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.cost.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.price.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        product.status === 'cancelled' ? 'bg-red-100 text-red-800' : product.status === 'sold' ? 'bg-green-100 text-green-800' : product.status === 'returned' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
-                      }`}>{product.status}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.orderId ? product.orderId.customerName : '-'}</td>
+                {profitData.categoryBreakdown.map((category) => (
+                  <tr key={category.name}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{category.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{category.income.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{category.expense.toLocaleString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {product.status !== 'returned' && product.status !== 'cancelled' && (
-                        <button
-                          onClick={() => handleReturnProduct(product._id)}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          Mark Returned
-                        </button>
-                      )}
+                      <span className={category.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        ₹{category.profit.toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={category.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {category.income > 0 ? ((category.profit / category.income) * 100).toFixed(1) : 0}%
+                      </span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -1358,6 +2160,16 @@ const AuraNestTab = () => {
         >
           Orders
         </button>
+        <button
+          onClick={() => setActiveTab('transactions')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'transactions'
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-indigo-600'
+          }`}
+        >
+          Transactions
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -1365,22 +2177,10 @@ const AuraNestTab = () => {
       {activeTab === 'transactions' && <TransactionsTab />}
       {activeTab === 'vendors' && <VendorsTab />}
       {activeTab === 'reports' && <ReportsTab />}
-      {activeTab === 'orders' && (
-        <OrdersTab
-          orders={orders}
-          orderQuickForm={orderQuickForm}
-          setOrderQuickForm={setOrderQuickForm}
-          orderLoading={orderLoading}
-          addressSuggestions={addressSuggestions}
-          addressLoading={addressLoading}
-          handleOrderQuickChange={handleOrderQuickChange}
-          handleOrderQuickSubmit={handleOrderQuickSubmit}
-          handleAddressInput={handleAddressInput}
-          handleSelectAddress={handleSelectAddress}
-          handleCancelOrder={handleCancelOrder}
-        />
-      )}
+      {activeTab === 'orders' && <OrdersManagement />}
       {activeTab === 'inventory' && <InventoryTab />}
+      {activeTab === 'leads' && <LeadsTab />}
+      {activeTab === 'profit' && <ProfitAnalyticsTab />}
 
       {/* Modal Placeholder */}
       {showModal && modalType === 'transaction' && (

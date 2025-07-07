@@ -22,6 +22,9 @@ const uspsLabelsRoute = require('./routes/uspsLabels');
 const uspsGoalsRoute = require('./routes/uspsGoals');
 const auraNestRoutes = require('./routes/auraNest');
 const inventoryRoutes = require('./routes/inventory');
+const leadsRoutes = require('./routes/leads');
+const ordersRoutes = require('./routes/orders');
+const transactionsRoutes = require('./routes/transactions');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -140,6 +143,9 @@ app.use('/api/usps-goals', uspsGoalsRoute);
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/aura-nest', auraNestRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/leads', leadsRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/transactions', transactionsRoutes);
 
 // Enhanced health check endpoint
 app.get('/api/health', (req, res) => {
