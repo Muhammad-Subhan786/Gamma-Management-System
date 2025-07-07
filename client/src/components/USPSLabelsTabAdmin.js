@@ -356,6 +356,14 @@ const USPSLabelsTabAdmin = () => {
     loadEmployees();
   };
 
+  // Utility for initials avatar
+  const getInitials = (name) => {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
@@ -750,17 +758,16 @@ const USPSLabelsTabAdmin = () => {
                     <td className="p-4">
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
-                          {label.employeeId?.profilePicture ? (
-                            <img 
-                              src={`/api/employees/profile-picture/${label.employeeId._id}`}
-                              alt={label.employeeId.name}
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-sm font-medium text-primary-600">
-                              {label.employeeId?.name?.charAt(0).toUpperCase() || '?'}
-                            </span>
-                          )}
+                          <img
+                            src={`/api/employees/profile-picture/${label.employeeId._id}`}
+                            alt={label.employeeId.name}
+                            className="w-8 h-8 rounded-full object-cover"
+                            style={{ display: label.employeeId?.profilePicture ? undefined : 'none' }}
+                            onError={e => { e.target.style.display = 'none'; e.target.parentNode.querySelector('.initials-fallback').style.display = 'flex'; }}
+                          />
+                          <span className="initials-fallback w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm" style={{ display: label.employeeId?.profilePicture ? 'none' : 'flex' }}>
+                            {getInitials(label.employeeId?.name)}
+                          </span>
                         </div>
                         <span className="text-sm font-medium text-gray-900">{label.employeeId?.name || 'Unknown'}</span>
                       </div>
@@ -905,17 +912,16 @@ const USPSLabelsTabAdmin = () => {
                       <td className="p-4">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
-                            {goal.employeeId?.profilePicture ? (
-                              <img 
-                                src={`/api/employees/profile-picture/${goal.employeeId._id}`}
-                                alt={goal.employeeId.name}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-sm font-medium text-primary-600">
-                                {goal.employeeId?.name?.charAt(0).toUpperCase() || '?'}
-                              </span>
-                            )}
+                            <img
+                              src={`/api/employees/profile-picture/${goal.employeeId._id}`}
+                              alt={goal.employeeId.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                              style={{ display: goal.employeeId?.profilePicture ? undefined : 'none' }}
+                              onError={e => { e.target.style.display = 'none'; e.target.parentNode.querySelector('.initials-fallback').style.display = 'flex'; }}
+                            />
+                            <span className="initials-fallback w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm" style={{ display: goal.employeeId?.profilePicture ? 'none' : 'flex' }}>
+                              {getInitials(goal.employeeId?.name)}
+                            </span>
                           </div>
                           <span className="text-sm font-medium text-gray-900">{goal.employeeId?.name || 'Unknown'}</span>
                         </div>
@@ -1109,17 +1115,16 @@ const USPSLabelsTabAdmin = () => {
                       {salaryRows.map(row => (
                         <tr key={row.empId} className="hover:bg-blue-50">
                           <td className="p-2 font-semibold flex items-center">
-                            {row.empId && employees.find(e => e._id === row.empId)?.profilePicture ? (
-                              <img
-                                src={`/api/employees/profile-picture/${row.empId}`}
-                                alt={row.empName}
-                                className="w-8 h-8 rounded-full object-cover mr-2"
-                              />
-                            ) : (
-                              <span className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center mr-2 text-blue-700 font-bold">
-                                {row.empName?.charAt(0) || '?'}
-                              </span>
-                            )}
+                            <img
+                              src={`/api/employees/profile-picture/${row.empId}`}
+                              alt={row.empName}
+                              className="w-8 h-8 rounded-full object-cover mr-2"
+                              style={{ display: employees.find(e => e._id === row.empId)?.profilePicture ? undefined : 'none' }}
+                              onError={e => { e.target.style.display = 'none'; e.target.parentNode.querySelector('.initials-fallback').style.display = 'flex'; }}
+                            />
+                            <span className="initials-fallback w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm" style={{ display: employees.find(e => e._id === row.empId)?.profilePicture ? 'none' : 'flex' }}>
+                              {getInitials(row.empName)}
+                            </span>
                             {row.empName}
                           </td>
                           <td className="p-2 text-center">10,000 PKR</td>
@@ -1261,17 +1266,16 @@ const USPSLabelsTabAdmin = () => {
                     {profitRows.map(row => (
                       <tr key={row.empId} className="hover:bg-green-50">
                         <td className="p-2 font-semibold flex items-center">
-                          {row.profilePicture ? (
-                            <img
-                              src={`/api/employees/profile-picture/${row.empId}`}
-                              alt={row.empName}
-                              className="w-8 h-8 rounded-full object-cover mr-2"
-                            />
-                          ) : (
-                            <span className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center mr-2 text-green-700 font-bold">
-                              {row.empName?.charAt(0) || '?'}
-                            </span>
-                          )}
+                          <img
+                            src={`/api/employees/profile-picture/${row.empId}`}
+                            alt={row.empName}
+                            className="w-8 h-8 rounded-full object-cover mr-2"
+                            style={{ display: employees.find(e => e._id === row.empId)?.profilePicture ? undefined : 'none' }}
+                            onError={e => { e.target.style.display = 'none'; e.target.parentNode.querySelector('.initials-fallback').style.display = 'flex'; }}
+                          />
+                          <span className="initials-fallback w-8 h-8 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-bold text-sm" style={{ display: employees.find(e => e._id === row.empId)?.profilePicture ? 'none' : 'flex' }}>
+                            {getInitials(row.empName)}
+                          </span>
                           {row.empName}
                         </td>
                         <td className="p-2 text-center">{row.totalLabels}</td>
