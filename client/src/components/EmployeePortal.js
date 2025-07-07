@@ -21,6 +21,8 @@ import TasksBoard from './employee/TasksBoard';
 import OrdersManagement from './OrdersManagement';
 import TransactionsManagement from './TransactionsManagement';
 import AuraNestTab from './AuraNestTab';
+import USPSLabelsTab from './employee/USPSLabelsTab';
+
 // Add a simple LeadsTab for employees if import fails
 const EmployeeLeadsTab = () => {
   // Minimal state for demonstration
@@ -81,7 +83,6 @@ const EmployeeLeadsTab = () => {
     </div>
   );
 };
-import USPSLabelsTab from './employee/USPSLabelsTab';
 
 const EmployeePortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
