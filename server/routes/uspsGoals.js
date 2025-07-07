@@ -131,27 +131,33 @@ router.get('/admin/analytics', async (req, res) => {
     const goals = await USPSGoal.find({ month: currentMonth })
       .populate('employeeId', 'name');
 
+    // Helper to safely get numbers
+    const safeNum = v => typeof v === 'number' && !isNaN(v) ? v : 0;
+    // Helper to safely get string
+    const safeStr = v => typeof v === 'string' ? v : '';
+
     const analytics = {
       totalEmployees: goals.length,
       averageProgress: goals.length > 0 ? 
-        goals.reduce((sum, goal) => sum + goal.overallProgress, 0) / goals.length : 0,
+        goals.reduce((sum, goal) => sum + safeNum(goal.overallProgress), 0) / goals.length : 0,
       completedGoals: goals.filter(goal => goal.status === 'completed').length,
       activeGoals: goals.filter(goal => goal.status === 'active').length,
       overdueGoals: goals.filter(goal => goal.status === 'overdue').length,
       topPerformers: goals
-        .sort((a, b) => b.overallProgress - a.overallProgress)
+        .filter(goal => goal && goal.employeeId && safeStr(goal.employeeId.name))
+        .sort((a, b) => safeNum(b.overallProgress) - safeNum(a.overallProgress))
         .slice(0, 5)
         .map(goal => ({
-          name: goal.employeeId.name,
-          progress: goal.overallProgress,
-          labels: goal.currentLabels,
-          revenue: goal.currentRevenue
+          name: safeStr(goal.employeeId.name),
+          progress: safeNum(goal.overallProgress),
+          labels: safeNum(goal.currentLabels),
+          revenue: safeNum(goal.currentRevenue)
         })),
       progressDistribution: {
-        excellent: goals.filter(goal => goal.overallProgress >= 100).length,
-        good: goals.filter(goal => goal.overallProgress >= 75 && goal.overallProgress < 100).length,
-        fair: goals.filter(goal => goal.overallProgress >= 50 && goal.overallProgress < 75).length,
-        poor: goals.filter(goal => goal.overallProgress < 50).length
+        excellent: goals.filter(goal => safeNum(goal.overallProgress) >= 100).length,
+        good: goals.filter(goal => safeNum(goal.overallProgress) >= 75 && safeNum(goal.overallProgress) < 100).length,
+        fair: goals.filter(goal => safeNum(goal.overallProgress) >= 50 && safeNum(goal.overallProgress) < 75).length,
+        poor: goals.filter(goal => safeNum(goal.overallProgress) < 50).length
       }
     };
 
