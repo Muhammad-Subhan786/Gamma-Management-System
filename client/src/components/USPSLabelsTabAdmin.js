@@ -177,13 +177,15 @@ const USPSLabelsTabAdmin = () => {
     setLoading(false);
   };
 
+  // Fix loadEmployees to handle backend response as a raw array
   const loadEmployees = async () => {
     setEmployeesLoading(true);
     setEmployeesError('');
     try {
       const response = await fetch('/api/employees');
-      const { data } = await response.json();
-      setEmployees(data || []);
+      // Backend returns a raw array, not { data: ... }
+      const employeesArr = await response.json();
+      setEmployees(Array.isArray(employeesArr) ? employeesArr : []);
     } catch (error) {
       console.error('Error loading employees:', error);
       setEmployees([]);
