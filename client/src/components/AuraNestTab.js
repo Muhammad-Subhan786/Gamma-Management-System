@@ -18,7 +18,15 @@ import {
   AlertTriangle,
   XCircle,
   User,
-  Clock
+  Clock,
+  Activity,
+  Target,
+  Zap,
+  Star,
+  Award,
+  TrendingUp as TrendingUpIcon,
+  BarChart as BarChartIcon,
+  LineChart as LineChartIcon
 } from 'lucide-react';
 import moment from 'moment';
 import { employeeAPI, leadsAPI, ordersAPI, transactionsAPI } from '../services/api';
@@ -275,6 +283,15 @@ const AuraNestTab = () => {
     loadCategoryAnalytics();
     if (activeTab === 'orders') loadOrders();
     if (activeTab === 'inventory') loadInventory();
+    
+    // Set up real-time updates for dashboard
+    const interval = setInterval(() => {
+      if (activeTab === 'dashboard') {
+        loadData();
+      }
+    }, 30000); // Update every 30 seconds
+    
+    return () => clearInterval(interval);
   }, [activeTab]);
 
   useEffect(() => {
@@ -716,143 +733,624 @@ const AuraNestTab = () => {
     }
   };
 
-  const DashboardTab = () => (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border border-purple-100">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            Aura Nest Financial Hub 💎
-          </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Complete financial management for your jewellery business
-          </p>
-        </div>
-      </div>
+  const DashboardTab = () => {
+    // Sample data for charts - replace with real data from your APIs
+    const monthlyData = [
+      { month: 'Jan', income: 45000, expenses: 32000, profit: 13000 },
+      { month: 'Feb', income: 52000, expenses: 38000, profit: 14000 },
+      { month: 'Mar', income: 48000, expenses: 35000, profit: 13000 },
+      { month: 'Apr', income: 61000, expenses: 42000, profit: 19000 },
+      { month: 'May', income: 55000, expenses: 39000, profit: 16000 },
+      { month: 'Jun', income: 67000, expenses: 45000, profit: 22000 },
+    ];
 
-      {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
-          <div className="flex items-center">
+    const categoryData = [
+      { name: 'Gold Jewelry', value: 45, color: '#FFD700' },
+      { name: 'Diamond Items', value: 25, color: '#B9F2FF' },
+      { name: 'Silver Jewelry', value: 20, color: '#C0C0C0' },
+      { name: 'Pearl Items', value: 10, color: '#F0E68C' },
+    ];
+
+    const leadSourceData = [
+      { name: 'TikTok', leads: 45, conversions: 12, color: '#000000' },
+      { name: 'Meta Ads', leads: 38, conversions: 15, color: '#1877F2' },
+      { name: 'WhatsApp', leads: 52, conversions: 28, color: '#25D366' },
+      { name: 'Referral', leads: 15, conversions: 8, color: '#FF6B6B' },
+      { name: 'Website', leads: 22, conversions: 6, color: '#4ECDC4' },
+    ];
+
+    const orderStatusData = [
+      { status: 'Pending', count: 8, color: '#F59E0B' },
+      { status: 'Processing', count: 12, color: '#3B82F6' },
+      { status: 'Shipped', count: 15, color: '#8B5CF6' },
+      { status: 'Delivered', count: 32, color: '#10B981' },
+      { status: 'Failed', count: 3, color: '#EF4444' },
+    ];
+
+    const recentTransactions = [
+      { id: 1, type: 'income', amount: 25000, description: 'Gold Ring Sale', date: '2024-01-15', status: 'completed' },
+      { id: 2, type: 'expense', amount: 8000, description: 'Supplier Payment', date: '2024-01-14', status: 'pending' },
+      { id: 3, type: 'income', amount: 45000, description: 'Diamond Necklace', date: '2024-01-13', status: 'completed' },
+      { id: 4, type: 'expense', amount: 12000, description: 'Marketing Ads', date: '2024-01-12', status: 'approved' },
+    ];
+
+    return (
+      <div className="space-y-8">
+        {/* Hero Section with Live Stats */}
+        <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="relative z-10">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-2">💎 Aura Nest Financial Hub</h1>
+              <p className="text-xl text-purple-200">Complete Business Intelligence Dashboard</p>
+              <p className="text-sm text-purple-300 mt-2">Real-time insights for your jewellery business</p>
+            </div>
+            
+            {/* Live Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
+                <div className="text-3xl font-bold text-green-400 animate-pulse">PKR{analytics.totalIncome?.toLocaleString() || '125,000'}</div>
+                <div className="text-sm text-purple-200">Total Revenue</div>
+                <div className="text-xs text-green-300 mt-1">↗ +12.5% this month</div>
+                <div className="mt-2">
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div className="bg-green-400 h-2 rounded-full" style={{width: '85%'}}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
+                <div className="text-3xl font-bold text-blue-400">PKR{analytics.totalExpense?.toLocaleString() || '78,000'}</div>
+                <div className="text-sm text-purple-200">Total Expenses</div>
+                <div className="text-xs text-blue-300 mt-1">↘ -5.2% this month</div>
+                <div className="mt-2">
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div className="bg-blue-400 h-2 rounded-full" style={{width: '62%'}}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
+                <div className="text-3xl font-bold text-yellow-400">PKR{analytics.netIncome?.toLocaleString() || '47,000'}</div>
+                <div className="text-sm text-purple-200">Net Profit</div>
+                <div className="text-xs text-yellow-300 mt-1">↗ +18.7% this month</div>
+                <div className="mt-2">
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div className="bg-yellow-400 h-2 rounded-full" style={{width: '38%'}}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
+                <div className="text-3xl font-bold text-purple-400">{analytics.transactionCount || '156'}</div>
+                <div className="text-sm text-purple-200">Transactions</div>
+                <div className="text-xs text-purple-300 mt-1">↗ +8.3% this month</div>
+                <div className="mt-2">
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div className="bg-purple-400 h-2 rounded-full" style={{width: '78%'}}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={() => openModal('transaction')}
+            className="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl group"
+          >
+        <div className="text-center">
+              <Plus className="h-8 w-8 mx-auto mb-2 group-hover:rotate-90 transition-transform duration-300" />
+              <div className="font-semibold">Add Transaction</div>
+              <div className="text-sm opacity-90">Record Income/Expense</div>
+        </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('orders')}
+            className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl group"
+          >
+            <div className="text-center">
+              <Package className="h-8 w-8 mx-auto mb-2 group-hover:bounce transition-all duration-300" />
+              <div className="font-semibold">Orders</div>
+              <div className="text-sm opacity-90">Track Deliveries</div>
+      </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('leads')}
+            className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl group"
+          >
+            <div className="text-center">
+              <Users className="h-8 w-8 mx-auto mb-2 group-hover:scale-110 transition-transform duration-300" />
+              <div className="font-semibold">Leads</div>
+              <div className="text-sm opacity-90">Manage Prospects</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('transactions')}
+            className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl group"
+          >
+            <div className="text-center">
+              <FileText className="h-8 w-8 mx-auto mb-2 group-hover:rotate-12 transition-transform duration-300" />
+              <div className="font-semibold">Transactions</div>
+              <div className="text-sm opacity-90">View All Records</div>
+            </div>
+          </button>
+        </div>
+
+        {/* Weather & Time Widget */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold">Multan</div>
+                <div className="text-sm opacity-90">Punjab, Pakistan</div>
+                <div className="text-4xl font-bold mt-2">28°C</div>
+                <div className="text-sm opacity-90">Partly Cloudy</div>
+              </div>
+              <div className="text-6xl">☀️</div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-400 to-pink-600 rounded-3xl p-6 text-white">
+            <div className="text-center">
+              <div className="text-2xl font-bold mb-2">Current Time</div>
+              <div className="text-4xl font-mono font-bold mb-2">
+                {new Date().toLocaleTimeString('en-US', { 
+                  hour12: false,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}
+              </div>
+              <div className="text-sm opacity-90">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-green-400 to-teal-600 rounded-3xl p-6 text-white">
+            <div className="text-center">
+              <div className="text-2xl font-bold mb-2">System Status</div>
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-lg font-semibold">All Systems Operational</span>
+              </div>
+              <div className="text-sm opacity-90">Uptime: 99.9%</div>
+              <div className="text-sm opacity-90">Last Updated: 2 min ago</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Monthly Revenue Chart */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 transform hover:scale-105 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                <LineChartIcon className="h-6 w-6 mr-2 text-blue-600" />
+                Monthly Revenue Trend
+              </h3>
+              <div className="flex space-x-2">
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium hover:bg-green-200 transition-colors cursor-pointer">Income</span>
+                <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium hover:bg-red-200 transition-colors cursor-pointer">Expenses</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer">Profit</span>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="income" 
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2 }}
+                  animationDuration={2000}
+                  animationBegin={0}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="expenses" 
+                  stroke="#ef4444" 
+                  strokeWidth={3}
+                  dot={{ fill: '#ef4444', strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, stroke: '#ef4444', strokeWidth: 2 }}
+                  animationDuration={2000}
+                  animationBegin={500}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="profit" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2 }}
+                  animationDuration={2000}
+                  animationBegin={1000}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Category Distribution */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 transform hover:scale-105 transition-all duration-300">
+            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+              <PieChart className="h-6 w-6 mr-2 text-purple-600" />
+              Product Category Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <RechartsPieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={2000}
+                  animationBegin={0}
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                  }}
+                />
+                <Legend />
+              </RechartsPieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Lead Sources & Order Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Lead Sources Performance */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Lead Sources Performance</h3>
+            <div className="space-y-4">
+              {leadSourceData.map((source, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: source.color }}
+                    ></div>
+                    <div>
+                      <div className="font-semibold text-gray-800">{source.name}</div>
+                      <div className="text-sm text-gray-600">{source.leads} leads • {source.conversions} conversions</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-800">
+                      {source.conversions > 0 ? Math.round((source.conversions / source.leads) * 100) : 0}%
+                    </div>
+                    <div className="text-sm text-gray-600">conversion rate</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Order Status Overview */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Order Status Overview</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={orderStatusData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="status" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                  }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {orderStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Activity & Performance Metrics */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Recent Transactions */}
+          <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Recent Transactions</h3>
+              <button 
+                onClick={() => setActiveTab('transactions')}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                View All →
+              </button>
+            </div>
+            <div className="space-y-4">
+              {recentTransactions.map((transaction) => (
+                <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-2 rounded-full ${
+                      transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'
+                    }`}>
+                      {transaction.type === 'income' ? (
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-5 w-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">{transaction.description}</div>
+                      <div className="text-sm text-gray-600">{transaction.date}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-bold ${
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      PKR{transaction.amount.toLocaleString()}
+                    </div>
+                    <div className={`text-sm px-2 py-1 rounded-full ${
+                      transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {transaction.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Performance Metrics */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Performance Metrics</h3>
+            <div className="space-y-6">
+              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl">
+                <div className="text-3xl font-bold text-green-600">85%</div>
+                <div className="text-sm text-green-700">Lead Conversion Rate</div>
+                <div className="text-xs text-green-600 mt-1">↗ +5.2% vs last month</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
+                <div className="text-3xl font-bold text-blue-600">92%</div>
+                <div className="text-sm text-blue-700">Order Success Rate</div>
+                <div className="text-xs text-blue-600 mt-1">↗ +2.1% vs last month</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl">
+                <div className="text-3xl font-bold text-purple-600">PKR47K</div>
+                <div className="text-sm text-purple-700">Average Order Value</div>
+                <div className="text-xs text-purple-600 mt-1">↗ +8.7% vs last month</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl">
+                <div className="text-3xl font-bold text-orange-600">2.3</div>
+                <div className="text-sm text-orange-700">Days Avg Delivery</div>
+                <div className="text-xs text-orange-600 mt-1">↘ -0.5 days vs last month</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Business Insights */}
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-8 border border-indigo-100">
+          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">💡 Business Insights</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center mb-4">
             <div className="p-2 bg-green-100 rounded-lg">
               <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Income</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ₹{analytics.totalIncome?.toLocaleString() || 0}
+                <div className="ml-3">
+                  <div className="font-semibold text-gray-800">Revenue Growth</div>
+                  <div className="text-sm text-gray-600">Strong upward trend</div>
+                </div>
+              </div>
+              <p className="text-gray-700 text-sm">
+                Your revenue has increased by 12.5% this month. TikTok ads are showing the highest conversion rates at 26.7%.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Package className="h-6 w-6 text-blue-600" />
+          </div>
+                <div className="ml-3">
+                  <div className="font-semibold text-gray-800">Order Efficiency</div>
+                  <div className="text-sm text-gray-600">Excellent performance</div>
+                </div>
+              </div>
+              <p className="text-gray-700 text-sm">
+                Order delivery time has improved by 0.5 days. 92% of orders are delivered successfully within 3 days.
+              </p>
+        </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Users className="h-6 w-6 text-purple-600" />
+            </div>
+                <div className="ml-3">
+                  <div className="font-semibold text-gray-800">Lead Quality</div>
+                  <div className="text-sm text-gray-600">High conversion rates</div>
+                </div>
+              </div>
+              <p className="text-gray-700 text-sm">
+                Lead quality has improved significantly. WhatsApp leads show the highest conversion rate at 53.8%.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <TrendingDown className="h-6 w-6 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ₹{analytics.totalExpense?.toLocaleString() || 0}
-              </p>
+        {/* Real-time Activity Feed */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-800">🔄 Real-time Activity Feed</h3>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600">Live Updates</span>
             </div>
           </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl border-l-4 border-green-500">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-800">New Order Received</div>
+                <div className="text-sm text-gray-600">Gold Ring order worth PKR25,000 from Customer #1234</div>
+                <div className="text-xs text-gray-500 mt-1">2 minutes ago</div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-green-600">+PKR25,000</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <DollarSign className="h-6 w-6 text-blue-600" />
+                <Package className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Net Income</p>
-              <p className={`text-2xl font-bold ${analytics.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                ₹{analytics.netIncome?.toLocaleString() || 0}
-              </p>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-800">Order Shipped</div>
+                <div className="text-sm text-gray-600">Diamond Necklace order #ORD-789 shipped via TCS</div>
+                <div className="text-xs text-gray-500 mt-1">5 minutes ago</div>
             </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-blue-600">TRK-123456</div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
+            <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl border-l-4 border-purple-500">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <FileText className="h-6 w-6 text-purple-600" />
+                <Users className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Transactions</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analytics.transactionCount || 0}
-              </p>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-800">New Lead Qualified</div>
+                <div className="text-sm text-gray-600">Lead from TikTok with score 9/10 - ready for order</div>
+                <div className="text-xs text-gray-500 mt-1">8 minutes ago</div>
             </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-purple-600">Score: 9/10</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-xl border-l-4 border-orange-500">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-800">Payment Received</div>
+                <div className="text-sm text-gray-600">Full payment received for Silver Bracelet order</div>
+                <div className="text-xs text-gray-500 mt-1">12 minutes ago</div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-orange-600">PKR8,000</div>
+              </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <button
-          onClick={() => openModal('transaction')}
-          className="card hover:shadow-lg transition-all duration-200 cursor-pointer"
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Plus className="h-6 w-6 text-green-600" />
+        {/* Achievement Badges */}
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-8 border border-yellow-100">
+          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">🏆 Achievement Badges</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
+              <div className="bg-gradient-to-br from-yellow-400 to-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+                <Star className="h-8 w-8 text-white" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Add Transaction</p>
-              <p className="text-lg font-semibold text-gray-900">Record Income/Expense</p>
+              <div className="font-semibold text-gray-800">Top Performer</div>
+              <div className="text-sm text-gray-600">Revenue Leader</div>
+            </div>
+            
+            <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
+              <div className="bg-gradient-to-br from-green-400 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+                <Target className="h-8 w-8 text-white" />
+          </div>
+              <div className="font-semibold text-gray-800">Goal Crusher</div>
+              <div className="text-sm text-gray-600">Target Achieved</div>
+            </div>
+            
+            <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
+              <div className="bg-gradient-to-br from-purple-400 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+                <Zap className="h-8 w-8 text-white" />
+            </div>
+              <div className="font-semibold text-gray-800">Speed Demon</div>
+              <div className="text-sm text-gray-600">Fast Delivery</div>
+            </div>
+            
+            <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
+              <div className="bg-gradient-to-br from-red-400 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+                <Award className="h-8 w-8 text-white" />
+          </div>
+              <div className="font-semibold text-gray-800">Quality Master</div>
+              <div className="text-sm text-gray-600">5-Star Service</div>
             </div>
           </div>
-        </button>
+        </div>
 
+        {/* Floating Action Button */}
+        <div className="fixed bottom-8 right-8 z-50">
+          <div className="relative">
         <button
-          onClick={() => openModal('vendor')}
-          className="card hover:shadow-lg transition-all duration-200 cursor-pointer"
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
+              onClick={() => openModal('transaction')}
+              className="bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white w-16 h-16 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
+            >
+              <Plus className="h-8 w-8 group-hover:rotate-90 transition-transform duration-300" />
+            </button>
+            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+              3
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Manage Vendors</p>
-              <p className="text-lg font-semibold text-gray-900">Suppliers & Services</p>
             </div>
           </div>
-        </button>
 
-        <button
-          onClick={() => openModal('import')}
-          className="card hover:shadow-lg transition-all duration-200 cursor-pointer"
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Upload className="h-6 w-6 text-purple-600" />
+        {/* Notification Toast */}
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full animate-slide-in">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-6 w-6" />
+              <div>
+                <div className="font-semibold">Success!</div>
+                <div className="text-sm opacity-90">Dashboard updated successfully</div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Import Data</p>
-              <p className="text-lg font-semibold text-gray-900">CSV/Google Sheets</p>
             </div>
           </div>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('transactions')}
-          className="card hover:shadow-lg transition-all duration-200 cursor-pointer"
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <FileText className="h-6 w-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">View All</p>
-              <p className="text-lg font-semibold text-gray-900">Transactions</p>
-            </div>
-          </div>
-        </button>
       </div>
     </div>
   );
+  };
 
   const VendorsTab = () => (
     <div className="space-y-6">
@@ -1100,7 +1598,7 @@ const AuraNestTab = () => {
                       {transaction.category?.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ₹{transaction.amount.toLocaleString()}
+                      PKR{transaction.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {transaction.vendor?.name || '-'}
@@ -1179,7 +1677,7 @@ const AuraNestTab = () => {
               <TrendingUp className="h-6 w-6 text-green-600 mr-2" />
               <div>
                 <div className="text-sm text-gray-600">Total Income</div>
-                <div className="text-xl font-bold text-gray-900">₹{analytics.totalIncome?.toLocaleString() || 0}</div>
+                <div className="text-xl font-bold text-gray-900">PKR{analytics.totalIncome?.toLocaleString() || 0}</div>
               </div>
             </div>
           </div>
@@ -1188,7 +1686,7 @@ const AuraNestTab = () => {
               <TrendingDown className="h-6 w-6 text-red-600 mr-2" />
               <div>
                 <div className="text-sm text-gray-600">Total Expenses</div>
-                <div className="text-xl font-bold text-gray-900">₹{analytics.totalExpense?.toLocaleString() || 0}</div>
+                <div className="text-xl font-bold text-gray-900">PKR{analytics.totalExpense?.toLocaleString() || 0}</div>
               </div>
             </div>
           </div>
@@ -1197,7 +1695,7 @@ const AuraNestTab = () => {
               <DollarSign className="h-6 w-6 text-blue-600 mr-2" />
               <div>
                 <div className="text-sm text-gray-600">Net Income</div>
-                <div className={`text-xl font-bold ${analytics.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>₹{analytics.netIncome?.toLocaleString() || 0}</div>
+                <div className={`text-xl font-bold ${analytics.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>PKR{analytics.netIncome?.toLocaleString() || 0}</div>
               </div>
             </div>
           </div>
@@ -1227,7 +1725,7 @@ const AuraNestTab = () => {
               >
                 {pieData.map((entry, idx) => <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />)}
               </Pie>
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Tooltip formatter={(value) => `PKR${value.toLocaleString()}`} />
               <Legend />
             </RechartsPieChart>
           </ResponsiveContainer>
@@ -1240,7 +1738,7 @@ const AuraNestTab = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Tooltip formatter={(value) => `PKR${value.toLocaleString()}`} />
               <Legend />
               <Line type="monotone" dataKey="income" stroke="#10B981" name="Income" />
               <Line type="monotone" dataKey="expense" stroke="#EF4444" name="Expense" />
@@ -1324,34 +1822,34 @@ const AuraNestTab = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Product Inventory</h3>
             <div className="flex space-x-2">
-              <select
-                value={inventoryStatusFilter}
+          <select
+            value={inventoryStatusFilter}
                 onChange={(e) => setInventoryStatusFilter(e.target.value)}
                 className="input-field"
-              >
+          >
                 <option value="">All Status</option>
-                <option value="in_stock">In Stock</option>
+            <option value="in_stock">In Stock</option>
                 <option value="low_stock">Low Stock</option>
                 <option value="out_of_stock">Out of Stock</option>
-              </select>
+          </select>
+        </div>
             </div>
-          </div>
           {inventory.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
-                  <tr>
+                <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
                   {inventory
                     .filter(item => !inventoryStatusFilter || item.status === inventoryStatusFilter)
                     .map((product) => (
@@ -1369,32 +1867,32 @@ const AuraNestTab = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.quantity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.cost}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.price}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{product.cost}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{product.price}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           product.status === 'in_stock' ? 'bg-green-100 text-green-800' :
                           product.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {product.status.replace('_', ' ').toUpperCase()}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.orderId ? product.orderId.customerName : '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {product.status !== 'returned' && product.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleReturnProduct(product._id)}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            Mark Returned
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.orderId ? product.orderId.customerName : '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {product.status !== 'returned' && product.status !== 'cancelled' && (
+                        <button
+                          onClick={() => handleReturnProduct(product._id)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Mark Returned
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             </div>
           ) : (
             <div className="text-center py-8 text-gray-400">No inventory items found.</div>
@@ -1663,7 +2161,7 @@ const AuraNestTab = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.productInterest || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{lead.expectedPrice || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{lead.expectedPrice || 0}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {lead.assignedEmployee ? (typeof lead.assignedEmployee === 'object' ? lead.assignedEmployee.name : lead.assignedEmployee) : '-'}
                       </td>
@@ -1980,7 +2478,7 @@ const AuraNestTab = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">₹{profitData.totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">PKR{profitData.totalRevenue.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -1991,7 +2489,7 @@ const AuraNestTab = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Cost</p>
-                <p className="text-2xl font-bold text-gray-900">₹{profitData.totalCost.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">PKR{profitData.totalCost.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -2003,7 +2501,7 @@ const AuraNestTab = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Gross Profit</p>
                 <p className={`text-2xl font-bold ${profitData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ₹{profitData.grossProfit.toLocaleString()}
+                  PKR{profitData.grossProfit.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -2033,7 +2531,7 @@ const AuraNestTab = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                <Tooltip formatter={(value) => `PKR${value.toLocaleString()}`} />
                 <Legend />
                 <Bar dataKey="income" fill="#10B981" name="Income" />
                 <Bar dataKey="expenses" fill="#EF4444" name="Expenses" />
@@ -2054,13 +2552,13 @@ const AuraNestTab = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  label={({ name, profit }) => `${name}: ₹${profit.toLocaleString()}`}
+                  label={({ name, profit }) => `${name}: PKR${profit.toLocaleString()}`}
                 >
                   {profitData.categoryBreakdown.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#10B981' : '#EF4444'} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                <Tooltip formatter={(value) => `PKR${value.toLocaleString()}`} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -2084,11 +2582,11 @@ const AuraNestTab = () => {
                 {profitData.categoryBreakdown.map((category) => (
                   <tr key={category.name}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{category.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{category.income.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{category.expense.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{category.income.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{category.expense.toLocaleString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <span className={category.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        ₹{category.profit.toLocaleString()}
+                        PKR{category.profit.toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">

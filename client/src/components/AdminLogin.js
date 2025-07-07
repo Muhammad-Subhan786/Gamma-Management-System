@@ -341,7 +341,7 @@ const AdminLogin = ({ onLogin }) => {
               </form>
 
               {/* Admin Credentials Info */}
-              <div className="mt-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl p-6 border border-blue-500/30 backdrop-blur-sm">
+              {/* <div className="mt-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl p-6 border border-blue-500/30 backdrop-blur-sm">
                 <h3 className="text-sm font-bold text-blue-300 mb-3 flex items-center">
                   <Settings className="h-4 w-4 mr-2" />
                   Default Admin Credentials:
@@ -359,7 +359,7 @@ const AdminLogin = ({ onLogin }) => {
                 <p className="text-xs text-blue-300 mt-3">
                   ⚠️ Change these credentials in production for security
                 </p>
-              </div>
+              </div> */}
 
               {/* Security Features */}
               <div className="mt-6 grid grid-cols-3 gap-4">

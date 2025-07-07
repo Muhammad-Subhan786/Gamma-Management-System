@@ -18,7 +18,69 @@ import ProfileTab from './employee/ProfileTab';
 import DashboardTab from './employee/DashboardTab';
 import ShiftsTab from './employee/ShiftsTab';
 import TasksBoard from './employee/TasksBoard';
+import OrdersManagement from './OrdersManagement';
+import TransactionsManagement from './TransactionsManagement';
 import AuraNestTab from './AuraNestTab';
+// Add a simple LeadsTab for employees if import fails
+const EmployeeLeadsTab = () => {
+  // Minimal state for demonstration
+  const [leads, setLeads] = React.useState([]);
+  const [showForm, setShowForm] = React.useState(false);
+  const [form, setForm] = React.useState({ name: '', phone: '', product: '', price: '' });
+
+  const loadLeads = async () => {
+    // TODO: Replace with real API call
+    setLeads([{ name: 'Ali', phone: '03001234567', product: 'Ring', price: '5000' }]);
+  };
+  React.useEffect(() => { loadLeads(); }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLeads([...leads, form]);
+    setForm({ name: '', phone: '', product: '', price: '' });
+    setShowForm(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Leads</h2>
+        <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add Lead</button>
+      </div>
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-2 bg-white p-4 rounded-lg shadow">
+          <input className="input-field" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+          <input className="input-field" placeholder="Phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required />
+          <input className="input-field" placeholder="Product" value={form.product} onChange={e => setForm({ ...form, product: e.target.value })} required />
+          <input className="input-field" placeholder="Expected Price" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} required />
+          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">Save</button>
+        </form>
+      )}
+      <div className="card">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {leads.map((lead, idx) => (
+              <tr key={idx} className="hover:bg-blue-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.phone}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.product}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR {lead.price}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
 import USPSLabelsTab from './employee/USPSLabelsTab';
 
 const EmployeePortal = () => {
@@ -89,6 +151,9 @@ const EmployeePortal = () => {
       { id: 'dashboard', label: 'My Dashboard', icon: BarChart3, alwaysVisible: true },
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
+      { id: 'leads', label: 'Leads', icon: Briefcase, alwaysVisible: true },
+      { id: 'orders', label: 'Orders', icon: DollarSign, alwaysVisible: true },
+      { id: 'transactions', label: 'Transactions', icon: CheckCircle, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
       { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
@@ -260,6 +325,12 @@ const EmployeePortal = () => {
           />
         ) : activeTab === 'shifts' ? (
           <ShiftsTab employee={employee} />
+        ) : activeTab === 'leads' ? (
+          <EmployeeLeadsTab employee={employee} />
+        ) : activeTab === 'orders' ? (
+          <OrdersManagement employee={employee} />
+        ) : activeTab === 'transactions' ? (
+          <TransactionsManagement employee={employee} />
         ) : activeTab === 'tasks' ? (
           hasSessionAccess('tasks') ? (
             <TasksBoard employee={employee} />
