@@ -282,78 +282,79 @@ const DashboardTab = ({ employee }) => {
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Monthly Hours Chart */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center">
-            <LineChartIcon className="h-6 w-6 mr-2 text-blue-600" />
-            Monthly Working Hours
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip />
-              <Line type="monotone" dataKey="hours" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }} activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2 }} />
-              <Line type="monotone" dataKey="late" stroke="#ef4444" strokeWidth={3} dot={{ fill: '#ef4444', strokeWidth: 2, r: 6 }} activeDot={{ r: 8, stroke: '#ef4444', strokeWidth: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        {/* Attendance Trend Chart */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center">
-            <BarChart3 className="h-6 w-6 mr-2 text-purple-600" />
-            Attendance Trend
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip />
-              <Bar dataKey="hours" fill="#3B82F6" />
-              <Bar dataKey="late" fill="#F59E0B" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Achievement Badges */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-100">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">🏆 Achievement Badges</h3>
+      {/* Stats Section - More Impactful */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Attendance & Performance Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="bg-yellow-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-              <Star className="h-8 w-8 text-white" />
-            </div>
-            <div className="font-semibold text-gray-800">Top Performer</div>
-            <div className="text-sm text-gray-600">Attendance Leader</div>
+          <div className="bg-white rounded-2xl p-6 text-center border border-gray-200 shadow-sm flex flex-col items-center">
+            <Calendar className="h-8 w-8 mb-2 text-green-600" />
+            <div className="text-4xl font-extrabold text-green-700">{stats.presentDays}</div>
+            <div className="text-base text-gray-700 font-medium">Present Days</div>
+            <div className="text-xs text-gray-500 mt-1">+2 this month</div>
           </div>
-          <div className="text-center">
-            <div className="bg-green-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-              <Target className="h-8 w-8 text-white" />
-            </div>
-            <div className="font-semibold text-gray-800">Goal Crusher</div>
-            <div className="text-sm text-gray-600">Target Achieved</div>
+          <div className="bg-white rounded-2xl p-6 text-center border border-gray-200 shadow-sm flex flex-col items-center">
+            <Clock className="h-8 w-8 mb-2 text-blue-600" />
+            <div className="text-4xl font-extrabold text-blue-700">{stats.totalHours.toFixed(1)}h</div>
+            <div className="text-base text-gray-700 font-medium">Total Hours</div>
+            <div className="text-xs text-gray-500 mt-1">+5h this month</div>
           </div>
-          <div className="text-center">
-            <div className="bg-purple-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-              <Zap className="h-8 w-8 text-white" />
-            </div>
-            <div className="font-semibold text-gray-800">Speed Demon</div>
-            <div className="text-sm text-gray-600">No Late Days</div>
+          <div className="bg-white rounded-2xl p-6 text-center border border-gray-200 shadow-sm flex flex-col items-center">
+            <AlertTriangle className="h-8 w-8 mb-2 text-yellow-600" />
+            <div className="text-4xl font-extrabold text-yellow-700">{stats.lateDays}</div>
+            <div className="text-base text-gray-700 font-medium">Late Days</div>
+            <div className="text-xs text-gray-500 mt-1">-1 this month</div>
           </div>
-          <div className="text-center">
-            <div className="bg-red-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-              <Award className="h-8 w-8 text-white" />
-            </div>
-            <div className="font-semibold text-gray-800">Quality Master</div>
-            <div className="text-sm text-gray-600">Perfect Attendance</div>
+          <div className="bg-white rounded-2xl p-6 text-center border border-gray-200 shadow-sm flex flex-col items-center">
+            <BarChart3 className="h-8 w-8 mb-2 text-purple-600" />
+            <div className="text-4xl font-extrabold text-purple-700">{stats.averageHours.toFixed(1)}h</div>
+            <div className="text-base text-gray-700 font-medium">Avg Hours/Day</div>
+            <div className="text-xs text-gray-500 mt-1">+0.2h</div>
           </div>
         </div>
       </div>
+      <hr className="my-8 border-gray-200" />
+
+      {/* Charts Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Trends & Analytics</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Monthly Hours Chart */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center mb-4">
+              <LineChartIcon className="h-6 w-6 mr-2 text-blue-600" />
+              Monthly Working Hours
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip />
+                <Line type="monotone" dataKey="hours" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }} activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="late" stroke="#ef4444" strokeWidth={3} dot={{ fill: '#ef4444', strokeWidth: 2, r: 6 }} activeDot={{ r: 8, stroke: '#ef4444', strokeWidth: 2 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Attendance Trend Chart */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center mb-4">
+              <BarChart3 className="h-6 w-6 mr-2 text-purple-600" />
+              Attendance Trend
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip />
+                <Bar dataKey="hours" fill="#3B82F6" />
+                <Bar dataKey="late" fill="#F59E0B" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+      <hr className="my-8 border-gray-200" />
 
       {/* Monthly Calendar View */}
       <div className="bg-white rounded-lg shadow-md p-6">
