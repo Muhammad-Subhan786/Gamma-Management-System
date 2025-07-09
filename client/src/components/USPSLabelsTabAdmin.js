@@ -327,11 +327,11 @@ const USPSLabelsTabAdmin = () => {
     if (!window.confirm('Delete all selected labels?')) return;
     setLoading(true);
     try {
-      await Promise.all(selectedLabels.map(id => uspsLabelsAPI.deleteLabel(id)));
+      await Promise.all(selectedLabels.map(id => uspsLabelsAPI.deleteAdminLabel(id)));
       setSelectedLabels([]);
       loadLabels();
-    } catch (err) {
-      alert('Error deleting labels');
+    } catch (error) {
+      alert(error.response?.data?.error || 'Error deleting labels');
     }
     setLoading(false);
   };
@@ -787,6 +787,34 @@ const USPSLabelsTabAdmin = () => {
                       }`}>
                         {(label.status || 'unknown').charAt(0).toUpperCase() + (label.status || 'unknown').slice(1)}
                       </span>
+                    </td>
+                    <td className="p-4 text-center flex gap-2 justify-center">
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Edit Label"
+                        onClick={() => {
+                          // This functionality is handled by the main table row click
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete Label"
+                        onClick={async () => {
+                          if (window.confirm('Are you sure you want to delete this label?')) {
+                            try {
+                              await uspsLabelsAPI.deleteAdminLabel(label._id);
+                              alert('Label deleted successfully!');
+                              loadLabels();
+                            } catch (error) {
+                              alert(error.response?.data?.error || 'Error deleting label');
+                            }
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
