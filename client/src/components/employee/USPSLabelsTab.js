@@ -490,71 +490,8 @@ const USPSLabelsTab = ({ employee }) => {
           <GoalMeter 
             goal={currentGoal} 
             title="Monthly Goal" 
-            showEdit={true} 
-            onEdit={openGoalEdit}
+            showEdit={false} 
           />
-          {/* Goal Edit Form */}
-          {showGoalForm && (
-            <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Monthly Goal</h3>
-              <form onSubmit={handleGoalSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Target Labels</label>
-                  <input
-                    type="number"
-                    name="targetLabels"
-                    value={goalForm.targetLabels}
-                    onChange={handleGoalInput}
-                    className="input-field w-full"
-                    min="1"
-                    placeholder="Enter target number of labels"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Target Revenue ($)</label>
-                  <input
-                    type="number"
-                    name="targetRevenue"
-                    value={goalForm.targetRevenue}
-                    onChange={handleGoalInput}
-                    className="input-field w-full"
-                    min="0.01"
-                    step="0.01"
-                    placeholder="Enter target revenue amount"
-                    required
-                  />
-                </div>
-                <div className="flex space-x-2 pt-4">
-                  <button 
-                    type="submit" 
-                    className="btn-primary flex-1 flex items-center justify-center" 
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Updating...
-                      </>
-                    ) : (
-                      <>
-                        <Target className="h-4 w-4 mr-2" /> 
-                        Update Goal
-                      </>
-                    )}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn-secondary flex-1" 
-                    onClick={closeGoalForm}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
         </div>
       )}
 
