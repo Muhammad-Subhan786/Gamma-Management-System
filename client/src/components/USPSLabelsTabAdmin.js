@@ -960,8 +960,25 @@ const USPSLabelsTabAdmin = () => {
                           {(goal.status || 'unknown').charAt(0).toUpperCase() + (goal.status || 'unknown').slice(1)}
                         </span>
                       </td>
-                      {/* Delete Button */}
-                      <td className="p-4 text-center">
+                      {/* Actions: Edit and Delete Buttons */}
+                      <td className="p-4 text-center flex gap-2 justify-center">
+                        <button
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Edit Goal"
+                          onClick={() => {
+                            setEditGoalId(goal._id);
+                            setGoalForm({
+                              employeeId: goal.employeeId?._id || '',
+                              month: goal.month || '',
+                              targetLabels: goal.targetLabels || '',
+                              targetRevenue: goal.targetRevenue || '',
+                              deadline: goal.deadline ? goal.deadline.slice(0, 10) : ''
+                            });
+                            setShowGoalForm(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
                         <button
                           className="text-red-600 hover:text-red-900"
                           title="Delete Goal"
