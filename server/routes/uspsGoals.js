@@ -214,6 +214,21 @@ router.get('/admin/employee/:employeeId/history', async (req, res) => {
   }
 });
 
+// Admin: Delete a goal by goalId
+router.delete('/admin/employee/:goalId', async (req, res) => {
+  try {
+    const { goalId } = req.params;
+    const deleted = await USPSGoal.findByIdAndDelete(goalId);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Goal not found' });
+    }
+    res.json({ message: 'Goal deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting goal:', error);
+    res.status(500).json({ error: 'Failed to delete goal' });
+  }
+});
+
 // Helper function to update goal progress
 async function updateGoalProgress(goalId) {
   try {
