@@ -200,35 +200,34 @@ const DashboardTab = ({ employee }) => {
   return (
     <div className="space-y-8">
       {/* Hero Section with Live Stats */}
-      <div className="bg-gradient-to-br from-green-900 via-blue-900 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+      <div className="bg-white rounded-3xl p-8 text-gray-900 border border-gray-200">
         <div className="relative z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 animate-gradient-text">Welcome, {employee.name}!</h1>
-            <p className="text-xl text-green-200">Your Attendance & Performance Dashboard</p>
-            <p className="text-sm text-green-300 mt-2">Real-time insights for your work at Ayranest</p>
+            <h1 className="text-4xl font-bold mb-2">Welcome, {employee.name}!</h1>
+            <p className="text-xl text-gray-600">Your Attendance & Performance Dashboard</p>
+            <p className="text-sm text-gray-500 mt-2">Real-time insights for your work at Ayranest</p>
           </div>
           {/* Live Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="text-3xl font-bold text-green-400 animate-pulse">{stats.presentDays}</div>
-              <div className="text-sm text-green-200">Present Days</div>
-              <div className="text-xs text-green-300 mt-1">↗ +2 this month</div>
+            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+              <div className="text-3xl font-bold text-green-700">{stats.presentDays}</div>
+              <div className="text-sm text-gray-700">Present Days</div>
+              <div className="text-xs text-gray-500 mt-1">+2 this month</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="text-3xl font-bold text-blue-400">{stats.totalHours.toFixed(1)}h</div>
-              <div className="text-sm text-blue-200">Total Hours</div>
-              <div className="text-xs text-blue-300 mt-1">↗ +5h this month</div>
+            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+              <div className="text-3xl font-bold text-blue-700">{stats.totalHours.toFixed(1)}h</div>
+              <div className="text-sm text-gray-700">Total Hours</div>
+              <div className="text-xs text-gray-500 mt-1">+5h this month</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="text-3xl font-bold text-yellow-400">{stats.lateDays}</div>
-              <div className="text-sm text-yellow-200">Late Days</div>
-              <div className="text-xs text-yellow-300 mt-1">↘ -1 this month</div>
+            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+              <div className="text-3xl font-bold text-yellow-700">{stats.lateDays}</div>
+              <div className="text-sm text-gray-700">Late Days</div>
+              <div className="text-xs text-gray-500 mt-1">-1 this month</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="text-3xl font-bold text-purple-400">{stats.averageHours.toFixed(1)}h</div>
-              <div className="text-sm text-purple-200">Avg Hours/Day</div>
-              <div className="text-xs text-purple-300 mt-1">↗ +0.2h</div>
+            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+              <div className="text-3xl font-bold text-purple-700">{stats.averageHours.toFixed(1)}h</div>
+              <div className="text-sm text-gray-700">Avg Hours/Day</div>
+              <div className="text-xs text-gray-500 mt-1">+0.2h</div>
             </div>
           </div>
         </div>
@@ -236,18 +235,18 @@ const DashboardTab = ({ employee }) => {
 
       {/* Weather & Time Widget */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl p-6 text-white">
+        <div className="bg-white rounded-3xl p-6 text-gray-900 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold">Multan</div>
-              <div className="text-sm opacity-90">Punjab, Pakistan</div>
+              <div className="text-sm text-gray-500">Punjab, Pakistan</div>
               <div className="text-4xl font-bold mt-2">39°C</div>
-              <div className="text-sm opacity-90">Sunny</div>
+              <div className="text-sm text-gray-500">Sunny</div>
             </div>
             <div className="text-6xl">☀️</div>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-purple-400 to-pink-600 rounded-3xl p-6 text-white">
+        <div className="bg-white rounded-3xl p-6 text-gray-900 border border-gray-200">
           <div className="text-center">
             <div className="text-2xl font-bold mb-2">Current Time</div>
             <div className="text-4xl font-mono font-bold mb-2">
@@ -259,7 +258,7 @@ const DashboardTab = ({ employee }) => {
                 timeZone: 'Asia/Karachi'
               })}
             </div>
-            <div className="text-sm opacity-90">
+            <div className="text-sm text-gray-500">
               {new Date().toLocaleDateString('en-US', { 
                 weekday: 'long',
                 year: 'numeric',
@@ -270,15 +269,15 @@ const DashboardTab = ({ employee }) => {
             </div>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-green-400 to-teal-600 rounded-3xl p-6 text-white">
+        <div className="bg-white rounded-3xl p-6 text-gray-900 border border-gray-200">
           <div className="text-center">
             <div className="text-2xl font-bold mb-2">System Status</div>
             <div className="flex items-center justify-center space-x-2 mb-2">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               <span className="text-lg font-semibold">All Systems Operational</span>
             </div>
-            <div className="text-sm opacity-90">Uptime: 99.9%</div>
-            <div className="text-sm opacity-90">Last Updated: 2 min ago</div>
+            <div className="text-sm text-gray-500">Uptime: 99.9%</div>
+            <div className="text-sm text-gray-500">Last Updated: 2 min ago</div>
           </div>
         </div>
       </div>
@@ -286,7 +285,7 @@ const DashboardTab = ({ employee }) => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Monthly Hours Chart */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 transform hover:scale-105 transition-all duration-300">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
           <h3 className="text-xl font-bold text-gray-800 flex items-center">
             <LineChartIcon className="h-6 w-6 mr-2 text-blue-600" />
             Monthly Working Hours
@@ -303,7 +302,7 @@ const DashboardTab = ({ employee }) => {
           </ResponsiveContainer>
         </div>
         {/* Attendance Trend Chart */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 transform hover:scale-105 transition-all duration-300">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
           <h3 className="text-xl font-bold text-gray-800 flex items-center">
             <BarChart3 className="h-6 w-6 mr-2 text-purple-600" />
             Attendance Trend
@@ -322,32 +321,32 @@ const DashboardTab = ({ employee }) => {
       </div>
 
       {/* Achievement Badges */}
-      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-8 border border-yellow-100">
+      <div className="bg-white rounded-3xl p-8 border border-gray-100">
         <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">🏆 Achievement Badges</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
-            <div className="bg-gradient-to-br from-yellow-400 to-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="text-center">
+            <div className="bg-yellow-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
               <Star className="h-8 w-8 text-white" />
             </div>
             <div className="font-semibold text-gray-800">Top Performer</div>
             <div className="text-sm text-gray-600">Attendance Leader</div>
           </div>
-          <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
-            <div className="bg-gradient-to-br from-green-400 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="text-center">
+            <div className="bg-green-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
               <Target className="h-8 w-8 text-white" />
             </div>
             <div className="font-semibold text-gray-800">Goal Crusher</div>
             <div className="text-sm text-gray-600">Target Achieved</div>
           </div>
-          <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
-            <div className="bg-gradient-to-br from-purple-400 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="text-center">
+            <div className="bg-purple-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
               <Zap className="h-8 w-8 text-white" />
             </div>
             <div className="font-semibold text-gray-800">Speed Demon</div>
             <div className="text-sm text-gray-600">No Late Days</div>
           </div>
-          <div className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer">
-            <div className="bg-gradient-to-br from-red-400 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="text-center">
+            <div className="bg-red-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
               <Award className="h-8 w-8 text-white" />
             </div>
             <div className="font-semibold text-gray-800">Quality Master</div>
