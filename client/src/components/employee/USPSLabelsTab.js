@@ -493,27 +493,6 @@ const USPSLabelsTab = ({ employee }) => {
             showEdit={true} 
             onEdit={openGoalEdit}
           />
-          {/* Delete Goal Button */}
-          {currentGoal && currentGoal._id && (
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center"
-              style={{ marginBottom: '1rem' }}
-              onClick={async () => {
-                if (window.confirm('Are you sure you want to delete this goal?')) {
-                  try {
-                    await uspsGoalsAPI.deleteGoal(currentGoal._id);
-                    alert('Goal deleted successfully!');
-                    setCurrentGoal(null);
-                    loadCurrentGoal();
-                  } catch (err) {
-                    alert(err.response?.data?.error || 'Error deleting goal. Please try again.');
-                  }
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-2" /> Delete Goal
-            </button>
-          )}
           {/* Goal Edit Form */}
           {showGoalForm && (
             <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">

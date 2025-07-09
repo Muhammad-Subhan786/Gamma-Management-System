@@ -904,6 +904,7 @@ const USPSLabelsTabAdmin = () => {
                     <th className="p-4 text-center text-sm font-medium text-gray-500">Current Revenue</th>
                     <th className="p-4 text-center text-sm font-medium text-gray-500">Progress</th>
                     <th className="p-4 text-center text-sm font-medium text-gray-500">Status</th>
+                    <th className="p-4 text-center text-sm font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -959,10 +960,30 @@ const USPSLabelsTabAdmin = () => {
                           {(goal.status || 'unknown').charAt(0).toUpperCase() + (goal.status || 'unknown').slice(1)}
                         </span>
                       </td>
+                      {/* Delete Button */}
+                      <td className="p-4 text-center">
+                        <button
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete Goal"
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete this goal?')) {
+                              try {
+                                await uspsGoalsAPI.deleteGoal(goal._id);
+                                alert('Goal deleted successfully!');
+                                loadGoals();
+                              } catch (err) {
+                                alert(err.response?.data?.error || 'Error deleting goal. Please try again.');
+                              }
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {(goals || []).length === 0 && (
-                    <tr><td colSpan={8} className="text-center p-8 text-gray-400">No goals found.</td></tr>
+                    <tr><td colSpan={9} className="text-center p-8 text-gray-400">No goals found.</td></tr>
                   )}
                 </tbody>
               </table>
