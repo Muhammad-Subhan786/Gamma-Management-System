@@ -229,6 +229,30 @@ router.delete('/admin/employee/:goalId', async (req, res) => {
   }
 });
 
+// Admin: Update a goal by goalId
+router.put('/admin/employee/:goalId', async (req, res) => {
+  try {
+    const { goalId } = req.params;
+    const { employeeId, month, targetLabels, targetRevenue, deadline } = req.body;
+    let goal = await USPSGoal.findById(goalId);
+    if (!goal) {
+      return res.status(404).json({ error: 'Goal not found' });
+    }
+    if (employeeId !== undefined) goal.employeeId = employeeId;
+    if (month !== undefined) goal.month = month;
+    if (targetLabels !== undefined) goal.targetLabels = targetLabels;
+    if (targetRevenue !== undefined) goal.targetRevenue = targetRevenue;
+    if (deadline !== undefined) goal.deadline = deadline;
+    await goal.save();
+    await updateGoalProgress(goal._id);
+    goal = await USPSGoal.findById(goal._id).populate('employeeId', 'name email position');
+    res.json(goal);
+  } catch (error) {
+    console.error('Error updating goal:', error);
+    res.status(500).json({ error: 'Failed to update goal' });
+  }
+});
+
 // Helper function to update goal progress
 async function updateGoalProgress(goalId) {
   try {
