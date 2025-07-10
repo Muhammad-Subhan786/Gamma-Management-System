@@ -23,7 +23,6 @@ const OrdersManagement = ({ isAdmin }) => {
     customerAddress: '',
     products: [{ name: '', description: '', quantity: 1, price: 0 }],
     advanceAmount: 0,
-    assignedEmployee: '',
     priority: 'medium',
     notes: '',
     specialInstructions: ''
@@ -75,7 +74,6 @@ const OrdersManagement = ({ isAdmin }) => {
         customerAddress: '',
         products: [{ name: '', description: '', quantity: 1, price: 0 }],
         advanceAmount: 0,
-        assignedEmployee: '',
         priority: 'medium',
         notes: '',
         specialInstructions: ''
@@ -189,14 +187,80 @@ const OrdersManagement = ({ isAdmin }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Orders Management</h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Create New Order
-        </button>
+      </div>
+
+      {/* Professional Create Order Form */}
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Order</h3>
+        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+            <input type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field w-full" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Phone</label>
+            <input type="text" name="customerPhone" value={formData.customerPhone} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} className="input-field w-full" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+            <input type="email" name="customerEmail" value={formData.customerEmail} onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} className="input-field w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Address</label>
+            <input type="text" name="customerAddress" value={formData.customerAddress} onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} className="input-field w-full" required />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Products</label>
+            {formData.products.map((product, idx) => (
+              <div key={idx} className="flex flex-col md:flex-row gap-2 mb-2">
+                <input type="text" placeholder="Name" value={product.name} onChange={e => updateProduct(idx, 'name', e.target.value)} className="input-field flex-1" required />
+                <input type="text" placeholder="Description" value={product.description} onChange={e => updateProduct(idx, 'description', e.target.value)} className="input-field flex-1" />
+                <input type="number" placeholder="Quantity" value={product.quantity} min={1} onChange={e => updateProduct(idx, 'quantity', e.target.value)} className="input-field w-24" required />
+                <input type="number" placeholder="Price" value={product.price} min={0} onChange={e => updateProduct(idx, 'price', e.target.value)} className="input-field w-32" required />
+                {formData.products.length > 1 && (
+                  <button type="button" onClick={() => removeProduct(idx)} className="text-red-600 hover:text-red-800">Remove</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={addProduct} className="text-blue-600 hover:text-blue-800 mt-2">+ Add Product</button>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Advance Amount</label>
+            <input type="number" name="advanceAmount" value={formData.advanceAmount} onChange={e => setFormData({ ...formData, advanceAmount: e.target.value })} className="input-field w-full" min={0} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <select name="priority" value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="input-field w-full">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea name="notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="input-field w-full" rows={2} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+            <textarea name="specialInstructions" value={formData.specialInstructions} onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} className="input-field w-full" rows={2} />
+          </div>
+          <div className="md:col-span-2 flex gap-4 mt-2">
+            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">Save Order</button>
+            <button type="button" onClick={() => setFormData({
+              customerName: '',
+              customerPhone: '',
+              customerEmail: '',
+              customerAddress: '',
+              products: [{ name: '', description: '', quantity: 1, price: 0 }],
+              advanceAmount: 0,
+              priority: 'medium',
+              notes: '',
+              specialInstructions: ''
+            })} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300">Cancel</button>
+          </div>
+        </form>
       </div>
 
       {/* Filters */}
