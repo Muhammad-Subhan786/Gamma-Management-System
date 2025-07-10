@@ -152,7 +152,6 @@ const EmployeePortal = () => {
       { id: 'dashboard', label: 'My Dashboard', icon: BarChart3, alwaysVisible: true },
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
-      { id: 'transactions', label: 'Transactions', icon: CheckCircle, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
       { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
@@ -324,8 +323,6 @@ const EmployeePortal = () => {
           />
         ) : activeTab === 'shifts' ? (
           <ShiftsTab employee={employee} />
-        ) : activeTab === 'transactions' ? (
-          <TransactionsManagement employeeView={true} />
         ) : activeTab === 'tasks' ? (
           hasSessionAccess('tasks') ? (
             <TasksBoard employee={employee} />
