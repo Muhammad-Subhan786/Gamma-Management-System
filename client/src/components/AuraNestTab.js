@@ -2075,16 +2075,7 @@ const AuraNestTab = ({ employee }) => {
         >
           Dashboard
         </button>
-        <button
-          onClick={() => setActiveTab('leads')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'leads'
-              ? 'border-green-500 text-green-600'
-              : 'border-transparent text-gray-500 hover:text-green-600'
-          }`}
-        >
-          Lead Management
-        </button>
+        
         <button
           onClick={() => setActiveTab('inventory')}
           className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
@@ -2145,7 +2136,6 @@ const AuraNestTab = ({ employee }) => {
           handleProductFormCancel={handleProductFormCancel}
         />
       )}
-      {activeTab === 'leads' && <LeadsTab />}
       {activeTab === 'profit' && <ProfitAnalyticsTab />}
 
       {/* Modal Placeholder */}
