@@ -162,21 +162,91 @@ const TransactionsManagement = ({ isAdmin }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Transactions Management</h2>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Create Transaction
-          </button>
-          {isAdmin && pendingApprovals.length > 0 && (
-            <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg">
-              {pendingApprovals.length} Pending Approvals
-            </div>
-          )}
-        </div>
+      </div>
+
+      {/* Professional Create Transaction Form */}
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Transaction</h3>
+        <form onSubmit={handleCreateTransaction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+            <select name="transactionType" value={formData.transactionType} onChange={e => setFormData({ ...formData, transactionType: e.target.value })} className="input-field w-full" required tabIndex={1}>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+              <option value="advance">Advance</option>
+              <option value="refund">Refund</option>
+              <option value="commission">Commission</option>
+              <option value="bonus">Bonus</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <input type="number" name="amount" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="input-field w-full" min={0} required tabIndex={2} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('currencyField')?.focus(); } }} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+            <input id="currencyField" type="text" name="currency" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })} className="input-field w-full" required tabIndex={3} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('sourceField')?.focus(); } }} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <select id="sourceField" name="source" value={formData.source} onChange={e => setFormData({ ...formData, source: e.target.value })} className="input-field w-full" required tabIndex={4} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('customerNameField')?.focus(); } }}>
+              <option value="order_payment">Order Payment</option>
+              <option value="advance_payment">Advance Payment</option>
+              <option value="full_payment">Full Payment</option>
+              <option value="refund">Refund</option>
+              <option value="commission">Commission</option>
+              <option value="bonus">Bonus</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+            <input id="customerNameField" type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field w-full" required tabIndex={5} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('customerPhoneField')?.focus(); } }} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Phone</label>
+            <input id="customerPhoneField" type="text" name="customerPhone" value={formData.customerPhone} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} className="input-field w-full" required tabIndex={6} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('paymentMethodField')?.focus(); } }} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <select id="paymentMethodField" name="paymentMethod" value={formData.paymentMethod} onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })} className="input-field w-full" required tabIndex={7} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('descriptionField')?.focus(); } }}>
+              <option value="cash">Cash</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="easypaisa">EasyPaisa</option>
+              <option value="jazz_cash">Jazz Cash</option>
+              <option value="card">Card</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea id="descriptionField" name="description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="input-field w-full" rows={2} tabIndex={8} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('notesField')?.focus(); } }} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea id="notesField" name="notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="input-field w-full" rows={2} tabIndex={9} />
+          </div>
+          <div className="md:col-span-2 flex gap-4 mt-2">
+            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">Save Transaction</button>
+            <button type="button" onClick={() => setFormData({
+              transactionType: 'income',
+              amount: 0,
+              currency: 'PKR',
+              source: 'order_payment',
+              orderId: '',
+              leadId: '',
+              customerName: '',
+              customerPhone: '',
+              paymentMethod: 'cash',
+              description: '',
+              notes: '',
+              receiptNumber: '',
+              receiptImage: ''
+            })} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300">Cancel</button>
+          </div>
+        </form>
       </div>
 
       {/* Filters */}
