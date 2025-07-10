@@ -1587,15 +1587,42 @@ const AuraNestTab = ({ employee }) => {
   const InventoryTab = () => {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
-          <button
-            onClick={() => openModal('product')}
-            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </button>
+          {/* Always-visible Add Product Form */}
+          <form onSubmit={handleAddProductSubmit} className="card p-6 mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Product Name</label>
+                <input type="text" name="name" value={productForm.name} onChange={handleProductFormChange} className="input-field" required onKeyDown={handleProductFormKeyDown('description')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <input type="text" name="description" value={productForm.description} onChange={handleProductFormChange} className="input-field" onKeyDown={handleProductFormKeyDown('category')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <input type="text" name="category" value={productForm.category} onChange={handleProductFormChange} className="input-field" onKeyDown={handleProductFormKeyDown('quantity')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <input type="number" name="quantity" value={productForm.quantity} onChange={handleProductFormChange} className="input-field" min="0" required onKeyDown={handleProductFormKeyDown('cost')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Cost</label>
+                <input type="number" name="cost" value={productForm.cost} onChange={handleProductFormChange} className="input-field" min="0" required onKeyDown={handleProductFormKeyDown('price')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Price</label>
+                <input type="number" name="price" value={productForm.price} onChange={handleProductFormChange} className="input-field" min="0" required onKeyDown={handleProductFormKeyDown('submit')} />
+              </div>
+            </div>
+            {productFormError && <div className="text-red-600 text-sm">{productFormError}</div>}
+            <div className="flex justify-end space-x-3 mt-4">
+              <button type="button" onClick={handleProductFormCancel} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200">Cancel</button>
+              <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200">Save</button>
+            </div>
+          </form>
         </div>
 
         {/* Inventory Summary Cards */}
