@@ -111,12 +111,6 @@ const orderSchema = new mongoose.Schema({
     ref: 'Employee'
   },
   
-  // Lead Integration
-  leadId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lead'
-  },
-  
   // Order Management
   priority: {
     type: String,
@@ -176,7 +170,6 @@ orderSchema.index({ status: 1, deliveryStatus: 1 });
 orderSchema.index({ assignedEmployee: 1, orderDate: -1 });
 orderSchema.index({ customerPhone: 1 });
 orderSchema.index({ trackingNumber: 1 });
-orderSchema.index({ leadId: 1 });
 
 // Pre-save middleware to calculate totals
 orderSchema.pre('save', function(next) {

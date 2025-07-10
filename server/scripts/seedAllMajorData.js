@@ -42,7 +42,7 @@ async function main() {
       role,
       employeeId: faker.string.alphanumeric(8).toLowerCase(),
       password: hashedPassword,
-      position: faker.helpers.arrayElement(['Employee', 'Supervisor', 'Lead', 'Intern']),
+      position: faker.helpers.arrayElement(['Employee', 'Supervisor', 'Intern']),
       isActive: true,
     });
   }

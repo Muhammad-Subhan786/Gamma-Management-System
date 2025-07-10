@@ -136,16 +136,6 @@ export const adminSettingsAPI = {
     }).then(res => res.json())
 };
 
-// Leads API calls
-export const leadsAPI = {
-  getAll: (params) => api.get('/leads', { params }),
-  getById: (id) => api.get(`/leads/${id}`),
-  create: (data) => api.post('/leads', data),
-  update: (id, data) => api.put(`/leads/${id}`, data),
-  delete: (id) => api.delete(`/leads/${id}`),
-  getAnalytics: () => api.get('/leads/analytics/summary')
-};
-
 // Orders API calls
 export const ordersAPI = {
   getAll: (params) => api.get('/orders', { params }),
