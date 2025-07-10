@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ordersAPI, leadsAPI } from '../services/api';
+import { ordersAPI } from '../services/api';
 
 const OrdersManagement = ({ isAdmin }) => {
   const [orders, setOrders] = useState([]);
@@ -45,7 +45,6 @@ const OrdersManagement = ({ isAdmin }) => {
       setLoading(true);
       const [ordersRes, leadsRes] = await Promise.all([
         ordersAPI.getAll(filters),
-        leadsAPI.getAll({ status: 'ready_to_order' })
       ]);
       
       setOrders(ordersRes.data.orders || []);
