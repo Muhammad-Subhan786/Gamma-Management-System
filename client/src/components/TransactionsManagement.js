@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { transactionsAPI, ordersAPI } from '../services/api';
 
-const TransactionsManagement = () => {
+const TransactionsManagement = ({ isAdmin }) => {
   const [transactions, setTransactions] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -171,7 +171,7 @@ const TransactionsManagement = () => {
           >
             Create Transaction
           </button>
-          {pendingApprovals.length > 0 && (
+          {isAdmin && pendingApprovals.length > 0 && (
             <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg">
               {pendingApprovals.length} Pending Approvals
             </div>

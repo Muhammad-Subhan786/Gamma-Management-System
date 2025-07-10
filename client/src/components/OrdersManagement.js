@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ordersAPI, leadsAPI } from '../services/api';
 
-const OrdersManagement = () => {
+const OrdersManagement = ({ isAdmin }) => {
   const [orders, setOrders] = useState([]);
   const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -331,21 +331,25 @@ const OrdersManagement = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setShowDeliveryForm(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900 text-sm"
-                      >
-                        Update Delivery
-                      </button>
-                      <button
-                        onClick={() => {/* View details */}}
-                        className="text-green-600 hover:text-green-900 text-sm"
-                      >
-                        View
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setShowDeliveryForm(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900 text-sm"
+                          >
+                            Update Delivery
+                          </button>
+                          <button
+                            onClick={() => {/* View details */}}
+                            className="text-green-600 hover:text-green-900 text-sm"
+                          >
+                            View
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

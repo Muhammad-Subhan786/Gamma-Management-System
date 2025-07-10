@@ -335,7 +335,7 @@ const EmployeePortal = () => {
           )
         ) : activeTab === 'aura_nest' ? (
           hasSessionAccess('aura_nest') ? (
-            <AuraNestTab />
+            <AuraNestTab employee={employee} />
           ) : (
             <div className="text-center py-12">
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />

@@ -189,7 +189,7 @@ const OrdersTab = ({
   );
 };
 
-const AuraNestTab = () => {
+const AuraNestTab = ({ employee }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -277,6 +277,9 @@ const AuraNestTab = () => {
     status: 'new',
     notes: ''
   });
+
+  // Determine if user is admin
+  const isAdmin = employee && employee.role && employee.role.toLowerCase().includes('admin');
 
   useEffect(() => {
     loadData();
@@ -2445,7 +2448,7 @@ const AuraNestTab = () => {
           className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
             activeTab === 'dashboard'
               ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-gray-500 hover:text-blue-700'
           }`}
         >
           Dashboard
@@ -2470,16 +2473,18 @@ const AuraNestTab = () => {
         >
           Inventory
         </button>
-        <button
-          onClick={() => setActiveTab('profit')}
-          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === 'profit'
-              ? 'border-red-500 text-red-600'
-              : 'border-transparent text-gray-500 hover:text-red-600'
-          }`}
-        >
-          Profit Analytics
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setActiveTab('profit')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'profit'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-red-600'
+            }`}
+          >
+            Profit Analytics
+          </button>
+        )}
         <button
           onClick={() => setActiveTab('orders')}
           className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
@@ -2504,10 +2509,10 @@ const AuraNestTab = () => {
 
       {/* Tab Content */}
       {activeTab === 'dashboard' && <DashboardTab />}
-      {activeTab === 'transactions' && <TransactionsManagement />}
+      {activeTab === 'transactions' && <TransactionsManagement isAdmin={isAdmin} />}
       {activeTab === 'vendors' && <VendorsTab />}
       {activeTab === 'reports' && <ReportsTab />}
-      {activeTab === 'orders' && <OrdersManagement />}
+      {activeTab === 'orders' && <OrdersManagement isAdmin={isAdmin} />}
       {activeTab === 'inventory' && <InventoryTab />}
       {activeTab === 'leads' && <LeadsTab />}
       {activeTab === 'profit' && <ProfitAnalyticsTab />}
