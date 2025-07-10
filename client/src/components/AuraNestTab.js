@@ -1578,7 +1578,8 @@ const AuraNestTab = ({ employee }) => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
           {/* Always-visible Add Product Form */}
-          <form onSubmit={handleAddProductSubmit} className="card p-6 mb-6 space-y-4">
+          <form onSubmit={handleAddProductSubmit} className="p-8 mb-6 rounded-2xl shadow-xl bg-gradient-to-r from-green-100 via-blue-100 to-purple-100 border border-blue-100 animate-gradient-x space-y-4">
+            <h2 className="text-2xl font-bold mb-4 text-blue-700 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">Add New Product</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Product Name</label>

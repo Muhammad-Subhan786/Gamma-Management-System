@@ -194,7 +194,8 @@ const OrdersManagement = ({ isAdmin }) => {
       {/* Professional Create Order Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Order</h3>
-        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl shadow-xl bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 border border-purple-100 animate-gradient-x">
+          <h2 className="col-span-2 text-2xl font-bold mb-4 text-purple-700 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">Create New Order</h2>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
             <input type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field w-full" required />
