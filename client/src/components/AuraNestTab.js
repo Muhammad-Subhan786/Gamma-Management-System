@@ -1201,20 +1201,6 @@ const AuraNestTab = ({ employee }) => {
                 <Users className="h-5 w-5 text-purple-600" />
             </div>
               <div className="flex-1">
-                <div className="font-semibold text-gray-800">New Lead Qualified</div>
-                <div className="text-sm text-gray-600">Lead from TikTok with score 9/10 - ready for order</div>
-                <div className="text-xs text-gray-500 mt-1">8 minutes ago</div>
-            </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-purple-600">Score: 9/10</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-xl border-l-4 border-orange-500">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-orange-600" />
-              </div>
-              <div className="flex-1">
                 <div className="font-semibold text-gray-800">Payment Received</div>
                 <div className="text-sm text-gray-600">Full payment received for Silver Bracelet order</div>
                 <div className="text-xs text-gray-500 mt-1">12 minutes ago</div>
