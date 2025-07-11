@@ -1585,6 +1585,61 @@ const AuraNestTab = ({ employee }) => {
   };
 
   const InventoryTab = () => {
+    // Product Add Form State and Handlers (must be inside InventoryTab)
+    const [productForm, setProductForm] = useState({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
+    const [productFormError, setProductFormError] = useState('');
+    const productFormRefs = {
+      name: useRef(),
+      description: useRef(),
+      category: useRef(),
+      quantity: useRef(),
+      cost: useRef(),
+      price: useRef()
+    };
+    const handleProductFormChange = (e) => {
+      const { name, value } = e.target;
+      setProductForm(prev => ({ ...prev, [name]: value }));
+    };
+    const handleProductFormKeyDown = (nextField) => (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (nextField === 'submit') {
+          // Submit the form
+          e.target.form && e.target.form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        } else if (productFormRefs[nextField] && productFormRefs[nextField].current) {
+          productFormRefs[nextField].current.focus();
+        }
+      }
+    };
+    const handleProductFormCancel = () => {
+      setProductForm({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
+      setProductFormError('');
+      if (productFormRefs.name.current) productFormRefs.name.current.focus();
+    };
+    // Placeholder for actual API call
+    const addProductAPI = async (product) => {
+      // Replace with your actual API logic
+      await fetch('/api/inventory/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product)
+      });
+    };
+    const handleAddProductSubmit = async (e) => {
+      e.preventDefault();
+      setProductFormError('');
+      if (!productForm.name || !productForm.category || !productForm.quantity || !productForm.cost || !productForm.price) {
+        setProductFormError('Please fill all required fields.');
+        return;
+      }
+      try {
+        await addProductAPI(productForm);
+        setProductForm({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
+        loadInventory();
+      } catch (err) {
+        setProductFormError('Failed to add product.');
+      }
+    };
     return (
       <div className="space-y-6">
         <div className="space-y-4">
