@@ -12,6 +12,10 @@ const orderSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  secondaryPhone: {
+    type: String,
+    trim: true
+  },
   customerEmail: {
     type: String,
     trim: true,
@@ -48,6 +52,14 @@ const orderSchema = new mongoose.Schema({
       type: Number,
       required: true,
       min: 0
+    },
+    image: {
+      type: String,
+      trim: true
+    },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
     }
   }],
   

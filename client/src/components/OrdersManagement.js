@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, productsAPI } from '../services/api';
 
 const OrdersManagement = ({ isAdmin }) => {
   const [orders, setOrders] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
@@ -18,14 +19,26 @@ const OrdersManagement = ({ isAdmin }) => {
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
+    secondaryPhone: '',
     customerEmail: '',
     customerAddress: '',
-    products: [{ name: '', description: '', quantity: 1, price: 0 }],
+    products: [{ 
+      name: '', 
+      description: '', 
+      quantity: 1, 
+      price: 0, 
+      image: '',
+      productId: null 
+    }],
     advanceAmount: 0,
     priority: 'medium',
     notes: '',
     specialInstructions: ''
   });
+
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [showProductDropdown, setShowProductDropdown] = useState({});
 
   const [deliveryData, setDeliveryData] = useState({
     deliveryStatus: '',
@@ -37,6 +50,7 @@ const OrdersManagement = ({ isAdmin }) => {
 
   useEffect(() => {
     loadData();
+    loadProducts();
   }, [filters]);
 
   const loadData = async () => {
@@ -51,6 +65,15 @@ const OrdersManagement = ({ isAdmin }) => {
     }
   };
 
+  const loadProducts = async () => {
+    try {
+      const productsRes = await productsAPI.getAll();
+      setProducts(productsRes.data || []);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    }
+  };
+
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     try {
@@ -61,24 +84,34 @@ const OrdersManagement = ({ isAdmin }) => {
       
       await ordersAPI.create(orderData);
       setShowCreateForm(false);
-      setFormData({
-        customerName: '',
-        customerPhone: '',
-        customerEmail: '',
-        customerAddress: '',
-        products: [{ name: '', description: '', quantity: 1, price: 0 }],
-        advanceAmount: 0,
-        priority: 'medium',
-        notes: '',
-        specialInstructions: ''
-      });
+      resetForm();
       loadData();
     } catch (error) {
       console.error('Error creating order:', error);
     }
   };
 
-
+  const resetForm = () => {
+    setFormData({
+      customerName: '',
+      customerPhone: '',
+      secondaryPhone: '',
+      customerEmail: '',
+      customerAddress: '',
+      products: [{ 
+        name: '', 
+        description: '', 
+        quantity: 1, 
+        price: 0, 
+        image: '',
+        productId: null 
+      }],
+      advanceAmount: 0,
+      priority: 'medium',
+      notes: '',
+      specialInstructions: ''
+    });
+  };
 
   const handleUpdateDeliveryStatus = async (e) => {
     e.preventDefault();
@@ -102,7 +135,14 @@ const OrdersManagement = ({ isAdmin }) => {
   const addProduct = () => {
     setFormData(prev => ({
       ...prev,
-      products: [...prev.products, { name: '', description: '', quantity: 1, price: 0 }]
+      products: [...prev.products, { 
+        name: '', 
+        description: '', 
+        quantity: 1, 
+        price: 0, 
+        image: '',
+        productId: null 
+      }]
     }));
   };
 
@@ -120,6 +160,33 @@ const OrdersManagement = ({ isAdmin }) => {
         i === index ? { ...product, [field]: value } : product
       )
     }));
+  };
+
+  const handleProductSearch = (index, searchTerm) => {
+    setProductSearchTerm(searchTerm);
+    updateProduct(index, 'name', searchTerm);
+    
+    if (searchTerm.length > 2) {
+      const filtered = products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+      setShowProductDropdown(prev => ({ ...prev, [index]: true }));
+    } else {
+      setFilteredProducts([]);
+      setShowProductDropdown(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  const selectProduct = (index, product) => {
+    updateProduct(index, 'name', product.name);
+    updateProduct(index, 'description', product.description || '');
+    updateProduct(index, 'price', product.price || 0);
+    updateProduct(index, 'image', product.image || '');
+    updateProduct(index, 'productId', product._id);
+    setShowProductDropdown(prev => ({ ...prev, [index]: false }));
+    setProductSearchTerm('');
   };
 
   const getStatusColor = (status) => {
@@ -163,74 +230,275 @@ const OrdersManagement = ({ isAdmin }) => {
         <h2 className="text-2xl font-bold text-gray-900">Orders Management</h2>
       </div>
 
-      {/* Professional Create Order Form */}
+      {/* Enhanced Professional Create Order Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Order</h3>
-        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
-            <input type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field w-full" required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Phone</label>
-            <input type="text" name="customerPhone" value={formData.customerPhone} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} className="input-field w-full" required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
-            <input type="email" name="customerEmail" value={formData.customerEmail} onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} className="input-field w-full" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Address</label>
-            <input type="text" name="customerAddress" value={formData.customerAddress} onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} className="input-field w-full" required />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Products</label>
-            {formData.products.map((product, idx) => (
-              <div key={idx} className="flex flex-col md:flex-row gap-2 mb-2">
-                <input type="text" placeholder="Name" value={product.name} onChange={e => updateProduct(idx, 'name', e.target.value)} className="input-field flex-1" required />
-                <input type="text" placeholder="Description" value={product.description} onChange={e => updateProduct(idx, 'description', e.target.value)} className="input-field flex-1" />
-                <input type="number" placeholder="Quantity" value={product.quantity} min={1} onChange={e => updateProduct(idx, 'quantity', e.target.value)} className="input-field w-24" required />
-                <input type="number" placeholder="Price" value={product.price} min={0} onChange={e => updateProduct(idx, 'price', e.target.value)} className="input-field w-32" required />
-                {formData.products.length > 1 && (
-                  <button type="button" onClick={() => removeProduct(idx)} className="text-red-600 hover:text-red-800">Remove</button>
-                )}
+        <form onSubmit={handleCreateOrder} className="space-y-6">
+          {/* Mandatory Fields Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h4 className="text-md font-medium text-gray-900 mb-4">Required Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Name <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="customerName" 
+                  value={formData.customerName} 
+                  onChange={e => setFormData({ ...formData, customerName: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  required 
+                />
               </div>
-            ))}
-            <button type="button" onClick={addProduct} className="text-blue-600 hover:text-blue-800 mt-2">+ Add Product</button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Phone <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="customerPhone" 
+                  value={formData.customerPhone} 
+                  onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  required 
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Address <span className="text-red-500">*</span>
+                </label>
+                <textarea 
+                  name="customerAddress" 
+                  value={formData.customerAddress} 
+                  onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  rows={3}
+                  required 
+                />
+              </div>
+            </div>
           </div>
+
+          {/* Optional Fields Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h4 className="text-md font-medium text-gray-900 mb-4">Additional Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone</label>
+                <input 
+                  type="text" 
+                  name="secondaryPhone" 
+                  value={formData.secondaryPhone} 
+                  onChange={e => setFormData({ ...formData, secondaryPhone: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+                <input 
+                  type="email" 
+                  name="customerEmail" 
+                  value={formData.customerEmail} 
+                  onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Advance Amount (if applicable)</label>
+                <input 
+                  type="number" 
+                  name="advanceAmount" 
+                  value={formData.advanceAmount} 
+                  onChange={e => setFormData({ ...formData, advanceAmount: parseFloat(e.target.value) || 0 })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  min={0}
+                  step={0.01}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select 
+                  name="priority" 
+                  value={formData.priority} 
+                  onChange={e => setFormData({ ...formData, priority: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea 
+                  name="notes" 
+                  value={formData.notes} 
+                  onChange={e => setFormData({ ...formData, notes: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  rows={2} 
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+                <textarea 
+                  name="specialInstructions" 
+                  value={formData.specialInstructions} 
+                  onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} 
+                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                  rows={2} 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Product Selection Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Advance Amount</label>
-            <input type="number" name="advanceAmount" value={formData.advanceAmount} onChange={e => setFormData({ ...formData, advanceAmount: e.target.value })} className="input-field w-full" min={0} />
+            <h4 className="text-md font-medium text-gray-900 mb-4">Product Selection</h4>
+            <div className="space-y-4">
+              {formData.products.map((product, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                    {/* Product Image */}
+                    <div className="md:col-span-2">
+                      {product.image ? (
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-200 rounded-lg border flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">No Image</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="md:col-span-10">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {/* Product Name with Auto-complete */}
+                        <div className="md:col-span-2 relative">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Product Name <span className="text-red-500">*</span>
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="Search products..." 
+                            value={product.name} 
+                            onChange={e => handleProductSearch(idx, e.target.value)} 
+                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                            required 
+                          />
+                          {/* Product Dropdown */}
+                          {showProductDropdown[idx] && filteredProducts.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                              {filteredProducts.map((prod) => (
+                                <div
+                                  key={prod._id}
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
+                                  onClick={() => selectProduct(idx, prod)}
+                                >
+                                  <div className="font-medium">{prod.name}</div>
+                                  <div className="text-sm text-gray-600">PKR {prod.price}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Quantity */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Quantity <span className="text-red-500">*</span>
+                          </label>
+                          <input 
+                            type="number" 
+                            value={product.quantity} 
+                            min={1} 
+                            onChange={e => updateProduct(idx, 'quantity', parseInt(e.target.value) || 1)} 
+                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                            required 
+                          />
+                        </div>
+
+                        {/* Editable Price */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Price (PKR) <span className="text-red-500">*</span>
+                          </label>
+                          <input 
+                            type="number" 
+                            value={product.price} 
+                            min={0} 
+                            step={0.01}
+                            onChange={e => updateProduct(idx, 'price', parseFloat(e.target.value) || 0)} 
+                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                            required 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Product Description */}
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea 
+                          value={product.description} 
+                          onChange={e => updateProduct(idx, 'description', e.target.value)} 
+                          className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                          rows={2}
+                        />
+                      </div>
+
+                      {/* Remove Button */}
+                      {formData.products.length > 1 && (
+                        <div className="mt-2">
+                          <button 
+                            type="button" 
+                            onClick={() => removeProduct(idx)} 
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Remove Product
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Add Product Button */}
+              <button 
+                type="button" 
+                onClick={addProduct} 
+                className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+              >
+                <div className="flex items-center justify-center">
+                  <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Another Product
+                </div>
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-            <select name="priority" value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="input-field w-full">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-            <textarea name="notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="input-field w-full" rows={2} />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
-            <textarea name="specialInstructions" value={formData.specialInstructions} onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} className="input-field w-full" rows={2} />
-          </div>
-          <div className="md:col-span-2 flex gap-4 mt-2">
-            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">Save Order</button>
-            <button type="button" onClick={() => setFormData({
-              customerName: '',
-              customerPhone: '',
-              customerEmail: '',
-              customerAddress: '',
-              products: [{ name: '', description: '', quantity: 1, price: 0 }],
-              advanceAmount: 0,
-              priority: 'medium',
-              notes: '',
-              specialInstructions: ''
-            })} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300">Cancel</button>
+
+          {/* Form Actions */}
+          <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <button 
+              type="submit" 
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Create Order
+            </button>
+            <button 
+              type="button" 
+              onClick={resetForm} 
+              className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            >
+              Reset Form
+            </button>
           </div>
         </form>
       </div>
@@ -333,6 +601,11 @@ const OrdersManagement = ({ isAdmin }) => {
                     <div className="text-sm text-gray-500">
                       {order.customerPhone}
                     </div>
+                    {order.secondaryPhone && (
+                      <div className="text-sm text-gray-500">
+                        Alt: {order.secondaryPhone}
+                      </div>
+                    )}
                     {order.leadId && (
                       <div className="text-xs text-blue-600">
                         From Lead (Score: {order.leadId.qualificationScore})
@@ -348,45 +621,27 @@ const OrdersManagement = ({ isAdmin }) => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDeliveryStatusColor(order.deliveryStatus)}`}>
                       {order.deliveryStatus.replace('_', ' ')}
                     </span>
-                    {order.trackingNumber && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        #{order.trackingNumber}
-                      </div>
-                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       PKR {order.totalAmount?.toLocaleString()}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      Advance: PKR {order.advanceAmount?.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Remaining: PKR {order.remainingAmount?.toLocaleString()}
-                    </div>
+                    {order.advanceAmount > 0 && (
+                      <div className="text-sm text-gray-500">
+                        Advance: PKR {order.advanceAmount?.toLocaleString()}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex space-x-2">
-                      {isAdmin && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setShowDeliveryForm(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900 text-sm"
-                          >
-                            Update Delivery
-                          </button>
-                          <button
-                            onClick={() => {/* View details */}}
-                            className="text-green-600 hover:text-green-900 text-sm"
-                          >
-                            View
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowDeliveryForm(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                    >
+                      Update Status
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -395,239 +650,72 @@ const OrdersManagement = ({ isAdmin }) => {
         </div>
       </div>
 
-
-
-      {/* Create Order Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Order</h3>
-            <form onSubmit={handleCreateOrder} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Customer Name"
-                  value={formData.customerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                  className="border rounded-lg px-3 py-2"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Customer Phone"
-                  value={formData.customerPhone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
-                  className="border rounded-lg px-3 py-2"
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Customer Email"
-                  value={formData.customerEmail}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                  className="border rounded-lg px-3 py-2"
-                />
-                <input
-                  type="number"
-                  placeholder="Advance Amount"
-                  value={formData.advanceAmount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, advanceAmount: parseFloat(e.target.value) || 0 }))}
-                  className="border rounded-lg px-3 py-2"
-                />
-              </div>
-              
-              <textarea
-                placeholder="Customer Address"
-                value={formData.customerAddress}
-                onChange={(e) => setFormData(prev => ({ ...prev, customerAddress: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-                rows="3"
-                required
-              />
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium">Products</h4>
-                  <button
-                    type="button"
-                    onClick={addProduct}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    + Add Product
-                  </button>
-                </div>
-                {formData.products.map((product, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Product Name"
-                      value={product.name}
-                      onChange={(e) => updateProduct(index, 'name', e.target.value)}
-                      className="border rounded-lg px-3 py-2"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Description"
-                      value={product.description}
-                      onChange={(e) => updateProduct(index, 'description', e.target.value)}
-                      className="border rounded-lg px-3 py-2"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Quantity"
-                      value={product.quantity}
-                      onChange={(e) => updateProduct(index, 'quantity', parseInt(e.target.value) || 1)}
-                      className="border rounded-lg px-3 py-2"
-                      min="1"
-                    />
-                    <div className="flex space-x-2">
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={product.price}
-                        onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
-                        className="border rounded-lg px-3 py-2 flex-1"
-                        min="0"
-                        step="0.01"
-                        required
-                      />
-                      {formData.products.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeProduct(index)}
-                          className="text-red-600 hover:text-red-800 px-2"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
-                  className="border rounded-lg px-3 py-2"
-                >
-                  <option value="low">Low Priority</option>
-                  <option value="medium">Medium Priority</option>
-                  <option value="high">High Priority</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Assigned Employee ID"
-                  value={formData.assignedEmployee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, assignedEmployee: e.target.value }))}
-                  className="border rounded-lg px-3 py-2"
-                />
-              </div>
-
-              <textarea
-                placeholder="Notes"
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-                rows="2"
-              />
-
-              <textarea
-                placeholder="Special Instructions"
-                value={formData.specialInstructions}
-                onChange={(e) => setFormData(prev => ({ ...prev, specialInstructions: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-                rows="2"
-              />
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Create Order
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Update Delivery Status Modal */}
+      {/* Delivery Status Update Modal */}
       {showDeliveryForm && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Update Delivery Status</h3>
             <form onSubmit={handleUpdateDeliveryStatus} className="space-y-4">
-              <select
-                value={deliveryData.deliveryStatus}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, deliveryStatus: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-                required
-              >
-                <option value="">Select Status</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="out_for_delivery">Out for Delivery</option>
-                <option value="delivered">Delivered</option>
-                <option value="failed">Failed</option>
-                <option value="returned">Returned</option>
-              </select>
-
-              <input
-                type="text"
-                placeholder="Tracking Number"
-                value={deliveryData.trackingNumber}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, trackingNumber: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-              />
-
-              <input
-                type="text"
-                placeholder="Courier Name"
-                value={deliveryData.courierName}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, courierName: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-              />
-
-              <input
-                type="date"
-                placeholder="Estimated Delivery"
-                value={deliveryData.estimatedDelivery}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, estimatedDelivery: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-              />
-
-              <textarea
-                placeholder="Delivery Notes"
-                value={deliveryData.notes}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, notes: e.target.value }))}
-                className="border rounded-lg px-3 py-2 w-full"
-                rows="3"
-              />
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowDeliveryForm(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Status</label>
+                <select
+                  value={deliveryData.deliveryStatus}
+                  onChange={(e) => setDeliveryData(prev => ({ ...prev, deliveryStatus: e.target.value }))}
+                  className="input-field w-full"
+                  required
                 >
-                  Cancel
-                </button>
+                  <option value="">Select Status</option>
+                  <option value="not_started">Not Started</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="out_for_delivery">Out for Delivery</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="failed">Failed</option>
+                  <option value="returned">Returned</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
+                <input
+                  type="text"
+                  value={deliveryData.trackingNumber}
+                  onChange={(e) => setDeliveryData(prev => ({ ...prev, trackingNumber: e.target.value }))}
+                  className="input-field w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Courier Name</label>
+                <input
+                  type="text"
+                  value={deliveryData.courierName}
+                  onChange={(e) => setDeliveryData(prev => ({ ...prev, courierName: e.target.value }))}
+                  className="input-field w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  value={deliveryData.notes}
+                  onChange={(e) => setDeliveryData(prev => ({ ...prev, notes: e.target.value }))}
+                  className="input-field w-full"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
                 >
-                  Update Status
+                  Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeliveryForm(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
+                >
+                  Cancel
                 </button>
               </div>
             </form>

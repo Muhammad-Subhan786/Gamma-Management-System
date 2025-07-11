@@ -85,6 +85,7 @@ router.post('/', async (req, res) => {
     const {
       customerName,
       customerPhone,
+      secondaryPhone,
       customerEmail,
       customerAddress,
       products,
@@ -114,6 +115,7 @@ router.post('/', async (req, res) => {
     const order = new Order({
       customerName,
       customerPhone,
+      secondaryPhone,
       customerEmail,
       customerAddress,
       products: products.map(product => ({
@@ -121,7 +123,9 @@ router.post('/', async (req, res) => {
         description: product.description || '',
         quantity: product.quantity,
         price: product.price,
-        totalPrice: product.price * product.quantity
+        totalPrice: product.price * product.quantity,
+        image: product.image || '',
+        productId: product.productId || null
       })),
       subtotal,
       advanceAmount: advanceAmount || 0,
