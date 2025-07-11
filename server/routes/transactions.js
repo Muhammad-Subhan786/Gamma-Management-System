@@ -118,10 +118,27 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Amount must be greater than 0' });
     }
 
+    // Map transaction type to valid enum value
+    let validTransactionType = transactionType;
+    if (transactionType === 'income' || transactionType === 'expense') {
+      validTransactionType = transactionType;
+    } else if (transactionType === 'advance') {
+      validTransactionType = 'advance';
+    } else if (transactionType === 'refund') {
+      validTransactionType = 'refund';
+    } else if (transactionType === 'commission') {
+      validTransactionType = 'commission';
+    } else if (transactionType === 'bonus') {
+      validTransactionType = 'bonus';
+    } else {
+      console.log('❌ Invalid transaction type:', transactionType);
+      return res.status(400).json({ error: 'Invalid transaction type' });
+    }
+
     console.log('✅ Transaction validation passed, creating transaction...');
 
     const transaction = new Transaction({
-      transactionType,
+      transactionType: validTransactionType,
       amount,
       currency: currency || 'PKR',
       source,

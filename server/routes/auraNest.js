@@ -152,6 +152,8 @@ router.put('/vendors/:id', async (req, res) => {
 // Get all transactions with filters
 router.get('/transactions', async (req, res) => {
   try {
+    console.log('🔍 Fetching transactions with filters:', req.query);
+    
     const { 
       startDate, 
       endDate, 
@@ -167,30 +169,31 @@ router.get('/transactions', async (req, res) => {
 
     // Date filter
     if (startDate && endDate) {
-      query.date = {
+      query.transactionDate = {
         $gte: moment(startDate).startOf('day').toDate(),
         $lte: moment(endDate).endOf('day').toDate()
       };
     }
 
     // Other filters
-    if (type) query.type = type;
+    if (type) query.transactionType = type;
     if (category) query.category = category;
     if (vendor) query.vendor = vendor;
     if (paymentMethod) query.paymentMethod = paymentMethod;
 
+    console.log('🔍 Final query:', JSON.stringify(query, null, 2));
+
     const skip = (page - 1) * limit;
 
     const transactions = await Transaction.find(query)
-      .populate('category', 'name type')
-      .populate('vendor', 'name type')
-      .populate('paymentMethod', 'name')
-      .populate('createdBy', 'name')
-      .sort({ date: -1 })
+      .populate('recordedBy', 'name')
+      .sort({ transactionDate: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
     const total = await Transaction.countDocuments(query);
+
+    console.log(`✅ Found ${transactions.length} transactions out of ${total} total`);
 
     res.json({
       transactions,
@@ -202,6 +205,7 @@ router.get('/transactions', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('❌ Error fetching transactions:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -209,20 +213,22 @@ router.get('/transactions', async (req, res) => {
 // Create new transaction
 router.post('/transactions', async (req, res) => {
   try {
+    console.log('💰 Creating transaction in aura-nest:', JSON.stringify(req.body, null, 2));
+    
     const transaction = new Transaction({
       ...req.body,
-      createdBy: req.body.createdBy || '507f1f77bcf86cd799439011' // Default admin ID
+      recordedBy: req.body.recordedBy || '507f1f77bcf86cd799439011' // Default admin ID
     });
     await transaction.save();
 
+    console.log('✅ Transaction created successfully:', transaction._id);
+
     const populatedTransaction = await Transaction.findById(transaction._id)
-      .populate('category', 'name type')
-      .populate('vendor', 'name type')
-      .populate('paymentMethod', 'name')
-      .populate('createdBy', 'name');
+      .populate('recordedBy', 'name');
 
     res.status(201).json(populatedTransaction);
   } catch (error) {
+    console.error('❌ Error creating transaction in aura-nest:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -305,23 +311,29 @@ router.get('/analytics/summary', async (req, res) => {
 // Get category-wise breakdown
 router.get('/analytics/categories', async (req, res) => {
   try {
+    console.log('📊 Fetching category analytics with filters:', req.query);
+    
     const { startDate, endDate } = req.query;
     const query = { isActive: true };
 
     if (startDate && endDate) {
-      query.date = {
+      query.transactionDate = {
         $gte: moment(startDate).startOf('day').toDate(),
         $lte: moment(endDate).endOf('day').toDate()
       };
     }
 
-    const transactions = await Transaction.find(query)
-      .populate('category', 'name type');
+    console.log('📊 Final query:', JSON.stringify(query, null, 2));
+
+    const transactions = await Transaction.find(query);
+
+    console.log(`📊 Found ${transactions.length} transactions for analytics`);
 
     const categoryBreakdown = {};
 
     transactions.forEach(transaction => {
-      const categoryName = transaction.category.name;
+      // Use source as category since we don't have category field
+      const categoryName = transaction.source || 'other';
       if (!categoryBreakdown[categoryName]) {
         categoryBreakdown[categoryName] = {
           income: 0,
@@ -330,7 +342,7 @@ router.get('/analytics/categories', async (req, res) => {
         };
       }
 
-      if (transaction.type === 'income') {
+      if (transaction.transactionType === 'income') {
         categoryBreakdown[categoryName].income += transaction.amount;
       } else {
         categoryBreakdown[categoryName].expense += transaction.amount;
@@ -338,8 +350,11 @@ router.get('/analytics/categories', async (req, res) => {
       categoryBreakdown[categoryName].count++;
     });
 
+    console.log('📊 Category breakdown:', categoryBreakdown);
+
     res.json(categoryBreakdown);
   } catch (error) {
+    console.error('❌ Error fetching category analytics:', error);
     res.status(500).json({ error: error.message });
   }
 });

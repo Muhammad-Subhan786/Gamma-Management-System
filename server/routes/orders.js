@@ -117,7 +117,10 @@ router.post('/', async (req, res) => {
       customerEmail,
       customerAddress,
       products: products.map(product => ({
-        ...product,
+        name: product.name,
+        description: product.description || '',
+        quantity: product.quantity,
+        price: product.price,
         totalPrice: product.price * product.quantity
       })),
       subtotal,
