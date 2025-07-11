@@ -87,6 +87,17 @@ const OrdersManagement = ({ isAdmin }) => {
       resetForm();
       loadData();
     } catch (error) {
+      let errorMsg = 'Error creating order.';
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMsg += ' ' + error.response.data.error;
+        if (error.response.data.details) {
+          errorMsg += ' Details: ' + JSON.stringify(error.response.data.details);
+        }
+        if (error.response.data.invalidProducts) {
+          errorMsg += ' Invalid products: ' + JSON.stringify(error.response.data.invalidProducts);
+        }
+      }
+      alert(errorMsg);
       console.error('Error creating order:', error);
     }
   };

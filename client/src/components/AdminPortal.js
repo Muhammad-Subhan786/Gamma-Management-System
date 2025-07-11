@@ -42,7 +42,6 @@ import moment from 'moment';
 import ShiftsTab from './ShiftsTab';
 import SessionManagementTab from './SessionManagementTab';
 import AdminTasksBoard from './AdminTasksBoard';
-import AuraNestTab from './AuraNestTab';
 import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 
 const AdminPortal = () => {
@@ -677,13 +676,6 @@ const AdminPortal = () => {
               Tasks
             </button>
             <button
-              onClick={() => setActiveTab('aura-nest')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'aura-nest' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <DollarSign className="h-5 w-5 mr-2" />
-              Aura Nest
-            </button>
-            <button
               onClick={() => setActiveTab('usps-labels')}
               className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'usps-labels' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
             >
@@ -706,7 +698,6 @@ const AdminPortal = () => {
             {activeTab === 'shifts' && <ShiftsTab />}
             {activeTab === 'sessions' && <SessionManagementTab />}
             {activeTab === 'tasks' && <AdminTasksBoard />}
-            {activeTab === 'aura-nest' && <AuraNestTab />}
             {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
           </>
         )}

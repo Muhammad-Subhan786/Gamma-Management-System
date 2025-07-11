@@ -20,7 +20,6 @@ import ShiftsTab from './employee/ShiftsTab';
 import TasksBoard from './employee/TasksBoard';
 import OrdersManagement from './OrdersManagement';
 import TransactionsManagement from './TransactionsManagement';
-import AuraNestTab from './AuraNestTab';
 import USPSLabelsTab from './employee/USPSLabelsTab';
 
 // Add a simple LeadsTab for employees if import fails
@@ -153,7 +152,6 @@ const EmployeePortal = () => {
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
-      { id: 'aura_nest', label: 'Aura Nest', icon: DollarSign, sessionId: 'aura_nest' },
       { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
     ];
 
@@ -331,16 +329,6 @@ const EmployeePortal = () => {
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
               <p className="text-gray-600">You don't have permission to access Tasks.</p>
-            </div>
-          )
-        ) : activeTab === 'aura_nest' ? (
-          hasSessionAccess('aura_nest') ? (
-            <AuraNestTab employee={employee} />
-          ) : (
-            <div className="text-center py-12">
-              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-              <p className="text-gray-600">You don't have permission to access Aura Nest.</p>
             </div>
           )
         ) : activeTab === 'usps_labels' ? (
