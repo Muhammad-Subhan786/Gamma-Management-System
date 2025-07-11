@@ -154,7 +154,6 @@ export const ordersAPI = {
   update: (id, data) => api.put(`/orders/${id}`, data),
   delete: (id) => api.delete(`/orders/${id}`),
   updateDeliveryStatus: (id, data) => api.patch(`/orders/${id}/delivery-status`, data),
-  createFromLead: (leadId, data) => api.post(`/orders/from-lead/${leadId}`, data),
   getAnalytics: (params) => api.get('/orders/analytics/summary', { params })
 };
 

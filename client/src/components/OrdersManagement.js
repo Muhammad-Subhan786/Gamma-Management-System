@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ordersAPI, leadsAPI } from '../services/api';
+import { ordersAPI } from '../services/api';
 
 const OrdersManagement = ({ isAdmin }) => {
   const [orders, setOrders] = useState([]);
-  const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -43,13 +42,8 @@ const OrdersManagement = ({ isAdmin }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [ordersRes, leadsRes] = await Promise.all([
-        ordersAPI.getAll(filters),
-        leadsAPI.getAll({ status: 'ready_to_order' })
-      ]);
-      
+      const ordersRes = await ordersAPI.getAll(filters);
       setOrders(ordersRes.data.orders || []);
-      setLeads(leadsRes.data.leads || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -84,29 +78,7 @@ const OrdersManagement = ({ isAdmin }) => {
     }
   };
 
-  const handleCreateFromLead = async (leadId) => {
-    try {
-      const lead = leads.find(l => l._id === leadId);
-      if (!lead) return;
 
-      const orderData = {
-        customerName: lead.customerName,
-        customerPhone: lead.customerPhone,
-        customerEmail: lead.customerEmail,
-        customerAddress: lead.customerAddress,
-        products: [{ name: lead.productInterest || 'Product', description: '', quantity: 1, price: lead.expectedPrice || 0 }],
-        advanceAmount: lead.advanceAmount || 0,
-        assignedEmployee: lead.assignedEmployee?._id,
-        notes: lead.notes,
-        leadId: lead._id
-      };
-
-      await ordersAPI.createFromLead(leadId, orderData);
-      loadData();
-    } catch (error) {
-      console.error('Error creating order from lead:', error);
-    }
-  };
 
   const handleUpdateDeliveryStatus = async (e) => {
     e.preventDefault();
@@ -423,75 +395,7 @@ const OrdersManagement = ({ isAdmin }) => {
         </div>
       </div>
 
-      {/* Ready to Order Leads */}
-      {leads.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Leads Ready for Order Creation</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product Interest
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Score
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {leads.map((lead) => (
-                  <tr key={lead._id}>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {lead.customerName}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {lead.customerPhone}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {lead.productInterest}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        PKR {lead.expectedPrice?.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${lead.qualificationScore * 10}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-900">{lead.qualificationScore}/10</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleCreateFromLead(lead._id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                      >
-                        Create Order
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+
 
       {/* Create Order Modal */}
       {showCreateForm && (
