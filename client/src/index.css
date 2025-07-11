@@ -388,3 +388,72 @@
 .animate-pulse-ring {
   animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
 } 
+
+/* --- Aura Dashboard Custom Styles --- */
+.aura-bg {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #d1fae5 100%);
+  position: relative;
+  overflow: hidden;
+}
+.aura-glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px);
+  border-radius: 2rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+}
+.aura-card {
+  background: rgba(255,255,255,0.6);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px 0 rgba(127,90,240,0.08);
+  transition: box-shadow 0.3s;
+}
+.aura-card:hover {
+  box-shadow: 0 8px 32px 0 rgba(44,182,125,0.15);
+}
+.aura-gradient-text {
+  background: linear-gradient(90deg, #7f5af0, #2cb67d, #f5f3ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: auraGradientMove 4s ease-in-out infinite alternate;
+}
+.aura-avatar-glow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.aura-ring {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #7f5af0, #2cb67d, #f5f3ff, #7f5af0);
+  filter: blur(12px);
+  opacity: 0.7;
+  animation: auraRingSpin 6s linear infinite;
+  z-index: 0;
+}
+.aura-glow {
+  filter: drop-shadow(0 0 8px #7f5af0aa);
+}
+.aura-animated-number {
+  transition: color 0.3s, transform 0.3s;
+}
+.aura-animated-number:hover {
+  color: #2cb67d;
+  transform: scale(1.1);
+}
+.text-aura-affirmation {
+  color: #7f5af0;
+}
+@keyframes auraGradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@keyframes auraRingSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 
