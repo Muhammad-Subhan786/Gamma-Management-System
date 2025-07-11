@@ -243,6 +243,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
+app.get('/api/health', (req, res) => res.send('OK'));
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
