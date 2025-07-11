@@ -32,6 +32,10 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
   },
+  leadId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lead'
+  },
   
   // Customer Information
   customerName: {
@@ -173,6 +177,7 @@ const transactionSchema = new mongoose.Schema({
 transactionSchema.index({ transactionType: 1, status: 1 });
 transactionSchema.index({ recordedBy: 1, transactionDate: -1 });
 transactionSchema.index({ orderId: 1 });
+transactionSchema.index({ leadId: 1 });
 transactionSchema.index({ customerPhone: 1 });
 transactionSchema.index({ receiptNumber: 1 });
 

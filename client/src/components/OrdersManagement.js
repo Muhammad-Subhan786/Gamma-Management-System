@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, leadsAPI } from '../services/api';
 
 const OrdersManagement = ({ isAdmin }) => {
   const [orders, setOrders] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
@@ -41,11 +43,13 @@ const OrdersManagement = ({ isAdmin }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [ordersRes] = await Promise.all([
+      const [ordersRes, leadsRes] = await Promise.all([
         ordersAPI.getAll(filters),
+        leadsAPI.getAll({ status: 'ready_to_order' })
       ]);
       
       setOrders(ordersRes.data.orders || []);
+      setLeads(leadsRes.data.leads || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -77,6 +81,30 @@ const OrdersManagement = ({ isAdmin }) => {
       loadData();
     } catch (error) {
       console.error('Error creating order:', error);
+    }
+  };
+
+  const handleCreateFromLead = async (leadId) => {
+    try {
+      const lead = leads.find(l => l._id === leadId);
+      if (!lead) return;
+
+      const orderData = {
+        customerName: lead.customerName,
+        customerPhone: lead.customerPhone,
+        customerEmail: lead.customerEmail,
+        customerAddress: lead.customerAddress,
+        products: [{ name: lead.productInterest || 'Product', description: '', quantity: 1, price: lead.expectedPrice || 0 }],
+        advanceAmount: lead.advanceAmount || 0,
+        assignedEmployee: lead.assignedEmployee?._id,
+        notes: lead.notes,
+        leadId: lead._id
+      };
+
+      await ordersAPI.createFromLead(leadId, orderData);
+      loadData();
+    } catch (error) {
+      console.error('Error creating order from lead:', error);
     }
   };
 
@@ -166,8 +194,7 @@ const OrdersManagement = ({ isAdmin }) => {
       {/* Professional Create Order Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Order</h3>
-        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl shadow-xl bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 border border-purple-100 animate-gradient-x">
-          <h2 className="col-span-2 text-2xl font-bold mb-4 text-purple-700 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">Create New Order</h2>
+        <form onSubmit={handleCreateOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
             <input type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field w-full" required />
@@ -334,6 +361,11 @@ const OrdersManagement = ({ isAdmin }) => {
                     <div className="text-sm text-gray-500">
                       {order.customerPhone}
                     </div>
+                    {order.leadId && (
+                      <div className="text-xs text-blue-600">
+                        From Lead (Score: {order.leadId.qualificationScore})
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -390,6 +422,76 @@ const OrdersManagement = ({ isAdmin }) => {
           </table>
         </div>
       </div>
+
+      {/* Ready to Order Leads */}
+      {leads.length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Leads Ready for Order Creation</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product Interest
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Score
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {leads.map((lead) => (
+                  <tr key={lead._id}>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {lead.customerName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {lead.customerPhone}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {lead.productInterest}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        PKR {lead.expectedPrice?.toLocaleString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${lead.qualificationScore * 10}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-900">{lead.qualificationScore}/10</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleCreateFromLead(lead._id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                      >
+                        Create Order
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Create Order Modal */}
       {showCreateForm && (

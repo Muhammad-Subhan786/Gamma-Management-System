@@ -136,6 +136,16 @@ export const adminSettingsAPI = {
     }).then(res => res.json())
 };
 
+// Leads API calls
+export const leadsAPI = {
+  getAll: (params) => api.get('/leads', { params }),
+  getById: (id) => api.get(`/leads/${id}`),
+  create: (data) => api.post('/leads', data),
+  update: (id, data) => api.put(`/leads/${id}`, data),
+  delete: (id) => api.delete(`/leads/${id}`),
+  getAnalytics: () => api.get('/leads/analytics/summary')
+};
+
 // Orders API calls
 export const ordersAPI = {
   getAll: (params) => api.get('/orders', { params }),
@@ -144,6 +154,7 @@ export const ordersAPI = {
   update: (id, data) => api.put(`/orders/${id}`, data),
   delete: (id) => api.delete(`/orders/${id}`),
   updateDeliveryStatus: (id, data) => api.patch(`/orders/${id}/delivery-status`, data),
+  createFromLead: (leadId, data) => api.post(`/orders/from-lead/${leadId}`, data),
   getAnalytics: (params) => api.get('/orders/analytics/summary', { params })
 };
 

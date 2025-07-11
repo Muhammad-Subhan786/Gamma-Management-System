@@ -169,8 +169,7 @@ const TransactionsManagement = ({ isAdmin }) => {
       {/* Professional Create Transaction Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Transaction</h3>
-        <form onSubmit={handleCreateTransaction} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-2xl shadow-xl bg-gradient-to-r from-indigo-100 via-blue-100 to-green-100 border border-blue-100 animate-gradient-x">
-          <h2 className="col-span-2 text-2xl font-bold mb-4 text-blue-700 bg-gradient-to-r from-blue-400 via-green-400 to-indigo-400 bg-clip-text text-transparent animate-gradient-x">Create New Transaction</h2>
+        <form onSubmit={handleCreateTransaction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
             <select name="transactionType" value={formData.transactionType} onChange={e => setFormData({ ...formData, transactionType: e.target.value })} className="input-field w-full" required tabIndex={1}>

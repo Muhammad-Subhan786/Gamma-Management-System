@@ -29,7 +29,7 @@ import {
   LineChart as LineChartIcon
 } from 'lucide-react';
 import moment from 'moment';
-import { employeeAPI, ordersAPI, transactionsAPI } from '../services/api';
+import { employeeAPI, leadsAPI, ordersAPI, transactionsAPI } from '../services/api';
 import { 
   XAxis, 
   YAxis, 
@@ -265,60 +265,21 @@ const AuraNestTab = ({ employee }) => {
   const [addressLoading, setAddressLoading] = useState(false);
 
   // Add new state for jewelry business
+  const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [leadForm, setLeadForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    productName: '',
+    expectedPrice: '',
+    assignedEmployee: '',
+    status: 'new',
+    notes: ''
+  });
 
   // Determine if user is admin
   const isAdmin = employee && employee.role && employee.role.toLowerCase().includes('admin');
-
-  // Product Add Form State and Handlers
-  const [productForm, setProductForm] = useState({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
-  const [productFormError, setProductFormError] = useState('');
-  const productFormRefs = {
-    name: useRef(),
-    description: useRef(),
-    category: useRef(),
-    quantity: useRef(),
-    cost: useRef(),
-    price: useRef()
-  };
-  const handleProductFormChange = (e) => {
-    const { name, value } = e.target;
-    setProductForm(prev => ({ ...prev, [name]: value }));
-  };
-  const handleProductFormKeyDown = (nextField) => (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (nextField === 'submit') {
-        e.target.form && e.target.form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      } else if (productFormRefs[nextField] && productFormRefs[nextField].current) {
-        productFormRefs[nextField].current.focus();
-      }
-    }
-  };
-  const handleProductFormCancel = () => {
-    setProductForm({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
-    setProductFormError('');
-    if (productFormRefs.name.current) productFormRefs.name.current.focus();
-  };
-  const handleAddProductSubmit = async (e) => {
-    e.preventDefault();
-    setProductFormError('');
-    if (!productForm.name || !productForm.category || !productForm.quantity || !productForm.cost || !productForm.price) {
-      setProductFormError('Please fill all required fields.');
-      return;
-    }
-    try {
-      await fetch('/api/inventory/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productForm)
-      });
-      setProductForm({ name: '', description: '', category: '', quantity: '', cost: '', price: '' });
-      loadInventory();
-    } catch (err) {
-      setProductFormError('Failed to add product.');
-    }
-  };
 
   useEffect(() => {
     loadData();
@@ -378,6 +339,7 @@ const AuraNestTab = ({ employee }) => {
       setPaymentMethods(paymentMethodsRes);
       setVendors(vendorsRes);
       setAnalytics(analyticsRes);
+      setLeads(leadsRes.leads || leadsRes || []);
       setEmployees(employeesRes);
     } catch (error) {
       console.error('Error loading Aura Nest data:', error);
@@ -1622,21 +1584,13 @@ const AuraNestTab = ({ employee }) => {
     );
   };
 
-  const InventoryTab = ({
-    productForm,
-    productFormError,
-    handleAddProductSubmit,
-    handleProductFormChange,
-    handleProductFormKeyDown,
-    handleProductFormCancel
-  }) => {
+  const InventoryTab = () => {
     return (
       <div className="space-y-6">
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">Inventory Management</h2>
           {/* Always-visible Add Product Form */}
-          <form onSubmit={handleAddProductSubmit} className="p-8 mb-6 rounded-2xl shadow-xl bg-gradient-to-r from-green-100 via-blue-100 to-purple-100 border border-blue-100 animate-gradient-x space-y-4">
-            <h2 className="text-2xl font-bold mb-4 text-blue-700 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">Add New Product</h2>
+          <form onSubmit={handleAddProductSubmit} className="card p-6 mb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Product Name</label>
@@ -1806,6 +1760,457 @@ const AuraNestTab = ({ employee }) => {
             <div className="text-center py-8 text-gray-400">No inventory items found.</div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  // Lead Management Tab Component
+  const LeadsTab = () => {
+    const [showLeadForm, setShowLeadForm] = useState(false);
+    const [editingLead, setEditingLead] = useState(null);
+    const [leadForm, setLeadForm] = useState({
+      customerName: '',
+      customerPhone: '',
+      customerEmail: '',
+      productInterest: '',
+      expectedPrice: '',
+      assignedEmployee: '',
+      status: 'new',
+      source: '',
+      notes: '',
+      followUpDate: ''
+    });
+    const [leadsLoading, setLeadsLoading] = useState(false);
+    const [leadsError, setLeadsError] = useState('');
+
+    const handleLeadChange = (e) => {
+      const { name, value } = e.target;
+      setLeadForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+    const handleLeadSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        setLeadsLoading(true);
+        setLeadsError('');
+        
+        if (editingLead) {
+          await leadsAPI.update(editingLead._id, leadForm);
+        } else {
+          await leadsAPI.create(leadForm);
+        }
+        
+        // Refresh leads data
+        loadData();
+        setShowLeadForm(false);
+        setLeadForm({
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          productInterest: '',
+          expectedPrice: '',
+          assignedEmployee: '',
+          status: 'new',
+          source: '',
+          notes: '',
+          followUpDate: ''
+        });
+        setEditingLead(null);
+      } catch (error) {
+        console.error('Error saving lead:', error);
+        setLeadsError(error.response?.data?.error || 'Failed to save lead');
+      } finally {
+        setLeadsLoading(false);
+      }
+    };
+
+    const openLeadForm = (lead = null) => {
+      if (lead) {
+        setEditingLead(lead);
+        setLeadForm({
+          ...lead,
+          assignedEmployee: lead.assignedEmployee ? (typeof lead.assignedEmployee === 'object' ? lead.assignedEmployee._id : lead.assignedEmployee) : '',
+          expectedPrice: lead.expectedPrice || '',
+          followUpDate: lead.followUpDate ? new Date(lead.followUpDate).toISOString().split('T')[0] : ''
+        });
+      } else {
+        setEditingLead(null);
+        setLeadForm({
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          productInterest: '',
+          expectedPrice: '',
+          assignedEmployee: '',
+          status: 'new',
+          source: '',
+          notes: '',
+          followUpDate: ''
+        });
+      }
+      setShowLeadForm(true);
+    };
+
+    const closeLeadForm = () => {
+      setShowLeadForm(false);
+      setEditingLead(null);
+      setLeadsError('');
+    };
+
+    const handleDeleteLead = async (leadId) => {
+      if (window.confirm('Are you sure you want to delete this lead?')) {
+        try {
+          setLeadsLoading(true);
+          await leadsAPI.delete(leadId);
+          loadData(); // Refresh leads data
+        } catch (error) {
+          console.error('Error deleting lead:', error);
+          setLeadsError('Failed to delete lead');
+        } finally {
+          setLeadsLoading(false);
+        }
+      }
+    };
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case 'new': return 'bg-blue-100 text-blue-800';
+        case 'contacted': return 'bg-yellow-100 text-yellow-800';
+        case 'qualified': return 'bg-green-100 text-green-800';
+        case 'proposal': return 'bg-purple-100 text-purple-800';
+        case 'negotiation': return 'bg-orange-100 text-orange-800';
+        case 'closed_won': return 'bg-green-100 text-green-800';
+        case 'closed_lost': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Lead Management</h2>
+          <button
+            onClick={() => openLeadForm()}
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lead
+          </button>
+        </div>
+
+        {/* Lead Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Leads</p>
+                <p className="text-2xl font-bold text-gray-900">{leads.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Won</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => lead.status === 'closed_won').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => !lead.status.includes('closed')).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <XCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Lost</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {leads.filter(lead => lead.status === 'closed_lost').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        {leadsError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <XCircle className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{leadsError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leads Table */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Lead Pipeline</h3>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Search leads..."
+                className="input-field"
+              />
+              <select className="input-field">
+                <option value="">All Status</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="qualified">Qualified</option>
+                <option value="proposal">Proposal</option>
+                <option value="negotiation">Negotiation</option>
+                <option value="closed_won">Won</option>
+                <option value="closed_lost">Lost</option>
+              </select>
+            </div>
+          </div>
+          
+          {leads.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Interest</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Follow Up</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leads.map((lead) => (
+                    <tr key={lead._id || lead.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{lead.customerName || 'Unknown'}</div>
+                          <div className="text-sm text-gray-500">{lead.source || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm text-gray-900">{lead.customerPhone || '-'}</div>
+                          <div className="text-sm text-gray-500">{lead.customerEmail || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lead.productInterest || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PKR{lead.expectedPrice || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lead.assignedEmployee ? (typeof lead.assignedEmployee === 'object' ? lead.assignedEmployee.name : lead.assignedEmployee) : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(lead.status)}`}>
+                          {lead.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {lead.followUpDate ? new Date(lead.followUpDate).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => openLeadForm(lead)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteLead(lead._id)}
+                          className="text-red-600 hover:text-red-900"
+                          disabled={leadsLoading}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <User className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-lg font-medium text-gray-500">No leads found</p>
+              <p className="text-sm text-gray-400">Start by adding your first lead</p>
+            </div>
+          )}
+        </div>
+
+        {/* Lead Form Modal */}
+        {showLeadForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {editingLead ? 'Edit Lead' : 'Add New Lead'}
+              </h3>
+              <form onSubmit={handleLeadSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Customer Name</label>
+                    <input
+                      type="text"
+                      name="customerName"
+                      value={leadForm.customerName}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <input
+                      type="tel"
+                      name="customerPhone"
+                      value={leadForm.customerPhone}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      name="customerEmail"
+                      value={leadForm.customerEmail}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Product Interest</label>
+                    <input
+                      type="text"
+                      name="productInterest"
+                      value={leadForm.productInterest}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Expected Price</label>
+                    <input
+                      type="number"
+                      name="expectedPrice"
+                      value={leadForm.expectedPrice}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Assigned Employee</label>
+                    <select
+                      name="assignedEmployee"
+                      value={leadForm.assignedEmployee}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map(emp => (
+                        <option key={emp._id} value={emp._id}>{emp.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                      name="status"
+                      value={leadForm.status}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="qualified">Qualified</option>
+                      <option value="proposal">Proposal</option>
+                      <option value="negotiation">Negotiation</option>
+                      <option value="closed_won">Won</option>
+                      <option value="closed_lost">Lost</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Source</label>
+                    <input
+                      type="text"
+                      name="source"
+                      value={leadForm.source}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                      placeholder="e.g., Website, Referral, Social Media"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Follow Up Date</label>
+                    <input
+                      type="date"
+                      name="followUpDate"
+                      value={leadForm.followUpDate}
+                      onChange={handleLeadChange}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <textarea
+                    name="notes"
+                    value={leadForm.notes}
+                    onChange={handleLeadChange}
+                    className="input-field"
+                    rows="3"
+                    placeholder="Additional notes about this lead..."
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={closeLeadForm}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                    disabled={leadsLoading}
+                  >
+                    {leadsLoading ? 'Saving...' : (editingLead ? 'Update' : 'Add') + ' Lead'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -2075,7 +2480,16 @@ const AuraNestTab = ({ employee }) => {
         >
           Dashboard
         </button>
-        
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'leads'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-500 hover:text-green-600'
+          }`}
+        >
+          Lead Management
+        </button>
         <button
           onClick={() => setActiveTab('inventory')}
           className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
@@ -2126,16 +2540,8 @@ const AuraNestTab = ({ employee }) => {
       {activeTab === 'vendors' && <VendorsTab />}
       {activeTab === 'reports' && <ReportsTab />}
       {activeTab === 'orders' && <OrdersManagement isAdmin={isAdmin} />}
-      {activeTab === 'inventory' && (
-        <InventoryTab
-          productForm={productForm}
-          productFormError={productFormError}
-          handleAddProductSubmit={handleAddProductSubmit}
-          handleProductFormChange={handleProductFormChange}
-          handleProductFormKeyDown={handleProductFormKeyDown}
-          handleProductFormCancel={handleProductFormCancel}
-        />
-      )}
+      {activeTab === 'inventory' && <InventoryTab />}
+      {activeTab === 'leads' && <LeadsTab />}
       {activeTab === 'profit' && <ProfitAnalyticsTab />}
 
       {/* Modal Placeholder */}
