@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
 const Order = require('../models/Order');
-const Lead = require('../models/Lead');
 const Employee = require('../models/Employee');
 
 // Get all transactions with filters
@@ -44,7 +43,6 @@ router.get('/', async (req, res) => {
       .populate('validatedBy', 'name')
       .populate('reconciledBy', 'name')
       .populate('orderId', 'customerName customerPhone totalAmount')
-      .populate('leadId', 'customerName customerPhone')
       .sort({ transactionDate: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -72,8 +70,7 @@ router.get('/:id', async (req, res) => {
       .populate('approvedBy', 'name')
       .populate('validatedBy', 'name')
       .populate('reconciledBy', 'name')
-      .populate('orderId', 'customerName customerPhone totalAmount status')
-      .populate('leadId', 'customerName customerPhone status');
+      .populate('orderId', 'customerName customerPhone totalAmount status');
 
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
@@ -96,7 +93,6 @@ router.post('/', async (req, res) => {
       currency,
       source,
       orderId,
-      leadId,
       customerName,
       customerPhone,
       paymentMethod,
@@ -143,7 +139,6 @@ router.post('/', async (req, res) => {
       currency: currency || 'PKR',
       source,
       orderId,
-      leadId,
       customerName,
       customerPhone,
       paymentMethod,
@@ -179,8 +174,7 @@ router.post('/', async (req, res) => {
 
     const populatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     console.log('🎉 Transaction creation completed successfully');
     res.status(201).json(populatedTransaction);
@@ -214,8 +208,7 @@ router.put('/:id', async (req, res) => {
 
     const updatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     res.json(updatedTransaction);
   } catch (error) {
@@ -247,8 +240,7 @@ router.patch('/:id/approve', async (req, res) => {
     const updatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
       .populate('approvedBy', 'name')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     res.json(updatedTransaction);
   } catch (error) {
@@ -279,8 +271,7 @@ router.patch('/:id/reject', async (req, res) => {
 
     const updatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     res.json(updatedTransaction);
   } catch (error) {
@@ -308,8 +299,7 @@ router.patch('/:id/validate', async (req, res) => {
     const updatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
       .populate('validatedBy', 'name')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     res.json(updatedTransaction);
   } catch (error) {
@@ -340,8 +330,7 @@ router.patch('/:id/reconcile', async (req, res) => {
     const updatedTransaction = await Transaction.findById(transaction._id)
       .populate('recordedBy', 'name email phone')
       .populate('reconciledBy', 'name')
-      .populate('orderId', 'customerName customerPhone')
-      .populate('leadId', 'customerName customerPhone');
+      .populate('orderId', 'customerName customerPhone');
 
     res.json(updatedTransaction);
   } catch (error) {
@@ -359,7 +348,6 @@ router.get('/pending-approval', async (req, res) => {
     })
     .populate('recordedBy', 'name email phone')
     .populate('orderId', 'customerName customerPhone totalAmount')
-    .populate('leadId', 'customerName customerPhone')
     .sort({ transactionDate: -1 });
 
     res.json(transactions);
