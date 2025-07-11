@@ -1826,9 +1826,7 @@ const AuraNestTab = ({ employee }) => {
       expectedPrice: '',
       assignedEmployee: '',
       status: 'new',
-      source: '',
-      notes: '',
-      followUpDate: ''
+      notes: ''
     });
     const [leadsLoading, setLeadsLoading] = useState(false);
     const [leadsError, setLeadsError] = useState('');
@@ -1864,9 +1862,7 @@ const AuraNestTab = ({ employee }) => {
           expectedPrice: '',
           assignedEmployee: '',
           status: 'new',
-          source: '',
-          notes: '',
-          followUpDate: ''
+          notes: ''
         });
         setEditingLead(null);
       } catch (error) {
@@ -1896,9 +1892,7 @@ const AuraNestTab = ({ employee }) => {
           expectedPrice: '',
           assignedEmployee: '',
           status: 'new',
-          source: '',
-          notes: '',
-          followUpDate: ''
+          notes: ''
         });
       }
       setShowLeadForm(true);
