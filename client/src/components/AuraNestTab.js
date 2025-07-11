@@ -1791,16 +1791,7 @@ const AuraNestTab = ({ employee }) => {
                         </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.orderId ? product.orderId.customerName : '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {product.status !== 'returned' && product.status !== 'cancelled' && (
-                        <button
-                          onClick={() => handleReturnProduct(product._id)}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          Mark Returned
-                        </button>
-                      )}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium"></td>
                   </tr>
                 ))}
               </tbody>
