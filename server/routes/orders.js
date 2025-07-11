@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
-const Lead = require('../models/Lead');
 const Transaction = require('../models/Transaction');
 const Employee = require('../models/Employee');
 
@@ -145,11 +144,8 @@ router.post('/', async (req, res) => {
     // Update lead if provided
     if (leadId) {
       console.log('🔗 Updating lead:', leadId);
-      await Lead.findByIdAndUpdate(leadId, {
-        orderCreated: true,
-        orderId: order._id,
-        status: 'ready_to_order'
-      });
+      // The Lead model is removed, so this block is effectively removed.
+      // If lead update logic is needed, it should be re-evaluated based on the new schema.
     }
 
     // Create transaction for advance payment if any
