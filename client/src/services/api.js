@@ -174,4 +174,18 @@ export const transactionsAPI = {
   getAuditTrail: (id) => api.get(`/transactions/${id}/audit-trail`)
 };
 
+// Products API calls
+export const productsAPI = {
+  getAll: (params) => api.get('/inventory/products', { params }),
+  getById: (id) => api.get(`/inventory/products/${id}`),
+  create: (data) => api.post('/inventory/products', data),
+  update: (id, data) => api.put(`/inventory/products/${id}`, data),
+  delete: (id) => api.delete(`/inventory/products/${id}`),
+  getInventory: () => api.get('/inventory/inventory'),
+  getOrders: () => api.get('/inventory/orders'),
+  createOrder: (data) => api.post('/inventory/orders', data),
+  cancelOrder: (id) => api.post(`/inventory/orders/${id}/cancel`),
+  returnProduct: (id) => api.post(`/inventory/products/${id}/return`)
+};
+
 export default api; 

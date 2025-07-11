@@ -29,7 +29,7 @@ import {
   LineChart as LineChartIcon
 } from 'lucide-react';
 import moment from 'moment';
-import { employeeAPI, leadsAPI, ordersAPI, transactionsAPI } from '../services/api';
+import { employeeAPI, leadsAPI, ordersAPI, transactionsAPI, productsAPI } from '../services/api';
 import { 
   XAxis, 
   YAxis, 
@@ -1616,14 +1616,9 @@ const AuraNestTab = ({ employee }) => {
       setProductFormError('');
       if (productFormRefs.name.current) productFormRefs.name.current.focus();
     };
-    // Placeholder for actual API call
+    // Use the proper API service
     const addProductAPI = async (product) => {
-      // Replace with your actual API logic
-      await fetch('/api/inventory/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product)
-      });
+      return await productsAPI.create(product);
     };
     const handleAddProductSubmit = async (e) => {
       e.preventDefault();
