@@ -184,58 +184,62 @@ router.get('/summary', async (req, res) => {
     const thisWeek = moment().startOf('week');
     const thisMonth = moment().startOf('month');
 
-    // Today's attendance
-    const todayAttendance = await Attendance.countDocuments({
-      date: today.toDate()
-    });
-
-    // This week's total hours
-    const weekHours = await Attendance.aggregate([
-      {
-        $match: {
-          date: { $gte: thisWeek.toDate() }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalHours: { $sum: '$totalHours' }
-        }
-      }
-    ]);
-
-    // This month's total hours
-    const monthHours = await Attendance.aggregate([
-      {
-        $match: {
-          date: { $gte: thisMonth.toDate() }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalHours: { $sum: '$totalHours' }
-        }
-      }
-    ]);
-
-    // Total employees
+    // Today's check-ins (for graph and stats)
+    const totalCheckIns = await Attendance.countDocuments({ date: today.toDate() });
+    const presentToday = await Attendance.countDocuments({ date: today.toDate() });
+    const late = await Attendance.countDocuments({ date: today.toDate(), wasLate: true });
+    // For 'onTime', count those who checked in and were not late
+    const onTime = await Attendance.countDocuments({ date: today.toDate(), wasLate: false });
+    // For 'absent', count employees who have no attendance record today
     const totalEmployees = await Employee.countDocuments();
+    const absent = totalEmployees - presentToday;
 
-    // Late employees today
-    const lateToday = await Attendance.countDocuments({
-      date: today.toDate(),
-      wasLate: true
+    // Daily data for the last 7 days (for attendance graph)
+    const last7Days = moment().subtract(6, 'days').startOf('day');
+    const dailyDataAgg = await Attendance.aggregate([
+      {
+        $match: {
+          date: { $gte: last7Days.toDate() }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          checkIns: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    // Fill missing days with 0 checkIns
+    const dailyData = [];
+    for (let i = 0; i < 7; i++) {
+      const date = moment(last7Days).add(i, 'days').format('YYYY-MM-DD');
+      const found = dailyDataAgg.find(d => d._id === date);
+      dailyData.push({ date, checkIns: found ? found.checkIns : 0 });
+    }
+    if (dailyData.length === 0) {
+      console.warn('[Analytics] /summary: dailyData is empty!');
+    } else {
+      console.log('[Analytics] /summary: dailyData =', JSON.stringify(dailyData));
+    }
+    console.log('[Analytics] /summary: Returning', {
+      totalCheckIns,
+      presentToday,
+      onTime,
+      late,
+      absent,
+      dailyData
     });
-
     res.json({
-      todayAttendance,
-      weekHours: weekHours[0]?.totalHours || 0,
-      monthHours: monthHours[0]?.totalHours || 0,
-      totalEmployees,
-      lateToday
+      totalCheckIns,
+      presentToday,
+      onTime,
+      late,
+      absent,
+      dailyData
     });
   } catch (error) {
+    console.error('[Analytics] /summary error:', error);
     res.status(500).json({ error: error.message });
   }
 });
