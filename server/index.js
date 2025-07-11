@@ -142,6 +142,7 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/resellers', require('./routes/resellers'));
 
 // Enhanced health check endpoint
 app.get('/api/health', (req, res) => {

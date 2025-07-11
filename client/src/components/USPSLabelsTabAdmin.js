@@ -3,9 +3,24 @@ import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
 import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
+import axios from 'axios';
+
+// Reseller Client form initial state
+const initialResellerClient = {
+  name: '',
+  email: '',
+  phone: '',
+  portal: 'ShipAir',
+  labelType: '',
+  vendorRate: '',
+  clientRate: '',
+  labels: '',
+  notes: ''
+};
 
 const USPSLabelsTabAdmin = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [activeResellerTab, setActiveResellerTab] = useState('labels'); // For Resellers Hub subtabs
   const [dashboard, setDashboard] = useState({ totalLabels: 0, averageRate: 0, totalRevenue: 0 });
   const [labels, setLabels] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -78,6 +93,23 @@ const USPSLabelsTabAdmin = () => {
   });
   const [dashboardDateFrom, setDashboardDateFrom] = useState('');
   const [dashboardDateTo, setDashboardDateTo] = useState('');
+
+  const [resellerMetrics, setResellerMetrics] = useState({ totalLabelsSold: 0, totalProfit: 0, totalResellerClients: 0 });
+  const [resellerMetricsLoading, setResellerMetricsLoading] = useState(false);
+  const [resellerMetricsError, setResellerMetricsError] = useState('');
+
+  // Reseller Clients state
+  const [resellerClients, setResellerClients] = useState([]);
+  const [clientForm, setClientForm] = useState(initialResellerClient);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [clientModalType, setClientModalType] = useState('add');
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [clientLoading, setClientLoading] = useState(false);
+  const [clientError, setClientError] = useState('');
+
+  // Add state for transaction screenshot
+  const [transactionScreenshot, setTransactionScreenshot] = useState(null);
+  const [transactionScreenshotUrl, setTransactionScreenshotUrl] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -364,6 +396,106 @@ const USPSLabelsTabAdmin = () => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  // Fetch Reseller Hub dashboard metrics
+  useEffect(() => {
+    if (activeTab === 'resellers') {
+      setResellerMetricsLoading(true);
+      setResellerMetricsError('');
+      axios.get('/api/resellers/dashboard/summary')
+        .then(res => {
+          setResellerMetrics(res.data);
+        })
+        .catch(err => {
+          setResellerMetricsError('Failed to load reseller metrics');
+        })
+        .finally(() => setResellerMetricsLoading(false));
+    }
+  }, [activeTab]);
+
+  // Load reseller clients
+  const loadResellerClients = async () => {
+    setClientLoading(true);
+    setClientError('');
+    try {
+      const res = await axios.get('/api/resellers/clients');
+      setResellerClients(res.data);
+    } catch (err) {
+      setClientError('Failed to load reseller clients');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (activeTab === 'resellers' && activeResellerTab === 'labels') {
+      loadResellerClients();
+    }
+  }, [activeTab, activeResellerTab]);
+
+  // Handle form input
+  const handleClientInput = (e) => {
+    const { name, value } = e.target;
+    setClientForm(f => ({ ...f, [name]: value }));
+    setClientError('');
+  };
+
+  // Open add/edit modal
+  const openClientModal = (type, client = null) => {
+    setClientModalType(type);
+    setSelectedClient(client);
+    setClientForm(client ? {
+      name: client.name,
+      email: client.email,
+      phone: client.phone,
+      portal: client.portal,
+      labelType: client.labelType,
+      vendorRate: client.vendorRate,
+      clientRate: client.clientRate,
+      labels: client.labels,
+      notes: client.notes || ''
+    } : initialResellerClient);
+    setClientModalOpen(true);
+  };
+  const closeClientModal = () => {
+    setClientModalOpen(false);
+    setSelectedClient(null);
+    setClientForm(initialResellerClient);
+    setClientError('');
+  };
+
+  // Submit add/edit client
+  const handleClientSubmit = async (e) => {
+    e.preventDefault();
+    setClientLoading(true);
+    setClientError('');
+    try {
+      if (clientModalType === 'add') {
+        await axios.post('/api/resellers/clients', clientForm);
+      } else if (clientModalType === 'edit' && selectedClient) {
+        await axios.put(`/api/resellers/clients/${selectedClient._id}`, clientForm);
+      }
+      closeClientModal();
+      loadResellerClients();
+    } catch (err) {
+      setClientError(err.response?.data?.error || 'Failed to save client');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
+  // Delete client
+  const handleDeleteClient = async (client) => {
+    if (!window.confirm('Delete this reseller client?')) return;
+    setClientLoading(true);
+    try {
+      await axios.delete(`/api/resellers/clients/${client._id}`);
+      loadResellerClients();
+    } catch (err) {
+      setClientError('Failed to delete client');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
@@ -428,6 +560,16 @@ const USPSLabelsTabAdmin = () => {
             }`}
           >
             Final Calculations
+          </button>
+          <button
+            onClick={() => setActiveTab('resellers')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'resellers'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-500 hover:text-yellow-600'
+            }`}
+          >
+            Resellers Hub
           </button>
         </div>
         <button
@@ -1507,6 +1649,199 @@ const USPSLabelsTabAdmin = () => {
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* Resellers Hub Tab */}
+      {activeTab === 'resellers' && (
+        <div className="space-y-8">
+          {/* Permission check placeholder (replace with real check) */}
+          {/* {hasResellersHubPermission ? ( */}
+          <>
+            {/* Subtab Navigation */}
+            <div className="flex space-x-4 border-b mb-6">
+              <button
+                className={`py-2 px-4 font-semibold text-sm border-b-2 transition-colors ${activeResellerTab === 'labels' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+                onClick={() => setActiveResellerTab('labels')}
+              >
+                Labels Management
+              </button>
+              <button
+                className={`py-2 px-4 font-semibold text-sm border-b-2 transition-colors ${activeResellerTab === 'transactions' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-green-600'}`}
+                onClick={() => setActiveResellerTab('transactions')}
+              >
+                Transaction Management
+              </button>
+            </div>
+
+            {/* Labels Management Section */}
+            {activeResellerTab === 'labels' && (
+              <div className="space-y-6">
+                {/* Dashboard metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                  <div className="flex items-center p-5 bg-gradient-to-br from-blue-100 to-blue-300 rounded-2xl shadow-md">
+                    <span className="material-icons text-blue-600 mr-4">label</span>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-700">{resellerMetricsLoading ? '...' : resellerMetrics.totalLabelsSold.toLocaleString()}</div>
+                      <div className="text-sm text-blue-800 font-medium">Total Labels Sold</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-5 bg-gradient-to-br from-green-100 to-green-300 rounded-2xl shadow-md">
+                    <span className="material-icons text-green-600 mr-4">attach_money</span>
+                    <div>
+                      <div className="text-2xl font-bold text-green-700">{resellerMetricsLoading ? '...' : `$${Number(resellerMetrics.totalProfit).toFixed(2)}`}</div>
+                      <div className="text-sm text-green-800 font-medium">Total Profit</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-5 bg-gradient-to-br from-yellow-100 to-yellow-300 rounded-2xl shadow-md">
+                    <span className="material-icons text-yellow-600 mr-4">group</span>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-700">{resellerMetricsLoading ? '...' : resellerMetrics.totalResellerClients}</div>
+                      <div className="text-sm text-yellow-800 font-medium">Total Reseller Clients</div>
+                    </div>
+                  </div>
+                </div>
+                {resellerMetricsError && (
+                  <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{resellerMetricsError}</div>
+                )}
+                {/* Add Client Button */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center"
+                    onClick={() => openClientModal('add')}
+                  >
+                    <span className="material-icons mr-2">person_add</span>
+                    Add Reseller Client
+                  </button>
+                </div>
+
+                {/* Clients Table */}
+                <div className="bg-white/80 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">Reseller Clients</h3>
+                  {clientError && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{clientError}</div>}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Portal</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Label Type</th>
+                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Vendor Rate</th>
+                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Client Rate</th>
+                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Profit/Label</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Labels</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clientLoading ? (
+                          <tr><td colSpan={11} className="text-center p-4 text-gray-400">Loading...</td></tr>
+                        ) : resellerClients.length === 0 ? (
+                          <tr><td colSpan={11} className="text-center p-4 text-gray-400">No reseller clients found.</td></tr>
+                        ) : resellerClients.map(client => (
+                          <tr key={client._id} className="border-b hover:bg-gray-50">
+                            <td className="p-2 font-medium">{client.name}</td>
+                            <td className="p-2">{client.email}</td>
+                            <td className="p-2">{client.phone}</td>
+                            <td className="p-2">{client.portal}</td>
+                            <td className="p-2">{client.labelType}</td>
+                            <td className="p-2 text-right">${Number(client.vendorRate).toFixed(2)}</td>
+                            <td className="p-2 text-right">${Number(client.clientRate).toFixed(2)}</td>
+                            <td className="p-2 text-right font-semibold text-green-700">${(Number(client.clientRate) - Number(client.vendorRate)).toFixed(2)}</td>
+                            <td className="p-2">{client.labels}</td>
+                            <td className="p-2">{client.notes}</td>
+                            <td className="p-2 text-center">
+                              <button className="text-blue-600 hover:text-blue-900 mr-2" onClick={() => openClientModal('edit', client)}><span className="material-icons">edit</span></button>
+                              <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClient(client)}><span className="material-icons">delete</span></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Add/Edit Client Modal */}
+                {clientModalOpen && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50" onClick={closeClientModal}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative" onClick={e => e.stopPropagation()}>
+                      <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" onClick={closeClientModal}><span className="material-icons">close</span></button>
+                      <h3 className="text-xl font-semibold mb-6">{clientModalType === 'add' ? 'Add New Reseller Client' : 'Edit Reseller Client'}</h3>
+                      {clientError && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{clientError}</div>}
+                      <form onSubmit={handleClientSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <input name="name" value={clientForm.name} onChange={handleClientInput} className="input-field w-full" required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Email</label>
+                            <input name="email" type="email" value={clientForm.email} onChange={handleClientInput} className="input-field w-full" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Phone</label>
+                            <input name="phone" type="tel" value={clientForm.phone} onChange={handleClientInput} className="input-field w-full" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Portal</label>
+                            <select name="portal" value={clientForm.portal} onChange={handleClientInput} className="input-field w-full" required>
+                              <option value="ShipAir">ShipAir</option>
+                              <option value="ShipRoger">ShipRoger</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Label Type</label>
+                            <input name="labelType" value={clientForm.labelType} onChange={handleClientInput} className="input-field w-full" required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Vendor Rate</label>
+                            <input name="vendorRate" type="number" min="0" step="0.01" value={clientForm.vendorRate} onChange={handleClientInput} className="input-field w-full" required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Client Rate</label>
+                            <input name="clientRate" type="number" min="0" step="0.01" value={clientForm.clientRate} onChange={handleClientInput} className="input-field w-full" required />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Labels</label>
+                            <textarea name="labels" value={clientForm.labels} onChange={handleClientInput} className="input-field w-full" rows={2} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Notes</label>
+                            <textarea name="notes" value={clientForm.notes} onChange={handleClientInput} className="input-field w-full" rows={2} />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-4">
+                          <button type="button" className="btn-secondary" onClick={closeClientModal}>Cancel</button>
+                          <button type="submit" className="btn-primary" disabled={clientLoading}>{clientLoading ? 'Saving...' : 'Save'}</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Transaction Management Section */}
+            {activeResellerTab === 'transactions' && (
+              <div className="space-y-6">
+                <div className="bg-white/80 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">Reseller Transactions</h3>
+                  <div className="text-gray-400">[Table of all reseller label transactions]</div>
+                </div>
+              </div>
+            )}
+          </>
+          {/* ) : (
+            <div className="text-center py-12">
+              <span className="material-icons text-red-500 text-6xl mb-4">lock</span>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
+            </div>
+          ) */}
         </div>
       )}
     </div>
