@@ -1141,20 +1141,6 @@ const AuraNestTab = ({ employee }) => {
               </p>
         </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Users className="h-6 w-6 text-purple-600" />
-            </div>
-                <div className="ml-3">
-                  <div className="font-semibold text-gray-800">Lead Quality</div>
-                  <div className="text-sm text-gray-600">High conversion rates</div>
-                </div>
-              </div>
-              <p className="text-gray-700 text-sm">
-                Lead quality has improved significantly. WhatsApp leads show the highest conversion rate at 53.8%.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -1196,19 +1182,7 @@ const AuraNestTab = ({ employee }) => {
           </div>
         </div>
 
-            <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl border-l-4 border-purple-500">
-            <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-            </div>
-              <div className="flex-1">
-                <div className="font-semibold text-gray-800">Payment Received</div>
-                <div className="text-sm text-gray-600">Full payment received for Silver Bracelet order</div>
-                <div className="text-xs text-gray-500 mt-1">12 minutes ago</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-orange-600">PKR8,000</div>
-              </div>
-          </div>
+           
         </div>
       </div>
 
@@ -1393,7 +1367,6 @@ const AuraNestTab = ({ employee }) => {
         </table>
         {vendors.length === 0 && (
           <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">No vendors found</p>
           </div>
         )}
