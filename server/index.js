@@ -20,7 +20,6 @@ const analyticsRoutes = require('./routes/analytics');
 const shiftRoutes = require('./routes/shifts');
 const uspsLabelsRoute = require('./routes/uspsLabels');
 const uspsGoalsRoute = require('./routes/uspsGoals');
-const auraNestRoutes = require('./routes/auraNest');
 const inventoryRoutes = require('./routes/inventory');
 const ordersRoutes = require('./routes/orders');
 const transactionsRoutes = require('./routes/transactions');
@@ -140,7 +139,6 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/usps-labels', uspsLabelsRoute);
 app.use('/api/usps-goals', uspsGoalsRoute);
 app.use('/api/tasks', require('./routes/tasks'));
-app.use('/api/aura-nest', auraNestRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/transactions', transactionsRoutes);
@@ -223,6 +221,8 @@ app.get('/api/test-jwt', (req, res) => {
   res.json(result);
 });
 
+// Serve uploaded files (e.g., product images, profile pictures)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static files from the React build
 app.use(express.static(path.join(__dirname, '../client/build')));
 
@@ -232,7 +232,7 @@ app.get('*', (req, res) => {
 });
 
 // Enhanced error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error('🚨 Server error:', err);
   console.error('   Stack:', err.stack);
   res.status(500).json({ 

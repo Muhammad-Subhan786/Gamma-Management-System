@@ -16,9 +16,7 @@ const USPSLabel = require('../models/USPSLabel');
 const USPSGoal = require('../models/USPSGoal');
 const Transaction = require('../models/Transaction');
 const Vendor = require('../models/Vendor');
-const Product = require('../models/Product');
 const Category = require('../models/Category');
-const Order = require('../models/Order');
 const PaymentMethod = require('../models/PaymentMethod');
 const InventoryMovement = require('../models/InventoryMovement');
 

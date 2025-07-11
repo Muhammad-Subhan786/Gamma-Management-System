@@ -67,12 +67,6 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Middleware to check admin
-const requireAdmin = (req, res, next) => {
-  if (req.employee && req.employee.role === 'admin') return next();
-  return res.status(403).json({ error: 'Admin access required' });
-};
-
 // Employee login
 router.post('/login', async (req, res) => {
   try {

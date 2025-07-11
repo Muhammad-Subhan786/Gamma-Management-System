@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
-const Employee = require('../models/Employee');
 
 // Get all orders with filters
 router.get('/', async (req, res) => {
@@ -99,7 +98,14 @@ router.post('/', async (req, res) => {
     // Validate required fields
     if (!customerName || !customerPhone || !customerAddress || !products || products.length === 0) {
       console.log('❌ Validation failed:', { customerName, customerPhone, customerAddress, productsLength: products?.length });
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Missing required fields', details: { customerName, customerPhone, customerAddress, productsLength: products?.length } });
+    }
+
+    // Check for invalid product entries
+    const invalidProducts = products.filter(p => !p.name || !p.price || p.quantity <= 0);
+    if (invalidProducts.length > 0) {
+      console.log('❌ Invalid products in order:', invalidProducts);
+      return res.status(400).json({ error: 'Invalid product(s) in order', invalidProducts });
     }
 
     console.log('✅ Validation passed, calculating totals...');
@@ -175,7 +181,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(populatedOrder);
   } catch (error) {
     console.error('❌ Error creating order:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
 

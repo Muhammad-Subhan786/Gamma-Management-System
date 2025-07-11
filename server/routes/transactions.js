@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
 const Order = require('../models/Order');
-const Employee = require('../models/Employee');
 
 // Get all transactions with filters
 router.get('/', async (req, res) => {
