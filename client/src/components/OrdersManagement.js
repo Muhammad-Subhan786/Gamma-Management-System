@@ -492,13 +492,13 @@ const OrdersManagement = ({ isAdmin }) => {
             >
               Create Order
             </button>
-            <button 
+        <button
               type="button" 
               onClick={resetForm} 
               className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
+        >
               Reset Form
-            </button>
+        </button>
           </div>
         </form>
       </div>
@@ -627,21 +627,21 @@ const OrdersManagement = ({ isAdmin }) => {
                       PKR {order.totalAmount?.toLocaleString()}
                     </div>
                     {order.advanceAmount > 0 && (
-                      <div className="text-sm text-gray-500">
-                        Advance: PKR {order.advanceAmount?.toLocaleString()}
-                      </div>
+                    <div className="text-sm text-gray-500">
+                      Advance: PKR {order.advanceAmount?.toLocaleString()}
+                    </div>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setShowDeliveryForm(true);
-                      }}
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowDeliveryForm(true);
+                        }}
                       className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                     >
                       Update Status
-                    </button>
+                      </button>
                   </td>
                 </tr>
               ))}
@@ -658,47 +658,47 @@ const OrdersManagement = ({ isAdmin }) => {
             <form onSubmit={handleUpdateDeliveryStatus} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Status</label>
-                <select
-                  value={deliveryData.deliveryStatus}
-                  onChange={(e) => setDeliveryData(prev => ({ ...prev, deliveryStatus: e.target.value }))}
+              <select
+                value={deliveryData.deliveryStatus}
+                onChange={(e) => setDeliveryData(prev => ({ ...prev, deliveryStatus: e.target.value }))}
                   className="input-field w-full"
-                  required
-                >
-                  <option value="">Select Status</option>
-                  <option value="not_started">Not Started</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="out_for_delivery">Out for Delivery</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="failed">Failed</option>
-                  <option value="returned">Returned</option>
-                </select>
+                required
+              >
+                <option value="">Select Status</option>
+                <option value="not_started">Not Started</option>
+                <option value="in_progress">In Progress</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="failed">Failed</option>
+                <option value="returned">Returned</option>
+              </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
-                <input
-                  type="text"
-                  value={deliveryData.trackingNumber}
-                  onChange={(e) => setDeliveryData(prev => ({ ...prev, trackingNumber: e.target.value }))}
+              <input
+                type="text"
+                value={deliveryData.trackingNumber}
+                onChange={(e) => setDeliveryData(prev => ({ ...prev, trackingNumber: e.target.value }))}
                   className="input-field w-full"
-                />
+              />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Courier Name</label>
-                <input
-                  type="text"
-                  value={deliveryData.courierName}
-                  onChange={(e) => setDeliveryData(prev => ({ ...prev, courierName: e.target.value }))}
+              <input
+                type="text"
+                value={deliveryData.courierName}
+                onChange={(e) => setDeliveryData(prev => ({ ...prev, courierName: e.target.value }))}
                   className="input-field w-full"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea
-                  value={deliveryData.notes}
-                  onChange={(e) => setDeliveryData(prev => ({ ...prev, notes: e.target.value }))}
+              <textarea
+                value={deliveryData.notes}
+                onChange={(e) => setDeliveryData(prev => ({ ...prev, notes: e.target.value }))}
                   className="input-field w-full"
                   rows={3}
-                />
+              />
               </div>
               <div className="flex gap-4">
                 <button

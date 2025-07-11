@@ -3,6 +3,21 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const InventoryMovement = require('../models/InventoryMovement');
+const multer = require('multer');
+const path = require('path');
+
+// Multer storage for product images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/profiles');
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 // Cancel order (updates order and inventory)
 router.post('/orders/:id/cancel', async (req, res) => {
@@ -176,6 +191,15 @@ router.get('/orders', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Product image upload endpoint
+router.post('/products/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  const imageUrl = `/uploads/profiles/${req.file.filename}`;
+  res.json({ imageUrl });
 });
 
 module.exports = router; 
