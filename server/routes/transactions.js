@@ -88,6 +88,8 @@ router.get('/:id', async (req, res) => {
 // Create new transaction
 router.post('/', async (req, res) => {
   try {
+    console.log('💰 Creating new transaction with data:', JSON.stringify(req.body, null, 2));
+    
     const {
       transactionType,
       amount,
@@ -106,13 +108,17 @@ router.post('/', async (req, res) => {
 
     // Validate required fields
     if (!transactionType || !amount || !source || !paymentMethod) {
+      console.log('❌ Transaction validation failed:', { transactionType, amount, source, paymentMethod });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Validate amount
     if (amount <= 0) {
+      console.log('❌ Invalid amount:', amount);
       return res.status(400).json({ error: 'Amount must be greater than 0' });
     }
+
+    console.log('✅ Transaction validation passed, creating transaction...');
 
     const transaction = new Transaction({
       transactionType,
@@ -128,13 +134,16 @@ router.post('/', async (req, res) => {
       notes,
       receiptNumber,
       receiptImage,
-      recordedBy: req.user?.id || req.body.recordedBy
+      recordedBy: req.user?.id || req.body.recordedBy || 'system' // Fallback to 'system' if no user
     });
 
+    console.log('💾 Saving transaction to database...');
     await transaction.save();
+    console.log('✅ Transaction saved successfully with ID:', transaction._id);
 
     // Update order if this is a payment
     if (orderId && (source === 'full_payment' || source === 'advance_payment')) {
+      console.log('🔗 Updating order payment status:', orderId);
       const order = await Order.findById(orderId);
       if (order) {
         if (source === 'advance_payment') {
@@ -147,6 +156,7 @@ router.post('/', async (req, res) => {
           order.deliveryStatus = 'delivered';
         }
         await order.save();
+        console.log('✅ Order payment status updated');
       }
     }
 
@@ -155,8 +165,10 @@ router.post('/', async (req, res) => {
       .populate('orderId', 'customerName customerPhone')
       .populate('leadId', 'customerName customerPhone');
 
+    console.log('🎉 Transaction creation completed successfully');
     res.status(201).json(populatedTransaction);
   } catch (error) {
+    console.error('❌ Error creating transaction:', error);
     res.status(500).json({ error: error.message });
   }
 });

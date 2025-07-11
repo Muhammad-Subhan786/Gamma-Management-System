@@ -80,6 +80,8 @@ router.get('/:id', async (req, res) => {
 // Create new order
 router.post('/', async (req, res) => {
   try {
+    console.log('📦 Creating new order with data:', JSON.stringify(req.body, null, 2));
+    
     const {
       customerName,
       customerPhone,
@@ -96,13 +98,18 @@ router.post('/', async (req, res) => {
 
     // Validate required fields
     if (!customerName || !customerPhone || !customerAddress || !products || products.length === 0) {
+      console.log('❌ Validation failed:', { customerName, customerPhone, customerAddress, productsLength: products?.length });
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    console.log('✅ Validation passed, calculating totals...');
 
     // Calculate totals
     const subtotal = products.reduce((sum, product) => {
       return sum + (product.price * product.quantity);
     }, 0);
+
+    console.log('💰 Calculated subtotal:', subtotal);
 
     const order = new Order({
       customerName,
@@ -124,10 +131,13 @@ router.post('/', async (req, res) => {
       specialInstructions
     });
 
+    console.log('💾 Saving order to database...');
     await order.save();
+    console.log('✅ Order saved successfully with ID:', order._id);
 
     // Update lead if provided
     if (leadId) {
+      console.log('🔗 Updating lead:', leadId);
       await Lead.findByIdAndUpdate(leadId, {
         orderCreated: true,
         orderId: order._id,
@@ -137,6 +147,7 @@ router.post('/', async (req, res) => {
 
     // Create transaction for advance payment if any
     if (advanceAmount && advanceAmount > 0) {
+      console.log('💳 Creating advance transaction for amount:', advanceAmount);
       const transaction = new Transaction({
         transactionType: 'advance',
         amount: advanceAmount,
@@ -147,17 +158,20 @@ router.post('/', async (req, res) => {
         customerPhone,
         paymentMethod: 'cash', // Default, can be updated
         description: `Advance payment for order ${order._id}`,
-        recordedBy: req.user?.id || assignedEmployee
+        recordedBy: req.user?.id || assignedEmployee || 'system' // Fallback to 'system' if no user
       });
       await transaction.save();
+      console.log('✅ Advance transaction created');
     }
 
     const populatedOrder = await Order.findById(order._id)
       .populate('assignedEmployee', 'name email phone')
       .populate('leadId', 'customerName customerPhone');
 
+    console.log('🎉 Order creation completed successfully');
     res.status(201).json(populatedOrder);
   } catch (error) {
+    console.error('❌ Error creating order:', error);
     res.status(500).json({ error: error.message });
   }
 });

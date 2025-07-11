@@ -109,7 +109,7 @@ const transactionSchema = new mongoose.Schema({
   recordedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
-    required: true
+    required: false // Make it optional for now
   },
   
   // Transaction Details
