@@ -31,6 +31,13 @@ const SessionManagementTab = () => {
       description: 'Manage and track tasks in a Trello-style board',
       icon: CheckCircle,
       color: 'purple'
+    },
+    {
+      id: 'resellers_hub',
+      name: 'Resellers Hub',
+      description: 'Access to Resellers Hub for label reselling and transactions',
+      icon: Shield,
+      color: 'yellow'
     }
   ];
 

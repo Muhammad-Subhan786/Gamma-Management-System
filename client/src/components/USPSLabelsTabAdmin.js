@@ -18,6 +18,16 @@ const initialResellerClient = {
   notes: ''
 };
 
+// Get current admin/employee from localStorage or context
+const getCurrentAdmin = () => {
+  try {
+    const data = localStorage.getItem('employeeData');
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+};
+
 const USPSLabelsTabAdmin = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeResellerTab, setActiveResellerTab] = useState('labels'); // For Resellers Hub subtabs
@@ -110,6 +120,32 @@ const USPSLabelsTabAdmin = () => {
   // Add state for transaction screenshot
   const [transactionScreenshot, setTransactionScreenshot] = useState(null);
   const [transactionScreenshotUrl, setTransactionScreenshotUrl] = useState('');
+
+  // Add state for transactions
+  const [resellerTransactions, setResellerTransactions] = useState([]);
+  const [transactionForm, setTransactionForm] = useState({
+    amount: '',
+    transactionType: 'sale',
+    notes: '',
+    screenshot: ''
+  });
+  const [transactionLoading, setTransactionLoading] = useState(false);
+  const [transactionError, setTransactionError] = useState('');
+  const [transactionScreenshotFile, setTransactionScreenshotFile] = useState(null);
+  const [transactionScreenshotPreview, setTransactionScreenshotPreview] = useState('');
+
+  const [currentAdmin, setCurrentAdmin] = useState(getCurrentAdmin());
+  useEffect(() => {
+    setCurrentAdmin(getCurrentAdmin());
+  }, []);
+  const hasResellersHubPermission = currentAdmin && Array.isArray(currentAdmin.allowedSessions) && currentAdmin.allowedSessions.includes('resellers_hub');
+
+  // Debug logging to help troubleshoot permission issues
+  useEffect(() => {
+    console.log('Current Admin Data:', currentAdmin);
+    console.log('Has Resellers Hub Permission:', hasResellersHubPermission);
+    console.log('Allowed Sessions:', currentAdmin?.allowedSessions);
+  }, [currentAdmin, hasResellersHubPermission]);
 
   useEffect(() => {
     loadDashboard();
@@ -496,6 +532,69 @@ const USPSLabelsTabAdmin = () => {
     }
   };
 
+  // Load transactions
+  const loadResellerTransactions = async () => {
+    setTransactionLoading(true);
+    setTransactionError('');
+    try {
+      const res = await axios.get('/api/resellers/transactions');
+      setResellerTransactions(res.data);
+    } catch (err) {
+      setTransactionError('Failed to load transactions');
+    } finally {
+      setTransactionLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (activeTab === 'resellers' && activeResellerTab === 'transactions') {
+      loadResellerTransactions();
+    }
+  }, [activeTab, activeResellerTab]);
+
+  // Handle transaction form input
+  const handleTransactionInput = (e) => {
+    const { name, value } = e.target;
+    setTransactionForm(f => ({ ...f, [name]: value }));
+    setTransactionError('');
+  };
+
+  // Handle screenshot file change
+  const handleTransactionScreenshotChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setTransactionScreenshotFile(file);
+    setTransactionScreenshotPreview(URL.createObjectURL(file));
+    // Upload to backend
+    const formData = new FormData();
+    formData.append('screenshot', file);
+    try {
+      const res = await axios.post('/api/resellers/upload-screenshot', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setTransactionForm(f => ({ ...f, screenshot: res.data.filename }));
+    } catch (err) {
+      setTransactionError('Failed to upload screenshot');
+    }
+  };
+
+  // Submit new transaction
+  const handleTransactionSubmit = async (e) => {
+    e.preventDefault();
+    setTransactionLoading(true);
+    setTransactionError('');
+    try {
+      await axios.post('/api/resellers/transactions', transactionForm);
+      setTransactionForm({ amount: '', transactionType: 'sale', notes: '', screenshot: '' });
+      setTransactionScreenshotFile(null);
+      setTransactionScreenshotPreview('');
+      loadResellerTransactions();
+    } catch (err) {
+      setTransactionError('Failed to save transaction');
+    } finally {
+      setTransactionLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
@@ -561,16 +660,18 @@ const USPSLabelsTabAdmin = () => {
           >
             Final Calculations
           </button>
-          <button
-            onClick={() => setActiveTab('resellers')}
-            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === 'resellers'
-                ? 'border-yellow-500 text-yellow-600'
-                : 'border-transparent text-gray-500 hover:text-yellow-600'
-            }`}
-          >
-            Resellers Hub
-          </button>
+          {hasResellersHubPermission && (
+            <button
+              onClick={() => setActiveTab('resellers')}
+              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'resellers'
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-transparent text-gray-500 hover:text-yellow-600'
+              }`}
+            >
+              Resellers Hub
+            </button>
+          )}
         </div>
         <button
           className="ml-4 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200 flex items-center"
@@ -586,6 +687,15 @@ const USPSLabelsTabAdmin = () => {
           <Loader2 className={`h-5 w-5 mr-2 animate-spin ${loading || employeesLoading ? '' : 'hidden'}`} />
           Refresh
         </button>
+      </div>
+
+      {/* Debug Permission Status */}
+      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="text-sm text-yellow-800">
+          <strong>Debug Info:</strong> Current Admin: {currentAdmin?.name || 'None'} | 
+          Resellers Hub Permission: {hasResellersHubPermission ? '✅ Granted' : '❌ Not Granted'} | 
+          Allowed Sessions: {currentAdmin?.allowedSessions?.join(', ') || 'None'}
+        </div>
       </div>
 
       {/* Overview & Analytics Tab */}
@@ -1653,7 +1763,7 @@ const USPSLabelsTabAdmin = () => {
       )}
 
       {/* Resellers Hub Tab */}
-      {activeTab === 'resellers' && (
+      {activeTab === 'resellers' && hasResellersHubPermission && (
         <div className="space-y-8">
           {/* Permission check placeholder (replace with real check) */}
           {/* {hasResellersHubPermission ? ( */}
@@ -1830,7 +1940,77 @@ const USPSLabelsTabAdmin = () => {
               <div className="space-y-6">
                 <div className="bg-white/80 rounded-2xl shadow-lg p-6">
                   <h3 className="text-lg font-bold mb-4">Reseller Transactions</h3>
-                  <div className="text-gray-400">[Table of all reseller label transactions]</div>
+                  {transactionError && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{transactionError}</div>}
+                  {/* Create Transaction Form */}
+                  <form onSubmit={handleTransactionSubmit} className="space-y-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Amount</label>
+                        <input name="amount" type="number" min="0" step="0.01" value={transactionForm.amount} onChange={handleTransactionInput} className="input-field w-full" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Type</label>
+                        <select name="transactionType" value={transactionForm.transactionType} onChange={handleTransactionInput} className="input-field w-full" required>
+                          <option value="sale">Sale</option>
+                          <option value="refund">Refund</option>
+                          <option value="adjustment">Adjustment</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">Notes</label>
+                        <textarea name="notes" value={transactionForm.notes} onChange={handleTransactionInput} className="input-field w-full" rows={2} />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">Screenshot</label>
+                        <input type="file" accept="image/*" onChange={handleTransactionScreenshotChange} className="input-field w-full" />
+                        {transactionScreenshotPreview && (
+                          <div className="mt-2">
+                            <img src={transactionScreenshotPreview} alt="Screenshot Preview" className="h-24 rounded shadow border" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <button type="submit" className="btn-primary" disabled={transactionLoading}>{transactionLoading ? 'Saving...' : 'Save Transaction'}</button>
+                    </div>
+                  </form>
+                  {/* Transactions Table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Screenshot</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {transactionLoading ? (
+                          <tr><td colSpan={5} className="text-center p-4 text-gray-400">Loading...</td></tr>
+                        ) : resellerTransactions.length === 0 ? (
+                          <tr><td colSpan={5} className="text-center p-4 text-gray-400">No transactions found.</td></tr>
+                        ) : resellerTransactions.map(tx => (
+                          <tr key={tx._id} className="border-b hover:bg-gray-50">
+                            <td className="p-2 font-medium">${Number(tx.amount).toFixed(2)}</td>
+                            <td className="p-2">{tx.transactionType}</td>
+                            <td className="p-2">{tx.notes}</td>
+                            <td className="p-2">
+                              {tx.screenshot ? (
+                                <a href={`/api/resellers/screenshot/${tx.screenshot}`} target="_blank" rel="noopener noreferrer">
+                                  <img src={`/api/resellers/screenshot/${tx.screenshot}`} alt="Screenshot" className="h-12 rounded shadow border" />
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">No screenshot</span>
+                              )}
+                            </td>
+                            <td className="p-2">{new Date(tx.transactionDate).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -1842,6 +2022,13 @@ const USPSLabelsTabAdmin = () => {
               <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
             </div>
           ) */}
+        </div>
+      )}
+      {activeTab === 'resellers' && !hasResellersHubPermission && (
+        <div className="text-center py-12">
+          <span className="material-icons text-red-500 text-6xl mb-4">lock</span>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
         </div>
       )}
     </div>
