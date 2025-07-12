@@ -31,7 +31,8 @@ const addAdminAsEmployee = async () => {
       role: 'CEO',
       employeeId: generateEmployeeId(), // Generate unique employee ID
       allowedSessions: ['usps_labels', 'tasks', 'resellers_hub'], // Grant all sessions including resellers_hub
-      password: await bcrypt.hash('password123', 10) // default password
+      password: await bcrypt.hash('password123', 10), // default password
+      isActive: true // Ensure admin is active
     };
 
     // Check if admin already exists by email or CNIC
@@ -47,7 +48,8 @@ const addAdminAsEmployee = async () => {
           name: adminData.name,
           role: adminData.role,
           email: adminData.email,
-          cnic: adminData.cnic
+          cnic: adminData.cnic,
+          isActive: true // Ensure admin is active
         },
         { new: true }
       );
