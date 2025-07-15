@@ -723,6 +723,13 @@ const AdminPortal = () => {
               <Code className="h-5 w-5 mr-2" />
               USPS Labels
             </button>
+            <button
+              onClick={() => setActiveTab('resellers-hub')}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'resellers-hub' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-yellow-100 hover:bg-yellow-50 hover:border-yellow-300'}`}
+            >
+              <Shield className="h-5 w-5 mr-2" />
+              Resellers Hub
+            </button>
           </nav>
         </div>
 
@@ -740,6 +747,7 @@ const AdminPortal = () => {
             {activeTab === 'sessions' && <SessionManagementTab />}
             {activeTab === 'tasks' && <AdminTasksBoard />}
             {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
+            {activeTab === 'resellers-hub' && <USPSLabelsTabAdmin initialTab="resellers" />}
           </>
         )}
       </main>

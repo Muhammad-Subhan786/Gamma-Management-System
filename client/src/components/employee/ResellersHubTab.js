@@ -208,14 +208,115 @@ const ResellersHubTab = ({ employee }) => {
       </div>
 
       {activeResellerTab === 'labels' && (
-          <div>
-              {/* Client Management UI from USPSLabelsTabAdmin */}
+        <div className="space-y-6">
+          {/* Dashboard metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <div className="flex items-center p-5 bg-gradient-to-br from-blue-100 to-blue-300 rounded-2xl shadow-md">
+              <span className="material-icons text-blue-600 mr-4">label</span>
+              <div>
+                <div className="text-2xl font-bold text-blue-700">{resellerMetricsLoading ? '...' : resellerMetrics.totalLabels.toLocaleString()}</div>
+                <div className="text-sm text-blue-800 font-medium">Total Labels</div>
+              </div>
+            </div>
+            <div className="flex items-center p-5 bg-gradient-to-br from-green-100 to-green-300 rounded-2xl shadow-md">
+              <span className="material-icons text-green-600 mr-4">attach_money</span>
+              <div>
+                <div className="text-2xl font-bold text-green-700">{resellerMetricsLoading ? '...' : `$${Number(resellerMetrics.totalProfit).toFixed(2)}`}</div>
+                <div className="text-sm text-green-800 font-medium">Total Profit</div>
+              </div>
+            </div>
+            <div className="flex items-center p-5 bg-gradient-to-br from-yellow-100 to-yellow-300 rounded-2xl shadow-md">
+              <span className="material-icons text-yellow-600 mr-4">group</span>
+              <div>
+                <div className="text-2xl font-bold text-yellow-700">{resellerMetricsLoading ? '...' : resellerMetrics.totalClients}</div>
+                <div className="text-sm text-yellow-800 font-medium">Total Clients</div>
+              </div>
+            </div>
           </div>
+          {clientError && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{clientError}</div>}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Portal</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Label Type</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Vendor Rate</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Client Rate</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Profit/Label</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Labels</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientLoading ? (
+                  <tr><td colSpan={10} className="text-center p-4 text-gray-400">Loading...</td></tr>
+                ) : resellerClients.length === 0 ? (
+                  <tr><td colSpan={10} className="text-center p-4 text-gray-400">No reseller clients found.</td></tr>
+                ) : resellerClients.map(client => (
+                  <tr key={client._id} className="border-b hover:bg-gray-50">
+                    <td className="p-2 font-medium">{client.name}</td>
+                    <td className="p-2">{client.email}</td>
+                    <td className="p-2">{client.phone}</td>
+                    <td className="p-2">{client.portal}</td>
+                    <td className="p-2">{client.labelType}</td>
+                    <td className="p-2 text-right">${Number(client.vendorRate).toFixed(2)}</td>
+                    <td className="p-2 text-right">${Number(client.clientRate).toFixed(2)}</td>
+                    <td className="p-2 text-right font-semibold text-green-700">${(Number(client.clientRate) - Number(client.vendorRate)).toFixed(2)}</td>
+                    <td className="p-2">{client.labels}</td>
+                    <td className="p-2">{client.notes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
       {activeResellerTab === 'transactions' && (
-          <div>
-              {/* Transaction Management UI from USPSLabelsTabAdmin */}
+        <div className="space-y-6">
+          <div className="bg-white/80 rounded-2xl shadow-lg p-6">
+            <h3 className="text-lg font-bold mb-4">Reseller Transactions</h3>
+            {transactionError && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4">{transactionError}</div>}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Screenshot</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactionLoading ? (
+                    <tr><td colSpan={5} className="text-center p-4 text-gray-400">Loading...</td></tr>
+                  ) : resellerTransactions.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center p-4 text-gray-400">No transactions found.</td></tr>
+                  ) : resellerTransactions.map(tx => (
+                    <tr key={tx._id} className="border-b hover:bg-gray-50">
+                      <td className="p-2 font-medium">${Number(tx.amount).toFixed(2)}</td>
+                      <td className="p-2">{tx.transactionType}</td>
+                      <td className="p-2">{tx.notes}</td>
+                      <td className="p-2">
+                        {tx.screenshot ? (
+                          <a href={`/api/resellers/screenshot/${tx.screenshot}`} target="_blank" rel="noopener noreferrer">
+                            <img src={`/api/resellers/screenshot/${tx.screenshot}`} alt="Screenshot" className="h-12 rounded shadow border" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">No screenshot</span>
+                        )}
+                      </td>
+                      <td className="p-2">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+        </div>
       )}
     </div>
   );
