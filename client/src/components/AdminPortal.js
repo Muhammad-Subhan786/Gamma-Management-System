@@ -45,6 +45,9 @@ import SessionManagementTab from './SessionManagementTab';
 import AdminTasksBoard from './AdminTasksBoard';
 import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 
+// Add admin state
+import { useCallback } from 'react';
+
 const AdminPortal = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -68,6 +71,7 @@ const AdminPortal = () => {
     bankAccount: '',
     role: ''
   });
+  const [admin, setAdmin] = useState(null);
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -82,6 +86,19 @@ const AdminPortal = () => {
       console.log('[AdminPortal] analytics.summary:', analytics.summary);
     }
   }, [analytics.summary]);
+
+  // Fetch current admin profile
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      try {
+        const res = await employeeAPI.getProfile();
+        setAdmin(res.data);
+      } catch (err) {
+        setAdmin(null);
+      }
+    };
+    fetchAdmin();
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -731,7 +748,7 @@ const AdminPortal = () => {
             {activeTab === 'tasks' && <AdminTasksBoard />}
             {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
             {/* Render Resellers Hub for CEO/admin regardless of allowedSessions */}
-            {activeTab === 'resellers-hub' && (employee && (employee.role === 'CEO' || employee.role === 'admin') ? <USPSLabelsTabAdmin /> : <div className="text-center py-12"><span className="material-icons text-red-500 text-6xl mb-4">lock</span><h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2><p className="text-gray-600">You don't have permission to access the Resellers Hub.</p></div>)}
+            {activeTab === 'resellers-hub' && (admin && (admin.role === 'CEO' || admin.role === 'admin') ? <USPSLabelsTabAdmin /> : <div className="text-center py-12"><span className="material-icons text-red-500 text-6xl mb-4">lock</span><h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2><p className="text-gray-600">You don't have permission to access the Resellers Hub.</p></div>)}
           </>
         )}
       </main>
