@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Menu,
   X,
-  Briefcase
+  Briefcase,
+  Shield
 } from 'lucide-react';
 import ProfileTab from './employee/ProfileTab';
 import DashboardTab from './employee/DashboardTab';
@@ -21,6 +22,7 @@ import TasksBoard from './employee/TasksBoard';
 import OrdersManagement from './OrdersManagement';
 import TransactionsManagement from './TransactionsManagement';
 import USPSLabelsTab from './employee/USPSLabelsTab';
+import ResellersHubTab from './employee/ResellersHubTab';
 
 // Add a simple LeadsTab for employees if import fails
 const EmployeeLeadsTab = () => {
@@ -152,7 +154,8 @@ const EmployeePortal = () => {
       { id: 'profile', label: 'My Profile', icon: User, alwaysVisible: true },
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
-      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' }
+      { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' },
+      { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield, sessionId: 'resellers_hub' }
     ];
 
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
@@ -339,6 +342,16 @@ const EmployeePortal = () => {
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
               <p className="text-gray-600">You don't have permission to access USPS Labels.</p>
+            </div>
+          )
+        ) : activeTab === 'resellers_hub' ? (
+          hasSessionAccess('resellers_hub') ? (
+            <ResellersHubTab employee={employee} />
+          ) : (
+            <div className="text-center py-12">
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
             </div>
           )
         ) : (

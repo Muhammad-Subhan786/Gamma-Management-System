@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
-import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search } from 'lucide-react';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search, X, Loader2, Calendar, Users, BarChart3, PieChart, Cell, RefreshCw, Plus, Edit, Trash2, DollarSign, FileImage, Target, Save, AlertTriangle, ChevronDown, CheckSquare, Briefcase, Info } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
 import axios from 'axios';
@@ -21,9 +21,8 @@ const initialResellerClient = {
 // Get current admin/employee from localStorage or context
 const getCurrentAdmin = () => {
   try {
-    const data = localStorage.getItem('employeeData');
-    return data ? JSON.parse(data) : null;
-  } catch {
+    return JSON.parse(localStorage.getItem('employeeData'));
+  } catch (e) {
     return null;
   }
 };
@@ -138,14 +137,12 @@ const USPSLabelsTabAdmin = () => {
   useEffect(() => {
     setCurrentAdmin(getCurrentAdmin());
   }, []);
-  const hasResellersHubPermission = currentAdmin && Array.isArray(currentAdmin.allowedSessions) && currentAdmin.allowedSessions.includes('resellers_hub');
 
   // Debug logging to help troubleshoot permission issues
   useEffect(() => {
     console.log('Current Admin Data:', currentAdmin);
-    console.log('Has Resellers Hub Permission:', hasResellersHubPermission);
     console.log('Allowed Sessions:', currentAdmin?.allowedSessions);
-  }, [currentAdmin, hasResellersHubPermission]);
+  }, [currentAdmin]);
 
   useEffect(() => {
     loadDashboard();
@@ -660,18 +657,16 @@ const USPSLabelsTabAdmin = () => {
           >
             Final Calculations
           </button>
-          {hasResellersHubPermission && (
-            <button
-              onClick={() => setActiveTab('resellers')}
-              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === 'resellers'
-                  ? 'border-yellow-500 text-yellow-600'
-                  : 'border-transparent text-gray-500 hover:text-yellow-600'
-              }`}
-            >
-              Resellers Hub
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab('resellers')}
+            className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'resellers'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-500 hover:text-yellow-600'
+            }`}
+          >
+            Resellers Hub
+          </button>
         </div>
         <button
           className="ml-4 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200 flex items-center"
@@ -693,7 +688,6 @@ const USPSLabelsTabAdmin = () => {
       <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="text-sm text-yellow-800">
           <strong>Debug Info:</strong> Current Admin: {currentAdmin?.name || 'None'} | 
-          Resellers Hub Permission: {hasResellersHubPermission ? '✅ Granted' : '❌ Not Granted'} | 
           Allowed Sessions: {currentAdmin?.allowedSessions?.join(', ') || 'None'}
         </div>
       </div>
@@ -1763,7 +1757,7 @@ const USPSLabelsTabAdmin = () => {
       )}
 
       {/* Resellers Hub Tab */}
-      {activeTab === 'resellers' && hasResellersHubPermission && (
+      {activeTab === 'resellers' && (
         <div className="space-y-8">
           {/* Permission check placeholder (replace with real check) */}
           {/* {hasResellersHubPermission ? ( */}
@@ -2022,13 +2016,6 @@ const USPSLabelsTabAdmin = () => {
               <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
             </div>
           ) */}
-        </div>
-      )}
-      {activeTab === 'resellers' && !hasResellersHubPermission && (
-        <div className="text-center py-12">
-          <span className="material-icons text-red-500 text-6xl mb-4">lock</span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
         </div>
       )}
     </div>
