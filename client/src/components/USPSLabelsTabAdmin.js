@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
-import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search, X, Users, BarChart3, PieChart, Cell, RefreshCw, FileImage, Save, AlertTriangle, ChevronDown, CheckSquare, Briefcase, Info } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie } from 'recharts';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search, X, Users, BarChart3, PieChart, RefreshCw, FileImage, Save, AlertTriangle, ChevronDown, CheckSquare, Briefcase, Info } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { DateTime } from 'luxon';
 import axios from 'axios';
 
