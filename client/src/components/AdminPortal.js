@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { employeeAPI, analyticsAPI, attendanceAPI } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Edit, 
@@ -45,6 +46,7 @@ import AdminTasksBoard from './AdminTasksBoard';
 import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 
 const AdminPortal = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
@@ -84,6 +86,7 @@ const AdminPortal = () => {
   const loadData = async () => {
     setLoading(true);
     try {
+      console.log('Loading admin portal data...');
       const [employeesRes, summaryRes, totalHoursRes, topPunctualRes, topHardworkingRes, shiftStatusRes] = await Promise.all([
         employeeAPI.getAll(),
         analyticsAPI.getSummary(),
@@ -93,6 +96,10 @@ const AdminPortal = () => {
         attendanceAPI.getShiftStatus()
       ]);
 
+      console.log('Employees response:', employeesRes);
+      console.log('Employees data:', employeesRes.data);
+      console.log('Number of employees loaded:', employeesRes.data?.length || 0);
+      
       setEmployees(employeesRes.data);
       setAnalytics({
         summary: summaryRes.data,
@@ -247,6 +254,12 @@ const AdminPortal = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdminAuthenticated');
+    localStorage.removeItem('employeeData');
+    navigate('/admin-login');
   };
 
   const DashboardTab = () => (
@@ -643,7 +656,7 @@ const AdminPortal = () => {
             <Sparkles className="h-8 w-8 mr-2 text-yellow-400 animate-pulse" />
             Aura Admin Portal
           </h1>
-          <button className="flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200">
+          <button className="flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200" onClick={handleLogout}>
             <Power className="h-5 w-5 mr-2" />Logout
           </button>
         </div>
@@ -693,6 +706,13 @@ const AdminPortal = () => {
               <Code className="h-5 w-5 mr-2" />
               USPS Labels
             </button>
+            <button
+              onClick={() => setActiveTab('resellers-hub')}
+              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'resellers-hub' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-yellow-100 hover:bg-yellow-50 hover:border-yellow-300'}`}
+            >
+              <Shield className="h-5 w-5 mr-2" />
+              Resellers Hub
+            </button>
           </nav>
         </div>
 
@@ -710,6 +730,8 @@ const AdminPortal = () => {
             {activeTab === 'sessions' && <SessionManagementTab />}
             {activeTab === 'tasks' && <AdminTasksBoard />}
             {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
+            {/* Render Resellers Hub for CEO/admin regardless of allowedSessions */}
+            {activeTab === 'resellers-hub' && (employee && (employee.role === 'CEO' || employee.role === 'admin') ? <USPSLabelsTabAdmin /> : <div className="text-center py-12"><span className="material-icons text-red-500 text-6xl mb-4">lock</span><h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2><p className="text-gray-600">You don't have permission to access the Resellers Hub.</p></div>)}
           </>
         )}
       </main>
