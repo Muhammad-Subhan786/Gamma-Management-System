@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { uspsLabelsAPI, uspsGoalsAPI, adminSettingsAPI } from '../services/api';
-import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search, X, Loader2, Calendar, Users, BarChart3, PieChart, Cell, RefreshCw, Plus, Edit, Trash2, DollarSign, FileImage, Target, Save, AlertTriangle, ChevronDown, CheckSquare, Briefcase, Info } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Edit, Trash2, DollarSign, User, Loader2, Target, Trophy, TrendingUp, Calendar, Plus, XCircle, Lock, Unlock, Save as SaveIcon, Search, X, Users, BarChart3, PieChart, Cell, RefreshCw, FileImage, Save, AlertTriangle, ChevronDown, CheckSquare, Briefcase, Info } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie } from 'recharts';
 import { DateTime } from 'luxon';
 import axios from 'axios';
 
@@ -852,7 +852,7 @@ const USPSLabelsTabAdmin = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Label Status Distribution</h3>
               {getStatusData().length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
+                  <RePieChart>
                     <Pie
                       data={getStatusData()}
                       cx="50%"
@@ -868,7 +868,7 @@ const USPSLabelsTabAdmin = () => {
                       ))}
                     </Pie>
                     <Tooltip />
-                  </PieChart>
+                  </RePieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-64 text-gray-400">
