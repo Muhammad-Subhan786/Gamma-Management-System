@@ -33,7 +33,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     advanceAmount: 0,
     priority: 'medium',
     notes: '',
-    specialInstructions: ''
+    specialInstructions: '',
+    assignedEmployee: isAdmin ? '' : (employee?._id || '')
   });
 
   const [productSearchTerm, setProductSearchTerm] = useState('');
@@ -53,6 +54,11 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   useEffect(() => {
     loadData();
     loadProducts();
+    if (isAdmin) {
+      fetch('/api/employees')
+        .then(res => res.json())
+        .then(data => setEmployees(data.employees || []));
+    }
   }, [filters]);
 
   const loadData = async () => {
@@ -61,7 +67,18 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
       const ordersRes = await ordersAPI.getAll(filters);
       let loadedOrders = ordersRes.data.orders || [];
       if (auraNestOnly && employee) {
-        loadedOrders = loadedOrders.filter(o => o.assignedEmployee === employee._id || o.employeeId === employee._id || o.assignedTo === employee._id);
+        loadedOrders = loadedOrders.filter(o => {
+          // assignedEmployee can be an ObjectId (string) or a populated object
+          if (!o.assignedEmployee) return false;
+          if (typeof o.assignedEmployee === 'string') {
+            return o.assignedEmployee === employee._id;
+          }
+          if (typeof o.assignedEmployee === 'object' && o.assignedEmployee._id) {
+            return o.assignedEmployee._id === employee._id;
+          }
+          // fallback for legacy fields
+          return o.employeeId === employee._id || o.assignedTo === employee._id;
+        });
       }
       setOrders(loadedOrders);
     } catch (error) {
@@ -74,8 +91,10 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   const loadProducts = async () => {
     try {
       const productsRes = await productsAPI.getAll();
-      setProducts(productsRes.data || []);
+      const data = productsRes.data;
+      setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
+      setProducts([]);
       console.error('Error loading products:', error);
     }
   };
@@ -85,7 +104,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     try {
       const orderData = {
         ...formData,
-        products: formData.products.filter(p => p.name && p.price > 0)
+        products: formData.products.filter(p => p.name && p.price > 0),
+        assignedEmployee: isAdmin ? formData.assignedEmployee : (employee?._id || undefined)
       };
       
       await ordersAPI.create(orderData);
@@ -126,7 +146,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
       advanceAmount: 0,
       priority: 'medium',
       notes: '',
-      specialInstructions: ''
+      specialInstructions: '',
+      assignedEmployee: isAdmin ? '' : (employee?._id || '')
     });
   };
 
@@ -182,9 +203,10 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   const handleProductSearch = (index, searchTerm) => {
     setProductSearchTerm(searchTerm);
     updateProduct(index, 'name', searchTerm);
-    
+
+    const safeProducts = Array.isArray(products) ? products : [];
     if (searchTerm.length > 2) {
-      const filtered = products.filter(product => 
+      const filtered = safeProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -247,275 +269,122 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
         <h2 className="text-2xl font-bold text-gray-900">Orders Management</h2>
       </div>
 
-      {/* Enhanced Professional Create Order Form */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Order</h3>
-        <form onSubmit={handleCreateOrder} className="space-y-6">
-          {/* Mandatory Fields Section */}
-          <div className="border-b border-gray-200 pb-4">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Required Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Name <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  name="customerName" 
-                  value={formData.customerName} 
-                  onChange={e => setFormData({ ...formData, customerName: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Phone <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  name="customerPhone" 
-                  value={formData.customerPhone} 
-                  onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  required 
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Address <span className="text-red-500">*</span>
-                </label>
-                <textarea 
-                  name="customerAddress" 
-                  value={formData.customerAddress} 
-                  onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  rows={3}
-                  required 
-                />
-              </div>
+      {/* On-brand Create Order Form */}
+      <div className="aura-card aura-glass p-8 mb-8 max-w-3xl mx-auto shadow-xl transition-all duration-300">
+        <h3 className="text-2xl font-extrabold aura-gradient-text mb-8 tracking-tight flex items-center gap-2">
+          <svg className="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+          Create New Order
+        </h3>
+        <form onSubmit={handleCreateOrder} className="space-y-8">
+          {/* Customer Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <input autoFocus type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field" placeholder="Customer Name *" required />
+            </div>
+            <div>
+              <input type="text" name="customerPhone" value={formData.customerPhone} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} className="input-field" placeholder="Customer Phone *" required />
+            </div>
+            <div>
+              <input type="text" name="secondaryPhone" value={formData.secondaryPhone} onChange={e => setFormData({ ...formData, secondaryPhone: e.target.value })} className="input-field" placeholder="Secondary Phone" />
+            </div>
+            <div className="md:col-span-2">
+              <input type="email" name="customerEmail" value={formData.customerEmail} onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} className="input-field" placeholder="Customer Email" />
+            </div>
+            <div className="md:col-span-3">
+              <textarea name="customerAddress" value={formData.customerAddress} onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} className="input-field" placeholder="Customer Address *" rows={2} required />
             </div>
           </div>
-
-          {/* Optional Fields Section */}
-          <div className="border-b border-gray-200 pb-4">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Additional Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone</label>
-                <input 
-                  type="text" 
-                  name="secondaryPhone" 
-                  value={formData.secondaryPhone} 
-                  onChange={e => setFormData({ ...formData, secondaryPhone: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
-                <input 
-                  type="email" 
-                  name="customerEmail" 
-                  value={formData.customerEmail} 
-                  onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Advance Amount (if applicable)</label>
-                <input 
-                  type="number" 
-                  name="advanceAmount" 
-                  value={formData.advanceAmount} 
-                  onChange={e => setFormData({ ...formData, advanceAmount: parseFloat(e.target.value) || 0 })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  min={0}
-                  step={0.01}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                <select 
-                  name="priority" 
-                  value={formData.priority} 
-                  onChange={e => setFormData({ ...formData, priority: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea 
-                  name="notes" 
-                  value={formData.notes} 
-                  onChange={e => setFormData({ ...formData, notes: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  rows={2} 
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
-                <textarea 
-                  name="specialInstructions" 
-                  value={formData.specialInstructions} 
-                  onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} 
-                  className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                  rows={2} 
-                />
-              </div>
+          {/* Order Details */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <input type="number" name="advanceAmount" value={formData.advanceAmount} onChange={e => setFormData({ ...formData, advanceAmount: parseFloat(e.target.value) || 0 })} className="input-field" placeholder="Advance Amount" min={0} step={0.01} />
+            </div>
+            <div>
+              <select name="priority" value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="input-field">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <textarea name="notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="input-field" placeholder="Notes" rows={2} />
+            </div>
+            <div className="md:col-span-4">
+              <textarea name="specialInstructions" value={formData.specialInstructions} onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} className="input-field" placeholder="Special Instructions" rows={2} />
             </div>
           </div>
-
-          {/* Product Selection Section */}
+          {/* Product Selection */}
           <div>
-            <h4 className="text-md font-medium text-gray-900 mb-4">Product Selection</h4>
+            <h4 className="text-lg font-bold aura-gradient-text mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+              Products
+            </h4>
             <div className="space-y-4">
               {formData.products.map((product, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                    {/* Product Image */}
+                <div key={idx} className="aura-card p-4 flex flex-col md:flex-row gap-4 items-start group transition-all duration-200">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-2">
-                      {product.image ? (
-                        <img 
-                          src={product.image} 
-                          alt={product.name} 
-                          className="w-20 h-20 object-cover rounded-lg border"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 bg-gray-200 rounded-lg border flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">No Image</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Details */}
-                    <div className="md:col-span-10">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {/* Product Name with Auto-complete */}
-                        <div className="md:col-span-2 relative">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Product Name <span className="text-red-500">*</span>
-                          </label>
-                          <input 
-                            type="text" 
-                            placeholder="Search products..." 
-                            value={product.name} 
-                            onChange={e => handleProductSearch(idx, e.target.value)} 
-                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                            required 
-                          />
-                          {/* Product Dropdown */}
-                          {showProductDropdown[idx] && filteredProducts.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                              {filteredProducts.map((prod) => (
-                                <div
-                                  key={prod._id}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
-                                  onClick={() => selectProduct(idx, prod)}
-                                >
-                                  <div className="font-medium">{prod.name}</div>
-                                  <div className="text-sm text-gray-600">PKR {prod.price}</div>
-                                </div>
-                              ))}
+                      <input type="text" placeholder="Product Name *" value={product.name} onChange={e => handleProductSearch(idx, e.target.value)} className="input-field" required />
+                      {showProductDropdown[idx] && filteredProducts.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-primary-200 rounded-md shadow-lg max-h-60 overflow-auto animate-fade-in">
+                          {filteredProducts.map((prod) => (
+                            <div
+                              key={prod._id}
+                              className="px-4 py-2 hover:bg-primary-50 cursor-pointer border-b border-primary-50 transition-colors"
+                              onClick={() => selectProduct(idx, prod)}
+                            >
+                              <div className="font-medium">{prod.name}</div>
+                              <div className="text-sm text-primary-600">PKR {prod.price}</div>
                             </div>
-                          )}
-                        </div>
-
-                        {/* Quantity */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Quantity <span className="text-red-500">*</span>
-                          </label>
-                          <input 
-                            type="number" 
-                            value={product.quantity} 
-                            min={1} 
-                            onChange={e => updateProduct(idx, 'quantity', parseInt(e.target.value) || 1)} 
-                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                            required 
-                          />
-                        </div>
-
-                        {/* Editable Price */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Price (PKR) <span className="text-red-500">*</span>
-                          </label>
-                          <input 
-                            type="number" 
-                            value={product.price} 
-                            min={0} 
-                            step={0.01}
-                            onChange={e => updateProduct(idx, 'price', parseFloat(e.target.value) || 0)} 
-                            className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                            required 
-                          />
-                        </div>
-                      </div>
-
-                      {/* Product Description */}
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea 
-                          value={product.description} 
-                          onChange={e => updateProduct(idx, 'description', e.target.value)} 
-                          className="input-field w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
-                          rows={2}
-                        />
-                      </div>
-
-                      {/* Remove Button */}
-                      {formData.products.length > 1 && (
-                        <div className="mt-2">
-                          <button 
-                            type="button" 
-                            onClick={() => removeProduct(idx)} 
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Remove Product
-                          </button>
+                          ))}
                         </div>
                       )}
                     </div>
+                    <div>
+                      <input type="number" value={product.quantity} min={1} onChange={e => updateProduct(idx, 'quantity', parseInt(e.target.value) || 1)} className="input-field" placeholder="Quantity *" required />
+                    </div>
+                    <div>
+                      <input type="number" value={product.price} min={0} step={0.01} onChange={e => updateProduct(idx, 'price', parseFloat(e.target.value) || 0)} className="input-field" placeholder="Price *" required />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 md:w-32">
+                    <textarea value={product.description} onChange={e => updateProduct(idx, 'description', e.target.value)} className="input-field" placeholder="Description" rows={2} />
+                    {formData.products.length > 1 && (
+                      <button type="button" onClick={() => removeProduct(idx)} className="btn-secondary text-xs font-medium transition-colors">Remove</button>
+                    )}
                   </div>
                 </div>
               ))}
-              
-              {/* Add Product Button */}
-              <button 
-                type="button" 
-                onClick={addProduct} 
-                className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
-              >
-                <div className="flex items-center justify-center">
-                  <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+              <button type="button" onClick={addProduct} className="w-full border-2 border-dashed border-primary-300 rounded-lg p-4 text-primary-600 hover:border-primary-500 hover:text-primary-700 transition-colors bg-primary-50/40 btn-secondary">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                   Add Another Product
                 </div>
               </button>
             </div>
           </div>
-
-          {/* Form Actions */}
-          <div className="flex gap-4 pt-4 border-t border-gray-200">
-            <button 
-              type="submit" 
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Create Order
-            </button>
-        <button
-              type="button" 
-              onClick={resetForm} 
-              className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-        >
-              Reset Form
-        </button>
+          {isAdmin && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Employee</label>
+              <select
+                name="assignedEmployee"
+                value={formData.assignedEmployee}
+                onChange={e => setFormData({ ...formData, assignedEmployee: e.target.value })}
+                className="input-field w-full"
+                required
+              >
+                <option value="">Select Employee</option>
+                {employees.map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name} ({emp.email})</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {/* Sticky Action Bar */}
+          <div className="sticky bottom-0 left-0 w-full bg-gradient-to-r from-primary-50/80 to-primary-100/80 border-t border-primary-200 py-4 px-6 flex gap-4 justify-end rounded-b-2xl shadow-lg z-10 transition-all duration-300">
+            <button type="submit" className="btn-primary px-8 py-3 font-bold shadow-md">Create Order</button>
+            <button type="button" onClick={resetForm} className="btn-secondary px-8 py-3 font-bold">Reset Form</button>
           </div>
         </form>
       </div>
@@ -597,6 +466,11 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                     Confirm Address
                   </th>
                 )}
+                {isAdmin && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Employee
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -665,6 +539,15 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                         />
                         <span className="ml-2 text-sm text-gray-700">Confirmed</span>
                       </label>
+                    </td>
+                  )}
+                  {isAdmin && (
+                    <td className="px-6 py-4">
+                      {order.assignedEmployee?.name ? (
+                        <span className="text-sm font-medium text-blue-700">{order.assignedEmployee.name}</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">Unassigned</span>
+                      )}
                     </td>
                   )}
                   <td className="px-6 py-4">
