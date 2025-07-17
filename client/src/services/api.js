@@ -144,7 +144,8 @@ export const ordersAPI = {
   update: (id, data) => api.put(`/orders/${id}`, data),
   delete: (id) => api.delete(`/orders/${id}`),
   updateDeliveryStatus: (id, data) => api.patch(`/orders/${id}/delivery-status`, data),
-  getAnalytics: (params) => api.get('/orders/analytics/summary', { params })
+  getAnalytics: (params) => api.get('/orders/analytics/summary', { params }),
+  patchOrderAddressConfirmed: (id, addressConfirmed) => api.patch(`/orders/${id}/address-confirmed`, { addressConfirmed })
 };
 
 // Transactions API calls

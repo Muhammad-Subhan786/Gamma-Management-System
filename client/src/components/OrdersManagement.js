@@ -50,10 +50,10 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     estimatedDelivery: ''
   });
 
-  const [addressConfirmed, setAddressConfirmed] = useState({});
   const [selectedOrders, setSelectedOrders] = useState([]);
   const csvLinkRef = useRef(null);
   const [showToast, setShowToast] = useState(false);
+  const [hoveredOrderId, setHoveredOrderId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -259,8 +259,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Helper: check if address is confirmed (admin only for auraNestAdmin)
-  const isAddressConfirmed = (order) => auraNestAdmin ? !!addressConfirmed[order._id] : true;
+  // Helper: check if address is confirmed (now from order.addressConfirmed)
+  const isAddressConfirmed = (order) => !!order.addressConfirmed;
 
   // Handle select/deselect order
   const handleSelectOrder = (order) => {
@@ -543,14 +543,21 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50">
-                  <td className="px-2 py-4">
+                  <td className="px-2 py-4 relative">
                     <input
                       type="checkbox"
                       checked={selectedOrders.includes(order._id)}
                       onChange={() => handleSelectOrder(order)}
                       disabled={!isAddressConfirmed(order)}
-                      title={!isAddressConfirmed(order) ? 'Admin must confirm address' : ''}
+                      onMouseEnter={() => setHoveredOrderId(order._id)}
+                      onMouseLeave={() => setHoveredOrderId(null)}
+                      aria-label={isAddressConfirmed(order) ? 'Select order' : 'Wait for admin to confirm the address'}
                     />
+                    {!isAddressConfirmed(order) && hoveredOrderId === order._id && (
+                      <div className="absolute left-8 top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs rounded px-3 py-1 shadow-lg z-50 whitespace-nowrap">
+                        Wait for admin to confirm the address.
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
@@ -611,8 +618,15 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                       <label className="inline-flex items-center">
                         <input
                           type="checkbox"
-                          checked={!!addressConfirmed[order._id]}
-                          onChange={e => setAddressConfirmed(prev => ({ ...prev, [order._id]: e.target.checked }))}
+                          checked={!!order.addressConfirmed}
+                          onChange={async (e) => {
+                            try {
+                              await ordersAPI.patchOrderAddressConfirmed(order._id, e.target.checked);
+                              loadData();
+                            } catch (err) {
+                              alert('Failed to update address confirmation.');
+                            }
+                          }}
                           className="form-checkbox h-5 w-5 text-green-600"
                         />
                         <span className="ml-2 text-sm text-gray-700">Confirmed</span>
