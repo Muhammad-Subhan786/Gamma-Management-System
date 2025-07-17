@@ -25,7 +25,8 @@ import {
   Sparkles,
   Zap,
   Target,
-  Activity
+  Activity,
+  Home
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -44,6 +45,7 @@ import ShiftsTab from './ShiftsTab';
 import SessionManagementTab from './SessionManagementTab';
 import AdminTasksBoard from './AdminTasksBoard';
 import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
+import AuraNestTabAdmin from './employee/AuraNestTabAdmin';
 
 // Add admin state
 import { useCallback } from 'react';
@@ -664,257 +666,68 @@ const AdminPortal = () => {
     );
   };
 
+  const getAvailableTabs = useCallback(() => {
+    const tabs = [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+      { id: 'employees', label: 'Employees', icon: Users },
+      { id: 'shifts', label: 'Shifts', icon: Calendar },
+      { id: 'tasks', label: 'Tasks', icon: CheckCircle },
+      { id: 'usps_labels', label: 'USPS Labels', icon: Home },
+      { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield },
+      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase }
+    ];
+    return tabs;
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#f5f3ff] to-[#f0fdfa] flex flex-col">
-      {/* Top Bar / Header */}
-      <header className="backdrop-blur-md bg-white/70 shadow-lg border-b border-indigo-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500 flex items-center">
-            <Sparkles className="h-8 w-8 mr-2 text-yellow-400 animate-pulse" />
-            Aura Admin Portal
-          </h1>
-          <button className="flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:scale-105 transition-transform duration-200" onClick={handleLogout}>
-            <Power className="h-5 w-5 mr-2" />Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Navigation Tabs */}
-      <div className="w-full bg-white/60 backdrop-blur-md shadow-md border-b border-indigo-100">
-        <nav className="max-w-7xl mx-auto flex space-x-2 px-4 py-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <Crown className="h-5 w-5 mr-2" /> Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('employees')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'employees' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <Users className="h-5 w-5 mr-2" />
-              Team Members
-            </button>
-            <button
-              onClick={() => setActiveTab('shifts')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'shifts' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <Clock className="h-5 w-5 mr-2" />
-              Shifts
-            </button>
-            <button
-              onClick={() => setActiveTab('sessions')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'sessions' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <Shield className="h-5 w-5 mr-2" />
-              Session Management
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'tasks' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Tasks
-            </button>
-            <button
-              onClick={() => setActiveTab('usps-labels')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'usps-labels' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-300'}`}
-            >
-              <Code className="h-5 w-5 mr-2" />
-              USPS Labels
-            </button>
-            <button
-              onClick={() => setActiveTab('resellers-hub')}
-              className={`flex items-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 whitespace-nowrap shadow-sm border-2 ${activeTab === 'resellers-hub' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-transparent scale-105' : 'bg-white/70 text-gray-700 border-yellow-100 hover:bg-yellow-50 hover:border-yellow-300'}`}
-            >
-              <Shield className="h-5 w-5 mr-2" />
-              Resellers Hub
-            </button>
-          </nav>
-        </div>
-
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Briefcase className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <span className="font-bold text-xl text-blue-700">Admin Portal</span>
+            </div>
+            {/* ... existing code ... */}
           </div>
-        ) : (
-          <>
+        </div>
+      </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Sidebar */}
+          <div className="md:w-1/4">
+            <nav className="space-y-2">
+              {getAvailableTabs().map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left font-medium transition-colors ${activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-blue-50'}`}
+                >
+                  <tab.icon className="h-5 w-5" />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          {/* Tab Content */}
+          <div className="md:w-3/4">
             {activeTab === 'dashboard' && <DashboardTab />}
             {activeTab === 'employees' && <EmployeesTab />}
             {activeTab === 'shifts' && <ShiftsTab />}
-            {activeTab === 'sessions' && <SessionManagementTab />}
             {activeTab === 'tasks' && <AdminTasksBoard />}
-            {activeTab === 'usps-labels' && <USPSLabelsTabAdmin />}
-            {activeTab === 'resellers-hub' && <USPSLabelsTabAdmin initialTab="resellers" />}
-          </>
-        )}
-      </main>
-
-      {/* Modal: update to glassmorphism style */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gradient-to-br from-indigo-200/60 via-purple-200/60 to-blue-200/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-white/90 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-indigo-100" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                <Users className="h-5 w-5 mr-2 text-blue-600" />
-                {modalType === 'add' ? 'Add New Team Member' : 'Edit Team Member'}
-              </h3>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employee ID</label>
-                  <input
-                    type="text"
-                    name="employeeId"
-                    value={formData.employeeId}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    required={modalType === 'add'}
-                    disabled={modalType === 'edit'}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">CNIC</label>
-                  <input
-                    type="text"
-                    name="cnic"
-                    value={formData.cnic}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="date"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      rows="3"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="bankAccount"
-                      value={formData.bankAccount}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Saving...' : (modalType === 'add' ? 'Add Team Member' : 'Update Team Member')}
-                </button>
-              </div>
-            </form>
+            {activeTab === 'usps_labels' && <USPSLabelsTabAdmin />}
+            {activeTab === 'resellers_hub' && <SessionManagementTab />}
+            {activeTab === 'aura_nest' && <AuraNestTabAdmin />}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

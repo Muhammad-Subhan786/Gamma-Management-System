@@ -7,7 +7,8 @@ import {
   RefreshCw,
   Shield,
   Zap,
-  XCircle
+  XCircle,
+  Briefcase
 } from 'lucide-react';
 
 const SessionManagementTab = () => {
@@ -38,6 +39,13 @@ const SessionManagementTab = () => {
       description: 'Access to Resellers Hub for label reselling and transactions',
       icon: Shield,
       color: 'yellow'
+    },
+    {
+      id: 'aura_nest',
+      name: 'Aura Nest',
+      description: 'Access to Aura Nest orders and analytics',
+      icon: Briefcase,
+      color: 'indigo'
     }
   ];
 

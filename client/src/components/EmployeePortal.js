@@ -23,6 +23,7 @@ import OrdersManagement from './OrdersManagement';
 import TransactionsManagement from './TransactionsManagement';
 import USPSLabelsTab from './employee/USPSLabelsTab';
 import ResellersHubTab from './employee/ResellersHubTab';
+import AuraNestTab from './employee/AuraNestTab';
 
 // Add a simple LeadsTab for employees if import fails
 const EmployeeLeadsTab = () => {
@@ -155,9 +156,9 @@ const EmployeePortal = () => {
       { id: 'shifts', label: 'My Shifts', icon: Calendar, alwaysVisible: true },
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' },
-      { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield, sessionId: 'resellers_hub' }
+      { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield, sessionId: 'resellers_hub' },
+      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase, sessionId: 'aura_nest' }
     ];
-
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
   }, [employee, hasSessionAccess]);
 
@@ -352,6 +353,16 @@ const EmployeePortal = () => {
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
               <p className="text-gray-600">You don't have permission to access the Resellers Hub.</p>
+            </div>
+          )
+        ) : activeTab === 'aura_nest' ? (
+          hasSessionAccess('aura_nest') ? (
+            <AuraNestTab employee={employee} />
+          ) : (
+            <div className="text-center py-12">
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You don't have permission to access the Aura Nest.</p>
             </div>
           )
         ) : (

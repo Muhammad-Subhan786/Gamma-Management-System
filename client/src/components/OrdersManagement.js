@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ordersAPI, productsAPI } from '../services/api';
 
-const OrdersManagement = ({ isAdmin }) => {
+const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) => {
   const [orders, setOrders] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
@@ -48,6 +48,8 @@ const OrdersManagement = ({ isAdmin }) => {
     estimatedDelivery: ''
   });
 
+  const [addressConfirmed, setAddressConfirmed] = useState({});
+
   useEffect(() => {
     loadData();
     loadProducts();
@@ -57,7 +59,11 @@ const OrdersManagement = ({ isAdmin }) => {
     try {
       setLoading(true);
       const ordersRes = await ordersAPI.getAll(filters);
-      setOrders(ordersRes.data.orders || []);
+      let loadedOrders = ordersRes.data.orders || [];
+      if (auraNestOnly && employee) {
+        loadedOrders = loadedOrders.filter(o => o.assignedEmployee === employee._id || o.employeeId === employee._id || o.assignedTo === employee._id);
+      }
+      setOrders(loadedOrders);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -586,6 +592,11 @@ const OrdersManagement = ({ isAdmin }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
+                {auraNestAdmin && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Confirm Address
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -643,6 +654,19 @@ const OrdersManagement = ({ isAdmin }) => {
                     </div>
                     )}
                   </td>
+                  {auraNestAdmin && (
+                    <td className="px-6 py-4">
+                      <label className="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={!!addressConfirmed[order._id]}
+                          onChange={e => setAddressConfirmed(prev => ({ ...prev, [order._id]: e.target.checked }))}
+                          className="form-checkbox h-5 w-5 text-green-600"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Confirmed</span>
+                      </label>
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                       <button
                         onClick={() => {
