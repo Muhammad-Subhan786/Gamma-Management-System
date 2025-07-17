@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ordersAPI, productsAPI } from '../services/api';
 
 const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) => {
@@ -22,6 +22,7 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     secondaryPhone: '',
     customerEmail: '',
     customerAddress: '',
+    city: '',
     products: [{ 
       name: '', 
       description: '', 
@@ -50,6 +51,9 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   });
 
   const [addressConfirmed, setAddressConfirmed] = useState({});
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const csvLinkRef = useRef(null);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -135,6 +139,7 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
       secondaryPhone: '',
       customerEmail: '',
       customerAddress: '',
+      city: '',
       products: [{ 
         name: '', 
         description: '', 
@@ -254,6 +259,59 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // Helper: check if address is confirmed (admin only for auraNestAdmin)
+  const isAddressConfirmed = (order) => auraNestAdmin ? !!addressConfirmed[order._id] : true;
+
+  // Handle select/deselect order
+  const handleSelectOrder = (order) => {
+    setSelectedOrders(prev =>
+      prev.includes(order._id)
+        ? prev.filter(id => id !== order._id)
+        : [...prev, order._id]
+    );
+  };
+  const handleSelectAll = () => {
+    const eligible = orders.filter(isAddressConfirmed).map(o => o._id);
+    if (eligible.every(id => selectedOrders.includes(id))) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(eligible);
+    }
+  };
+
+  // CSV generation for dodelive
+  const generateDodeliveCSV = () => {
+    const header = [
+      'Consignee Name', 'Consignee Address', 'Consignee Contact No', 'Consignee Email',
+      'Product Name', 'COD', 'Pieces', 'Weight', 'Destination', 'Customer Reference', 'Customer Comment', 'location_id'
+    ];
+    const rows = orders.filter(o => selectedOrders.includes(o._id)).map(order => [
+      order.customerName || '',
+      order.customerAddress || '',
+      order.customerPhone || '',
+      order.customerEmail || '',
+      (order.products && order.products.length > 0 ? order.products.map(p => p.name).join('; ') : ''),
+      order.totalAmount || '',
+      (order.products && order.products.length > 0 ? order.products.map(p => p.quantity).join('; ') : ''),
+      '', // Weight (optional, left blank)
+      order.city || '',
+      order._id || '', // Customer Reference
+      order.notes || '',
+      '' // location_id (optional)
+    ]);
+    const csvContent = [header, ...rows].map(r => r.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dodelive_labels_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -292,6 +350,9 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
             </div>
             <div className="md:col-span-3">
               <textarea name="customerAddress" value={formData.customerAddress} onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} className="input-field" placeholder="Customer Address *" rows={2} required />
+            </div>
+            <div className="md:col-span-1">
+              <input type="text" name="city" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="input-field" placeholder="City *" required />
             </div>
           </div>
           {/* Order Details */}
@@ -446,6 +507,9 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-2 py-3">
+                  <input type="checkbox" onChange={handleSelectAll} checked={orders.filter(isAddressConfirmed).length > 0 && orders.filter(isAddressConfirmed).every(o => selectedOrders.includes(o._id))} />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Order Details
                 </th>
@@ -479,6 +543,15 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50">
+                  <td className="px-2 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedOrders.includes(order._id)}
+                      onChange={() => handleSelectOrder(order)}
+                      disabled={!isAddressConfirmed(order)}
+                      title={!isAddressConfirmed(order) ? 'Admin must confirm address' : ''}
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       Order #{order._id.slice(-6)}
@@ -500,6 +573,11 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                     {order.secondaryPhone && (
                       <div className="text-sm text-gray-500">
                         Alt: {order.secondaryPhone}
+                      </div>
+                    )}
+                    {order.city && (
+                      <div className="text-sm text-gray-500">
+                        City: {order.city}
                       </div>
                     )}
                     {order.leadId && (
@@ -567,6 +645,25 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
           </table>
         </div>
       </div>
+
+      {/* Bulk action bar below table */}
+      {selectedOrders.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-xl px-8 py-4 flex items-center gap-6 border border-primary-200">
+          <span className="font-semibold text-primary-700">{selectedOrders.length} order(s) selected</span>
+          <button
+            className="btn-primary px-6 py-2 font-bold"
+            onClick={generateDodeliveCSV}
+          >
+            Generate Dodelive Labels
+          </button>
+        </div>
+      )}
+      {/* Toast/alert for success */}
+      {showToast && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg font-semibold">
+          Dodelive labels CSV generated and download started!
+        </div>
+      )}
 
       {/* Delivery Status Update Modal */}
       {showDeliveryForm && selectedOrder && (
