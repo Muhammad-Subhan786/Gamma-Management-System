@@ -143,6 +143,12 @@ const orderSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  addressConfirmation: {
+    confirmed: { type: Boolean, default: false },
+    confirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
+    confirmedAt: { type: Date },
+    notes: { type: String }
+  },
   
   // Timestamps
   orderDate: {

@@ -145,7 +145,8 @@ export const ordersAPI = {
   delete: (id) => api.delete(`/orders/${id}`),
   updateDeliveryStatus: (id, data) => api.patch(`/orders/${id}/delivery-status`, data),
   getAnalytics: (params) => api.get('/orders/analytics/summary', { params }),
-  patchOrderAddressConfirmed: (id, addressConfirmed) => api.patch(`/orders/${id}/address-confirmed`, { addressConfirmed })
+  patchOrderAddressConfirmation: (id, { confirmed, notes, adminId }) => api.patch(`/orders/${id}/address-confirmation`, { confirmed, notes, adminId }),
+  getCourierStats: (params) => api.get('/orders/courier-stats', { params }),
 };
 
 // Transactions API calls
@@ -176,6 +177,32 @@ export const productsAPI = {
   createOrder: (data) => api.post('/inventory/orders', data),
   cancelOrder: (id) => api.post(`/inventory/orders/${id}/cancel`),
   returnProduct: (id) => api.post(`/inventory/products/${id}/return`)
+};
+
+export const vendorsAPI = {
+  getAll: () => api.get('/vendors'),
+  getById: (id) => api.get(`/vendors/${id}`),
+  create: (data) => api.post('/vendors', data),
+  update: (id, data) => api.put(`/vendors/${id}`, data),
+  delete: (id) => api.delete(`/vendors/${id}`),
+  getPerformance: (id) => api.get(`/vendors/${id}/performance`),
+  getCouriers: () => api.get('/vendors/couriers'),
+};
+
+export const payrollAPI = {
+  getAll: () => api.get('/payroll'),
+  getById: (id) => api.get(`/payroll/${id}`),
+  create: (data) => api.post('/payroll', data),
+  update: (id, data) => api.put(`/payroll/${id}`, data),
+  delete: (id) => api.delete(`/payroll/${id}`),
+};
+
+export const expensesAPI = {
+  getAll: () => api.get('/expenses'),
+  getById: (id) => api.get(`/expenses/${id}`),
+  create: (data) => api.post('/expenses', data),
+  update: (id, data) => api.put(`/expenses/${id}`, data),
+  delete: (id) => api.delete(`/expenses/${id}`),
 };
 
 export default api; 

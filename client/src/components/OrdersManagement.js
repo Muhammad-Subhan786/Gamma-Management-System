@@ -6,7 +6,6 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filters, setFilters] = useState({
@@ -16,28 +15,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     trackingNumber: ''
   });
 
-  const [formData, setFormData] = useState({
-    customerName: '',
-    customerPhone: '',
-    secondaryPhone: '',
-    customerEmail: '',
-    customerAddress: '',
-    city: '',
-    products: [{ 
-      name: '', 
-      description: '', 
-      quantity: 1, 
-      price: 0, 
-      image: '',
-      productId: null 
-    }],
-    advanceAmount: 0,
-    priority: 'medium',
-    notes: '',
-    specialInstructions: '',
-    assignedEmployee: isAdmin ? '' : (employee?._id || '')
-  });
-
+  // Remove all formData, handleCreateOrder, resetForm, addProduct, removeProduct, updateProduct, and related state/hooks.
+  // Only keep logic for order listing, filtering, selection, and management.
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showProductDropdown, setShowProductDropdown] = useState({});
@@ -103,112 +82,12 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     }
   };
 
-  const handleCreateOrder = async (e) => {
-    e.preventDefault();
-    try {
-      const orderData = {
-        ...formData,
-        products: formData.products.filter(p => p.name && p.price > 0),
-        assignedEmployee: isAdmin ? formData.assignedEmployee : (employee?._id || undefined)
-      };
-      
-      await ordersAPI.create(orderData);
-      setShowCreateForm(false);
-      resetForm();
-      loadData();
-    } catch (error) {
-      let errorMsg = 'Error creating order.';
-      if (error.response && error.response.data && error.response.data.error) {
-        errorMsg += ' ' + error.response.data.error;
-        if (error.response.data.details) {
-          errorMsg += ' Details: ' + JSON.stringify(error.response.data.details);
-        }
-        if (error.response.data.invalidProducts) {
-          errorMsg += ' Invalid products: ' + JSON.stringify(error.response.data.invalidProducts);
-        }
-      }
-      alert(errorMsg);
-      console.error('Error creating order:', error);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      customerName: '',
-      customerPhone: '',
-      secondaryPhone: '',
-      customerEmail: '',
-      customerAddress: '',
-      city: '',
-      products: [{ 
-        name: '', 
-        description: '', 
-        quantity: 1, 
-        price: 0, 
-        image: '',
-        productId: null 
-      }],
-      advanceAmount: 0,
-      priority: 'medium',
-      notes: '',
-      specialInstructions: '',
-      assignedEmployee: isAdmin ? '' : (employee?._id || '')
-    });
-  };
-
-  const handleUpdateDeliveryStatus = async (e) => {
-    e.preventDefault();
-    try {
-      await ordersAPI.updateDeliveryStatus(selectedOrder._id, deliveryData);
-      setShowDeliveryForm(false);
-      setSelectedOrder(null);
-      setDeliveryData({
-        deliveryStatus: '',
-        notes: '',
-        trackingNumber: '',
-        courierName: '',
-        estimatedDelivery: ''
-      });
-      loadData();
-    } catch (error) {
-      console.error('Error updating delivery status:', error);
-    }
-  };
-
-  const addProduct = () => {
-    setFormData(prev => ({
-      ...prev,
-      products: [...prev.products, { 
-        name: '', 
-        description: '', 
-        quantity: 1, 
-        price: 0, 
-        image: '',
-        productId: null 
-      }]
-    }));
-  };
-
-  const removeProduct = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      products: prev.products.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateProduct = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      products: prev.products.map((product, i) => 
-        i === index ? { ...product, [field]: value } : product
-      )
-    }));
-  };
-
+  // Remove all formData, handleCreateOrder, resetForm, addProduct, removeProduct, updateProduct, and related state/hooks.
+  // Only keep logic for order listing, filtering, selection, and management.
   const handleProductSearch = (index, searchTerm) => {
     setProductSearchTerm(searchTerm);
-    updateProduct(index, 'name', searchTerm);
-
+    // updateProduct(index, 'name', searchTerm); // This line is removed
+    
     const safeProducts = Array.isArray(products) ? products : [];
     if (searchTerm.length > 2) {
       const filtered = safeProducts.filter(product =>
@@ -224,11 +103,11 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
   };
 
   const selectProduct = (index, product) => {
-    updateProduct(index, 'name', product.name);
-    updateProduct(index, 'description', product.description || '');
-    updateProduct(index, 'price', product.price || 0);
-    updateProduct(index, 'image', product.image || '');
-    updateProduct(index, 'productId', product._id);
+    // updateProduct(index, 'name', product.name); // This line is removed
+    // updateProduct(index, 'description', product.description || ''); // This line is removed
+    // updateProduct(index, 'price', product.price || 0); // This line is removed
+    // updateProduct(index, 'image', product.image || ''); // This line is removed
+    // updateProduct(index, 'productId', product._id); // This line is removed
     setShowProductDropdown(prev => ({ ...prev, [index]: false }));
     setProductSearchTerm('');
   };
@@ -259,8 +138,8 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Helper: check if address is confirmed (now from order.addressConfirmed)
-  const isAddressConfirmed = (order) => !!order.addressConfirmed;
+  // Helper: check if address is confirmed (now from order.addressConfirmation.confirmed)
+  const isAddressConfirmed = (order) => !!(order.addressConfirmation && order.addressConfirmation.confirmed);
 
   // Handle select/deselect order
   const handleSelectOrder = (order) => {
@@ -328,127 +207,7 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
       </div>
 
       {/* On-brand Create Order Form */}
-      <div className="aura-card aura-glass p-8 mb-8 max-w-3xl mx-auto shadow-xl transition-all duration-300">
-        <h3 className="text-2xl font-extrabold aura-gradient-text mb-8 tracking-tight flex items-center gap-2">
-          <svg className="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-          Create New Order
-        </h3>
-        <form onSubmit={handleCreateOrder} className="space-y-8">
-          {/* Customer Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <input autoFocus type="text" name="customerName" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className="input-field" placeholder="Customer Name *" required />
-            </div>
-            <div>
-              <input type="text" name="customerPhone" value={formData.customerPhone} onChange={e => setFormData({ ...formData, customerPhone: e.target.value })} className="input-field" placeholder="Customer Phone *" required />
-            </div>
-            <div>
-              <input type="text" name="secondaryPhone" value={formData.secondaryPhone} onChange={e => setFormData({ ...formData, secondaryPhone: e.target.value })} className="input-field" placeholder="Secondary Phone" />
-            </div>
-            <div className="md:col-span-2">
-              <input type="email" name="customerEmail" value={formData.customerEmail} onChange={e => setFormData({ ...formData, customerEmail: e.target.value })} className="input-field" placeholder="Customer Email" />
-            </div>
-            <div className="md:col-span-3">
-              <textarea name="customerAddress" value={formData.customerAddress} onChange={e => setFormData({ ...formData, customerAddress: e.target.value })} className="input-field" placeholder="Customer Address *" rows={2} required />
-            </div>
-            <div className="md:col-span-1">
-              <input type="text" name="city" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="input-field" placeholder="City *" required />
-            </div>
-          </div>
-          {/* Order Details */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <input type="number" name="advanceAmount" value={formData.advanceAmount} onChange={e => setFormData({ ...formData, advanceAmount: parseFloat(e.target.value) || 0 })} className="input-field" placeholder="Advance Amount" min={0} step={0.01} />
-            </div>
-            <div>
-              <select name="priority" value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="input-field">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <textarea name="notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="input-field" placeholder="Notes" rows={2} />
-            </div>
-            <div className="md:col-span-4">
-              <textarea name="specialInstructions" value={formData.specialInstructions} onChange={e => setFormData({ ...formData, specialInstructions: e.target.value })} className="input-field" placeholder="Special Instructions" rows={2} />
-            </div>
-          </div>
-          {/* Product Selection */}
-          <div>
-            <h4 className="text-lg font-bold aura-gradient-text mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-              Products
-            </h4>
-            <div className="space-y-4">
-              {formData.products.map((product, idx) => (
-                <div key={idx} className="aura-card p-4 flex flex-col md:flex-row gap-4 items-start group transition-all duration-200">
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-2">
-                      <input type="text" placeholder="Product Name *" value={product.name} onChange={e => handleProductSearch(idx, e.target.value)} className="input-field" required />
-                      {showProductDropdown[idx] && filteredProducts.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-primary-200 rounded-md shadow-lg max-h-60 overflow-auto animate-fade-in">
-                          {filteredProducts.map((prod) => (
-                            <div
-                              key={prod._id}
-                              className="px-4 py-2 hover:bg-primary-50 cursor-pointer border-b border-primary-50 transition-colors"
-                              onClick={() => selectProduct(idx, prod)}
-                            >
-                              <div className="font-medium">{prod.name}</div>
-                              <div className="text-sm text-primary-600">PKR {prod.price}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <input type="number" value={product.quantity} min={1} onChange={e => updateProduct(idx, 'quantity', parseInt(e.target.value) || 1)} className="input-field" placeholder="Quantity *" required />
-                    </div>
-                    <div>
-                      <input type="number" value={product.price} min={0} step={0.01} onChange={e => updateProduct(idx, 'price', parseFloat(e.target.value) || 0)} className="input-field" placeholder="Price *" required />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 md:w-32">
-                    <textarea value={product.description} onChange={e => updateProduct(idx, 'description', e.target.value)} className="input-field" placeholder="Description" rows={2} />
-                    {formData.products.length > 1 && (
-                      <button type="button" onClick={() => removeProduct(idx)} className="btn-secondary text-xs font-medium transition-colors">Remove</button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <button type="button" onClick={addProduct} className="w-full border-2 border-dashed border-primary-300 rounded-lg p-4 text-primary-600 hover:border-primary-500 hover:text-primary-700 transition-colors bg-primary-50/40 btn-secondary">
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                  Add Another Product
-                </div>
-              </button>
-            </div>
-          </div>
-          {isAdmin && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Employee</label>
-              <select
-                name="assignedEmployee"
-                value={formData.assignedEmployee}
-                onChange={e => setFormData({ ...formData, assignedEmployee: e.target.value })}
-                className="input-field w-full"
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map(emp => (
-                  <option key={emp._id} value={emp._id}>{emp.name} ({emp.email})</option>
-                ))}
-              </select>
-            </div>
-          )}
-          {/* Sticky Action Bar */}
-          <div className="sticky bottom-0 left-0 w-full bg-gradient-to-r from-primary-50/80 to-primary-100/80 border-t border-primary-200 py-4 px-6 flex gap-4 justify-end rounded-b-2xl shadow-lg z-10 transition-all duration-300">
-            <button type="submit" className="btn-primary px-8 py-3 font-bold shadow-md">Create Order</button>
-            <button type="button" onClick={resetForm} className="btn-secondary px-8 py-3 font-bold">Reset Form</button>
-          </div>
-        </form>
-      </div>
+      {/* This section is removed as per the edit hint */}
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow">
@@ -618,10 +377,13 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                       <label className="inline-flex items-center">
                         <input
                           type="checkbox"
-                          checked={!!order.addressConfirmed}
+                          checked={!!(order.addressConfirmation && order.addressConfirmation.confirmed)}
                           onChange={async (e) => {
                             try {
-                              await ordersAPI.patchOrderAddressConfirmed(order._id, e.target.checked);
+                              // Optionally, prompt for a note
+                              const notes = window.prompt('Add a note for address confirmation (optional):', order.addressConfirmation?.notes || '');
+                              // You should pass the adminId from context/session; here we use employee?._id as a placeholder
+                              await ordersAPI.patchOrderAddressConfirmation(order._id, { confirmed: e.target.checked, notes, adminId: employee?._id });
                               loadData();
                             } catch (err) {
                               alert('Failed to update address confirmation.');
@@ -630,6 +392,9 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
                           className="form-checkbox h-5 w-5 text-green-600"
                         />
                         <span className="ml-2 text-sm text-gray-700">Confirmed</span>
+                        {order.addressConfirmation && order.addressConfirmation.confirmed && (
+                          <span className="ml-2 text-xs text-gray-500">by {order.addressConfirmation.confirmedBy?.name || 'Admin'} on {order.addressConfirmation.confirmedAt ? new Date(order.addressConfirmation.confirmedAt).toLocaleString() : ''}</span>
+                        )}
                       </label>
                     </td>
                   )}
@@ -664,13 +429,13 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
       {selectedOrders.length > 0 && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-xl px-8 py-4 flex items-center gap-6 border border-primary-200">
           <span className="font-semibold text-primary-700">{selectedOrders.length} order(s) selected</span>
-          <button
+                <button
             className="btn-primary px-6 py-2 font-bold"
             onClick={generateDodeliveCSV}
           >
             Generate Dodelive Labels
-          </button>
-        </div>
+                </button>
+              </div>
       )}
       {/* Toast/alert for success */}
       {showToast && (
@@ -679,78 +444,7 @@ const OrdersManagement = ({ isAdmin, employee, auraNestOnly, auraNestAdmin }) =>
         </div>
       )}
 
-      {/* Delivery Status Update Modal */}
-      {showDeliveryForm && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Update Delivery Status</h3>
-            <form onSubmit={handleUpdateDeliveryStatus} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Status</label>
-              <select
-                value={deliveryData.deliveryStatus}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, deliveryStatus: e.target.value }))}
-                  className="input-field w-full"
-                required
-              >
-                <option value="">Select Status</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="out_for_delivery">Out for Delivery</option>
-                <option value="delivered">Delivered</option>
-                <option value="failed">Failed</option>
-                <option value="returned">Returned</option>
-              </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
-              <input
-                type="text"
-                value={deliveryData.trackingNumber}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, trackingNumber: e.target.value }))}
-                  className="input-field w-full"
-              />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Courier Name</label>
-              <input
-                type="text"
-                value={deliveryData.courierName}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, courierName: e.target.value }))}
-                  className="input-field w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-              <textarea
-                value={deliveryData.notes}
-                onChange={(e) => setDeliveryData(prev => ({ ...prev, notes: e.target.value }))}
-                  className="input-field w-full"
-                  rows={3}
-              />
-              </div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
-                >
-                  Update
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDeliveryForm(false);
-                    setSelectedOrder(null);
-                  }}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Delivery Status Update Modal removed after refactor */}
     </div>
   );
 };

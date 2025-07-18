@@ -2,6 +2,26 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
+const jwt = require('jsonwebtoken');
+const Employee = require('../models/Employee');
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// Middleware to verify admin
+async function verifyAdminToken(req, res, next) {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Access token required' });
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const employee = await Employee.findById(decoded.employeeId);
+    if (!employee || !employee.role || !employee.role.toLowerCase().includes('admin')) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    req.employee = employee;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
 
 // Get all orders with filters
 router.get('/', async (req, res) => {
@@ -15,7 +35,8 @@ router.get('/', async (req, res) => {
       startDate,
       endDate,
       page = 1,
-      limit = 20
+      limit = 20,
+      courierName
     } = req.query;
 
     const filter = { isActive: true };
@@ -25,6 +46,7 @@ router.get('/', async (req, res) => {
     if (assignedEmployee) filter.assignedEmployee = assignedEmployee;
     if (customerPhone) filter.customerPhone = { $regex: customerPhone, $options: 'i' };
     if (trackingNumber) filter.trackingNumber = { $regex: trackingNumber, $options: 'i' };
+    if (courierName) filter.courierName = { $regex: courierName, $options: 'i' };
     
     if (startDate || endDate) {
       filter.orderDate = {};
@@ -242,6 +264,27 @@ router.patch('/:id/delivery-status', async (req, res) => {
   }
 });
 
+// Remove old PATCH /orders/:id/address-confirmed
+// Add new PATCH /orders/:id/address-confirmation
+router.patch('/:id/address-confirmation', verifyAdminToken, async (req, res) => {
+  try {
+    const { confirmed, notes } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    order.addressConfirmation = {
+      confirmed: !!confirmed,
+      confirmedBy: req.employee._id,
+      confirmedAt: !!confirmed ? new Date() : null,
+      notes: notes || ''
+    };
+    await order.save();
+    res.json({ success: true, addressConfirmation: order.addressConfirmation });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 // Get order analytics
@@ -330,6 +373,34 @@ router.get('/analytics/summary', async (req, res) => {
       statusBreakdown: {},
       deliveryBreakdown: {}
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get order stats by courier
+router.get('/courier-stats', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const match = { isActive: true };
+    if (startDate || endDate) {
+      match.orderDate = {};
+      if (startDate) match.orderDate.$gte = new Date(startDate);
+      if (endDate) match.orderDate.$lte = new Date(endDate);
+    }
+    const stats = await Order.aggregate([
+      { $match: match },
+      { $group: {
+        _id: '$courierName',
+        totalOrders: { $sum: 1 },
+        delivered: { $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] } },
+        returned: { $sum: { $cond: [{ $eq: ['$status', 'returned'] }, 1, 0] } },
+        totalRevenue: { $sum: '$totalAmount' },
+        ats: { $avg: '$totalAmount' }
+      } },
+      { $sort: { totalOrders: -1 } }
+    ]);
+    res.json(stats);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

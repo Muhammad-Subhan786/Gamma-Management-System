@@ -23,6 +23,9 @@ const uspsGoalsRoute = require('./routes/uspsGoals');
 const inventoryRoutes = require('./routes/inventory');
 const ordersRoutes = require('./routes/orders');
 const transactionsRoutes = require('./routes/transactions');
+const vendorsRoutes = require('./routes/vendors');
+const expensesRoutes = require('./routes/expenses');
+const payrollRoutes = require('./routes/payroll');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -142,6 +145,9 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/vendors', vendorsRoutes);
+app.use('/api/expenses', expensesRoutes);
+app.use('/api/payroll', payrollRoutes);
 app.use('/api/resellers', require('./routes/resellers'));
 
 // Enhanced health check endpoint
@@ -172,10 +178,8 @@ app.get('/api/health', (req, res) => {
 app.get('/api/test', async (req, res) => {
   try {
     console.log('🧪 Running test endpoint...');
-    
     // Test database connection
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    
     // Test employee query
     let employeeCount = 0;
     let employeeTest = 'failed';
@@ -186,7 +190,6 @@ app.get('/api/test', async (req, res) => {
     } catch (error) {
       console.error('Employee query failed:', error.message);
     }
-    
     const testResult = {
       timestamp: new Date().toISOString(),
       database: dbStatus,
@@ -197,10 +200,8 @@ app.get('/api/test', async (req, res) => {
       jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
       jwtSecretLength: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0
     };
-    
     console.log('🧪 Test result:', testResult);
     res.json(testResult);
-    
   } catch (error) {
     console.error('Test endpoint error:', error);
     res.status(500).json({ error: error.message });
@@ -217,7 +218,6 @@ app.get('/api/test-jwt', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   };
-  
   console.log('🔐 JWT Secret test:', result);
   res.json(result);
 });
@@ -233,7 +233,7 @@ app.get('*', (req, res) => {
 });
 
 // Enhanced error handling middleware
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   console.error('🚨 Server error:', err);
   console.error('   Stack:', err.stack);
   res.status(500).json({ 
@@ -243,8 +243,6 @@ app.use((err, req, res) => {
   });
 });
 
-// Start server
-app.get('/api/health', (req, res) => res.send('OK'));
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);

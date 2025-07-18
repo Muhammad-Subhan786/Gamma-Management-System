@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { employeeAPI, analyticsAPI, attendanceAPI } from '../services/api';
+import { employeeAPI, analyticsAPI, attendanceAPI, vendorsAPI, expensesAPI, payrollAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -26,7 +26,8 @@ import {
   Zap,
   Target,
   Activity,
-  Home
+  Home,
+  Store
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -46,9 +47,24 @@ import SessionManagementTab from './SessionManagementTab';
 import AdminTasksBoard from './AdminTasksBoard';
 import USPSLabelsTabAdmin from './USPSLabelsTabAdmin';
 import AuraNestTabAdmin from './employee/AuraNestTabAdmin';
+import OrdersTab from './OrdersTab';
 
 // Add admin state
 import { useCallback } from 'react';
+
+const VendorsTab = () => (
+  <div className="space-y-6">
+    <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+      <Store className="h-6 w-6 mr-2 text-green-600" />
+      Vendors (ERP)
+    </h2>
+    <p className="text-gray-600 mt-1">Manage your product vendors, view details, and track performance.</p>
+    {/* TODO: Implement vendor list, create, edit, and delete functionality */}
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-gray-400 text-center">
+      Vendor management UI coming soon...
+    </div>
+  </div>
+);
 
 const AdminPortal = () => {
   const navigate = useNavigate();
@@ -74,6 +90,7 @@ const AdminPortal = () => {
     role: ''
   });
   const [admin, setAdmin] = useState(null);
+  const [erpStats, setErpStats] = useState({ vendors: 0, expenses: 0, payroll: 0 });
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -106,13 +123,16 @@ const AdminPortal = () => {
     setLoading(true);
     try {
       console.log('Loading admin portal data...');
-      const [employeesRes, summaryRes, totalHoursRes, topPunctualRes, topHardworkingRes, shiftStatusRes] = await Promise.all([
+      const [employeesRes, summaryRes, totalHoursRes, topPunctualRes, topHardworkingRes, shiftStatusRes, vendorsRes, expensesRes, payrollRes] = await Promise.all([
         employeeAPI.getAll(),
         analyticsAPI.getSummary(),
         analyticsAPI.getTotalHours(),
         analyticsAPI.getTopPunctual(),
         analyticsAPI.getTopHardworking(),
-        attendanceAPI.getShiftStatus()
+        attendanceAPI.getShiftStatus(),
+        vendorsAPI.getAll(),
+        expensesAPI.getAll(),
+        payrollAPI.getAll()
       ]);
 
       console.log('Employees response:', employeesRes);
@@ -128,6 +148,11 @@ const AdminPortal = () => {
       });
       setShiftEnded(shiftStatusRes.data.shiftEnded);
       setShiftEndTime(shiftStatusRes.data.shiftEndTime);
+      setErpStats({
+        vendors: Array.isArray(vendorsRes.data) ? vendorsRes.data.length : 0,
+        expenses: Array.isArray(expensesRes.data) ? expensesRes.data.length : 0,
+        payroll: Array.isArray(payrollRes.data) ? payrollRes.data.length : 0
+      });
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -419,6 +444,33 @@ const AdminPortal = () => {
             </div>
           </div>
         </div>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center">
+            <Store className="h-6 w-6 text-green-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Vendors</p>
+              <p className="text-2xl font-bold text-gray-900">{erpStats.vendors}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center">
+            <DollarSign className="h-6 w-6 text-yellow-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Expenses</p>
+              <p className="text-2xl font-bold text-gray-900">{erpStats.expenses}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center">
+            <CreditCard className="h-6 w-6 text-red-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Payroll Records</p>
+              <p className="text-2xl font-bold text-gray-900">{erpStats.payroll}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Charts Section */}
@@ -674,7 +726,8 @@ const AdminPortal = () => {
       { id: 'tasks', label: 'Tasks', icon: CheckCircle },
       { id: 'usps_labels', label: 'USPS Labels', icon: Home },
       { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield },
-      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase }
+      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase },
+      // Removed Vendors tab from main navigation
     ];
     return tabs;
   }, []);
@@ -687,17 +740,17 @@ const AdminPortal = () => {
           <div className="flex justify-between items-center py-4">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-4">
-              <div className="relative">
+                  <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Briefcase className="h-6 w-6 text-white" />
+                  </div>
                 </div>
-              </div>
               <span className="font-bold text-xl text-blue-700">Admin Portal</span>
-            </div>
+                  </div>
             {/* ... existing code ... */}
-          </div>
-        </div>
-      </div>
+                </div>
+                  </div>
+                </div>
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-8">
@@ -715,7 +768,7 @@ const AdminPortal = () => {
                 </button>
               ))}
             </nav>
-          </div>
+              </div>
           {/* Tab Content */}
           <div className="md:w-3/4">
             {activeTab === 'dashboard' && <DashboardTab />}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OrdersManagement from '../OrdersManagement';
+import OrdersTab from '../OrdersTab';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AuraNestDashboard = ({ employee }) => {
@@ -111,7 +112,7 @@ const AuraNestTab = ({ employee }) => {
         </button>
       </div>
       {activeTab === 'orders' && (
-        <OrdersManagement isAdmin={false} employee={employee} auraNestOnly />
+        <OrdersTab isAdmin={false} employee={employee} />
       )}
       {activeTab === 'dashboard' && (
         <AuraNestDashboard employee={employee} />

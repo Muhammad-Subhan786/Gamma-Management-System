@@ -19,7 +19,7 @@ import ProfileTab from './employee/ProfileTab';
 import DashboardTab from './employee/DashboardTab';
 import ShiftsTab from './employee/ShiftsTab';
 import TasksBoard from './employee/TasksBoard';
-import OrdersManagement from './OrdersManagement';
+import OrdersTab from './OrdersTab';
 import TransactionsManagement from './TransactionsManagement';
 import USPSLabelsTab from './employee/USPSLabelsTab';
 import ResellersHubTab from './employee/ResellersHubTab';
@@ -157,7 +157,7 @@ const EmployeePortal = () => {
       { id: 'tasks', label: 'My Tasks', icon: CheckCircle, sessionId: 'tasks' },
       { id: 'usps_labels', label: 'My USPS Labels', icon: Home, sessionId: 'usps_labels' },
       { id: 'resellers_hub', label: 'Resellers Hub', icon: Shield, sessionId: 'resellers_hub' },
-      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase, sessionId: 'aura_nest' }
+      { id: 'aura_nest', label: 'Aura Nest', icon: Briefcase, sessionId: 'aura_nest' },
     ];
     return tabs.filter(tab => tab.alwaysVisible || hasSessionAccess(tab.sessionId));
   }, [employee, hasSessionAccess]);
